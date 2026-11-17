@@ -1,10 +1,6 @@
 # Create an atomic structure dataset
 
-There are two methods for creating and sharing an atomic structure dataset. This guide will show you how to:
-
-* Create an atomic structure dataset from local files in python with [`Dataset.push_to_hub`]. This is an easy way that requires only a few steps in python.
-
-* Create an atomic structure dataset with `PdbFolder` or `MmcifFolder` and some metadata. This is a no-code solution for quickly creating a dataset with several thousand structures.
+Use [`AtomicStructure`] to store structure files in a dataset and decode them lazily with AtomWorks. Create a column from local paths in Python, or load a directory with `PdbFolder` or `MmcifFolder`. Both approaches support [`Dataset.push_to_hub`] for sharing.
 
 Source paths and bytes are stored unchanged. Structures are read with AtomWorks only when a row is decoded; casting a column does not parse its files. Live atom arrays, RDKit molecules and ASE objects are serialized as Zstandard-compressed BinaryCIF (`.bcif.zst`) by default. Saving or uploading preserves these compressed bytes; original source files keep their existing format and compression.
 
@@ -24,16 +20,16 @@ The `bio` extra installs base AtomWorks on Python 3.12+. AtomWorks' `ml`, `hf`, 
 You can load your own dataset using the paths to your structure files. Use the [`~Dataset.cast_column`] function to take a column of file paths, and cast it to the [`AtomicStructure`] feature:
 
 ```py
->>> from datasets import Dataset, AtomicStructure
-
->>> structure_dataset = Dataset.from_dict({"structure": ["path/to/1abc.cif.gz", "path/to/ligand.sdf", "path/to/2xyz.pdb"]}).cast_column("structure", AtomicStructure())
+>>> from datasets import AtomicStructure, Dataset
+>>> paths = ["path/to/1abc.cif.gz", "path/to/ligand.sdf", "path/to/2xyz.pdb"]
+>>> structure_dataset = Dataset.from_dict({"structure": paths}).cast_column("structure", AtomicStructure())
 >>> structure_dataset[0]["structure"]
 <atomworks.io.utils.atom_array_plus.AtomArrayPlus ...>
 ```
 
 Decoded output is an `AtomArrayPlus` for one model, an `AtomArrayPlusStack` for multiple models with matching atoms, or a list of arrays for models with differing atom sets.
 
-mmCIF (`.cif`, `.mmcif`), BinaryCIF (`.bcif`), PDB (`.pdb`, `.ent`), MOL/SDF (`.mol`, `.sdf`) and Mol2 (`.mol2`) files are supported, optionally compressed with gzip, bz2 or zstd. RDKit `Mol`, ASE `Atoms` and biotite `AtomArray` objects can be used instead of paths.
+mmCIF (`.cif`, `.mmcif`), BinaryCIF (`.bcif`), PDB (`.pdb`, `.ent`), MOL/SDF (`.mol`, `.sdf`, first record) and Mol2 (`.mol2`) files are supported, optionally compressed with gzip, bz2 or zstd. RDKit `Mol`, ASE `Atoms` and Biotite `AtomArray` objects can be used instead of paths. MOL/SDF and Mol2 bytes need a `path` with the corresponding extension so the decoder can identify the format.
 
 By default decoding uses AtomWorks' `minimal` preset: waters, hydrogens and crystallization aids are kept, and no missing atoms or biological assemblies are added. Minimal parsing still selects the first alternate conformer, normalizes identifiers and infers bonds. This is a parsed representation, not an exact copy of every file field; the stored source bytes remain unchanged. Use `decode=False` to retrieve the original encoding.
 
@@ -118,7 +114,7 @@ Creating or casting a dataset of paths does no structure I/O. Byte inputs (inclu
 
 ### Saving intentional edits
 
-Decoded arrays retain their original encoding in the `_hf_encoded` system annotation (`atoms.get_annotation("_hf_encoded", n_body=0)`), so a pass-through `map` preserves source bytes and metadata. To save edits explicitly, use `materialize`. It serializes the atoms as supplied, ignores the retained bytes, leaves the input unchanged, and does no additional preparation:
+Decoded structures retain their original encoding, so a pass-through `map` preserves source bytes and metadata. To save edits explicitly, use `materialize`. It serializes the atoms as supplied, ignores the retained bytes, leaves the input unchanged, and does no additional preparation:
 
 ```py
 >>> from datasets import AtomicStructure, Features
@@ -173,6 +169,8 @@ This example disables reuse of `map` caches because external files and CCD defin
 | Empty models | Rejected by materialization; filter these rows before preparing storage |
 
 CIF serialization can normalize author identifiers and annotation dtypes. It does not preserve all original file categories or custom Python objects; retain the original source dataset when that information matters. Bonds are read from standard CIF categories and inferred by AtomWorks; edited bond graphs, missing-versus-empty bonds and periodic boxes are not guaranteed to survive materialization. Keep the source bytes when exact file preservation matters. These are format-specific guarantees, not a general arbitrary-array codec.
+
+AtomWorks can write BinaryCIF columns in different orders across processes. Materialized files may therefore differ byte-for-byte even when their decoded values are identical.
 
 ## Migrating from the previous bio features
 

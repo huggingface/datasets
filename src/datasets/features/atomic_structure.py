@@ -2,6 +2,7 @@ import bz2
 import gzip
 import io
 import os
+import sys
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Union
 
@@ -79,7 +80,7 @@ class AtomicStructure:
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, os.PathLike, bytes, bytearray, dict, Any]) -> dict:
+    def encode_example(self, value: Any) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
@@ -100,24 +101,37 @@ class AtomicStructure:
             }
         if isinstance(value, _AtomicStructureModels):
             return dict(value._hf_encoded)
-        if hasattr(value, "get_annotation_categories") and type(value).__module__.startswith("atomworks."):
-            if "_hf_encoded" in value.get_annotation_categories(n_body=0):
-                retained = value.get_annotation("_hf_encoded", n_body=0).item()
-                if retained["owner"] == id(value):
-                    return dict(retained["value"])
-        if hasattr(value, "coord") and hasattr(value, "get_annotation_categories"):
-            _require_atomworks()
-            return {"path": None, "bytes": _write(value)}
-        if type(value).__module__.startswith("rdkit."):
-            _require_atomworks()
-            from atomworks.io.tools.rdkit import atom_array_from_rdkit
+        # Objects from these libraries have already imported their defining modules.
+        # Use isinstance so user-defined subclasses work too, without eager optional imports.
+        if config.BIOTITE_AVAILABLE and "biotite.structure" in sys.modules:
+            from biotite.structure import AtomArray, AtomArrayStack
 
-            atoms = atom_array_from_rdkit(value, remove_hydrogens=False)
-            atoms.chain_id[:] = "A"
-            return {"path": None, "bytes": _write(atoms)}
-        if type(value).__module__.startswith("ase.") and hasattr(value, "get_positions"):
-            _require_atomworks()
-            return {"path": None, "bytes": _write(_from_ase(value))}
+            if isinstance(value, (AtomArray, AtomArrayStack)):
+                _require_atomworks()
+                from atomworks.io.utils.atom_array_plus import AtomArrayPlus, AtomArrayPlusStack
+
+                if isinstance(value, (AtomArrayPlus, AtomArrayPlusStack)):
+                    if "_hf_encoded" in value.get_annotation_categories(n_body=0):
+                        retained = value.get_annotation("_hf_encoded", n_body=0).item()
+                        if retained["owner"] == id(value):
+                            return dict(retained["value"])
+                return {"path": None, "bytes": _serialize_structure(value)}
+        if "rdkit.Chem" in sys.modules:
+            from rdkit.Chem import Mol
+
+            if isinstance(value, Mol):
+                _require_atomworks()
+                from atomworks.io.tools.rdkit import atom_array_from_rdkit
+
+                atoms = atom_array_from_rdkit(value, remove_hydrogens=False)
+                atoms.chain_id[:] = "A"
+                return {"path": None, "bytes": _serialize_structure(atoms)}
+        if "ase" in sys.modules:
+            from ase import Atoms
+
+            if isinstance(value, Atoms):
+                _require_atomworks()
+                return {"path": None, "bytes": _serialize_structure(_from_ase(value))}
         raise ValueError(
             "An atomic structure should be a file path, file bytes, a dict with 'path' or 'bytes', a biotite "
             f"AtomArray, an RDKit Mol or an ASE Atoms, but got {type(value)}."
@@ -132,7 +146,7 @@ class AtomicStructure:
         Decode the result with ``AtomicStructure()`` to avoid preparing it twice.
         """
         _require_atomworks()
-        return {"path": None, "bytes": _write(atoms)}
+        return {"path": None, "bytes": _serialize_structure(atoms)}
 
     def decode_example(
         self, value: dict, token_per_repo_id=None
@@ -167,11 +181,9 @@ class AtomicStructure:
         atoms = self._read(_decompress(data), path)
         if isinstance(atoms, list):
             return _AtomicStructureModels(atoms, {"path": path, "bytes": data})
-        else:
-            # Preserve even compressed input bytes when a decoded row is passed through Dataset.map.
-            # A supported system annotation survives slicing without adding attributes to AtomArrayPlus.
-            # The owner check makes copies and slices serialize their own atoms instead of the full source.
-            atoms.set_annotation("_hf_encoded", {"owner": id(atoms), "value": {"path": path, "bytes": data}}, n_body=0)
+        # Preserve source bytes for pass-through maps. The owner check lets copies and
+        # slices serialize their own atoms instead of reusing the full source file.
+        atoms.set_annotation("_hf_encoded", {"owner": id(atoms), "value": {"path": path, "bytes": data}}, n_body=0)
         return atoms
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
@@ -256,22 +268,16 @@ class AtomicStructure:
             embedded_paths.append(
                 os.path.basename(path.split("::")[0]) if path is not None and bytes_ is not None else path
             )
-        paths = embedded_paths
         return pa.StructArray.from_arrays(
-            [pa.array(embedded, type=pa.binary()), pa.array(paths, type=pa.string())],
+            [pa.array(embedded, type=pa.binary()), pa.array(embedded_paths, type=pa.string())],
             ["bytes", "path"],
             mask=storage.is_null(),
         )
 
-    # ------------------------------------------------------------------------------------------- decoding
-
-    def _read(self, data: bytes, path: Optional[str]):
-        """Load atoms, then apply only the preparation the user requested."""
-        from atomworks.io import parse, prepare_atom_array
+    def _get_parse_config(self, file_type: str):
+        """Extend an AtomWorks preset with file loading and explicit user options."""
         from atomworks.io.config import ParseConfig
-        from biotite.structure import AtomArrayStack
 
-        file_type = _detect_format(data, path)
         options = dict(self.parse_config or {})
         preset = options.pop("preset", "minimal")
         unsupported = {
@@ -287,45 +293,50 @@ class AtomicStructure:
             raise ValueError(
                 f"Unsupported parse_config options: {sorted(unsupported)}. Use assembly= for assembly selection."
             )
-        preparation = ParseConfig.from_preset(preset, return_atom_array_plus=True, **options)
-        preparation = preparation.replace(
+        # Match atom_array_from_file's loss-minimizing defaults for the minimal preset.
+        defaults = {"extra_fields": "all"}
+        if preset == "minimal":
+            defaults.update(
+                add_bond_types_from_struct_conn=("covale", "disulf", "metalc"),
+                struct_conn_distance_policy="keep",
+            )
+        parse_config = ParseConfig.from_preset(preset, return_atom_array_plus=True, **{**defaults, **options})
+        return parse_config.replace(
             file_type=file_type,
             build_assembly=[str(self.assembly)] if self.assembly is not None else None,
-            return_atom_array_plus=True,
-            keep_cif_block=False,
-            extra_fields=options.get("extra_fields", "all"),
             load_standard_annotations=options.get(
                 "load_standard_annotations",
                 file_type in ("cif", "bcif")
-                and not preparation.add_missing_atoms
-                and not preparation.convert_mse_to_met,
-            ),
-            add_bond_types_from_struct_conn=options.get(
-                "add_bond_types_from_struct_conn",
-                ("covale", "disulf", "metalc") if preset == "minimal" else preparation.add_bond_types_from_struct_conn,
-            ),
-            struct_conn_distance_policy=options.get(
-                "struct_conn_distance_policy",
-                "keep" if preset == "minimal" else preparation.struct_conn_distance_policy,
+                and not parse_config.add_missing_atoms
+                and not parse_config.convert_mse_to_met,
             ),
         )
+
+    def _read(self, data: bytes, path: Optional[str]):
+        """Read atoms and apply the requested preparation and assembly selection."""
+        from atomworks.io import parse, prepare_atom_array
+        from biotite import InvalidFileError
+        from biotite.structure import AtomArrayStack
+
+        file_type = _detect_format(data, path)
+        parse_config = self._get_parse_config(file_type)
         if file_type in ("mol", "mol2"):
             if self.assembly is not None:
                 raise ValueError("Biological assemblies require PDB or CIF inputs.")
-            if {"model", "altloc", "altloc_seed", "extra_fields", "load_standard_annotations"} & options.keys():
+            if {"model", "altloc", "altloc_seed", "extra_fields", "load_standard_annotations"} & (
+                self.parse_config or {}
+            ).keys():
                 raise ValueError("Model/conformer loading options are supported only for PDB and CIF inputs.")
             from atomworks.io.utils.atom_array_plus import as_atom_array_plus
 
             atoms = as_atom_array_plus(_read_small_molecule(data, file_type))
-            return prepare_atom_array(atoms, config=preparation) if self.parse_config is not None else atoms
+            return prepare_atom_array(atoms, config=parse_config) if self.parse_config is not None else atoms
 
         source = io.StringIO(data.decode("utf-8")) if file_type in ("cif", "pdb") else io.BytesIO(data)
-        from biotite import InvalidFileError
-
         try:
-            result = parse(source, config=preparation)
+            result = parse(source, config=parse_config)
         except InvalidFileError:
-            if file_type != "pdb" or preparation.model is not None:
+            if file_type != "pdb" or parse_config.model is not None:
                 raise
             from biotite.structure.io.pdb import PDBFile
 
@@ -334,7 +345,7 @@ class AtomicStructure:
             if n_models < 2:
                 raise
             result = [
-                parse(io.StringIO(data.decode("utf-8")), config=preparation.replace(model=i))
+                parse(io.StringIO(data.decode("utf-8")), config=parse_config.replace(model=i))
                 for i in range(1, n_models + 1)
             ]
 
@@ -353,10 +364,8 @@ class AtomicStructure:
         return [select(entry) for entry in result] if isinstance(result, list) else select(result)
 
 
-# ----------------------------------------------------------------------------------------------- helpers
-
-
-def _write(atoms) -> bytes:
+def _serialize_structure(atoms) -> bytes:
+    """Copy and validate arrays, then write standard Zstandard-compressed BinaryCIF."""
     import numpy as np
     from atomworks.io import CIFWriteConfig, atom_array_to_file
     from atomworks.io.utils.atom_array_plus import AtomArrayPlus
@@ -367,9 +376,8 @@ def _write(atoms) -> bytes:
     if not models or any(not isinstance(model, AtomArray) for model in models):
         raise ValueError("materialize expects an atom array, stack, or nonempty list of atom arrays.")
     registered = set(STANDARD_ANNOTATIONS.get_field_names(n_body=1, include_aliases=True))
-    structures = []
+    models = [model.copy() for model in models]
     for model in models:
-        model = model.copy()
         if isinstance(model, AtomArrayPlus):
             model.del_annotation("_hf_encoded", n_body=0)
         unsupported = [
@@ -396,9 +404,8 @@ def _write(atoms) -> bytes:
             raise ValueError(
                 "AtomWorks cannot materialize an empty model. Filter empty structures before preparing storage."
             )
-        structures.append(model)
     return atom_array_to_file(
-        structures[0] if len(structures) == 1 else structures,
+        models[0] if len(models) == 1 else models,
         file_type="bcif.zst",
         config=CIFWriteConfig(
             extra_fields="all",
@@ -454,16 +461,17 @@ def _read_small_molecule(data: bytes, file_type: str):
 
 
 def _from_ase(atoms):
-    """ASE has no names for atoms and residues, which the standard categories need: use the element and a number."""
+    """Convert ASE atoms, filling missing names needed by the CIF writer."""
     import numpy as np
     from atomworks.io.utils.ase_conversions import ase_to_atom_array
     from biotite.structure import BondList
 
     array = ase_to_atom_array(atoms)
     n = array.array_length()
-    array.set_annotation("atom_name", np.char.add(array.element.astype(str), np.arange(1, n + 1).astype(str)))
-    array.set_annotation("res_name", np.full(n, "UNL"))
-    array.set_annotation("chain_id", np.full(n, "A"))
+    default_names = np.char.add(array.element.astype(str), np.arange(1, n + 1).astype(str))
+    array.set_annotation("atom_name", np.where(array.atom_name == "", default_names, array.atom_name))
+    array.set_annotation("res_name", np.where(array.res_name == "", "UNL", array.res_name))
+    array.set_annotation("chain_id", np.where(array.chain_id == "", "A", array.chain_id))
     if array.bonds is None:
         array.bonds = BondList(n)
     return array

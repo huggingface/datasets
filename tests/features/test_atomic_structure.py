@@ -187,6 +187,27 @@ def test_parse_config_and_assembly():
 
 
 @require_atomworks
+@pytest.mark.parametrize(
+    "option",
+    [
+        "build_assembly",
+        "file_type",
+        "cache_dir",
+        "load_from_cache",
+        "save_to_cache",
+        "keep_cif_block",
+        "return_atom_array_plus",
+    ],
+)
+def test_parse_config_rejects_feature_managed_options_only_at_decode(option):
+    feature = AtomicStructure(parse_config={option: True})
+    encoded = feature.encode_example(CIF_FILE.read_bytes())
+    assert encoded == {"path": None, "bytes": CIF_FILE.read_bytes()}
+    with pytest.raises(ValueError, match="Unsupported parse_config options"):
+        feature.decode_example(encoded)
+
+
+@require_atomworks
 def test_multiple_models():
     stack = _roundtrip(MULTI_MODEL_PDB.encode())
     assert type(stack).__name__ == "AtomArrayPlusStack"
@@ -232,6 +253,58 @@ def test_encode_ase_structure():
     crystal = ase_build.bulk("Cu", "fcc", a=3.6, cubic=True)
     atoms = _roundtrip(crystal)
     np.testing.assert_allclose(atoms.coord, crystal.get_positions(), atol=1e-3)
+
+
+@require_atomworks
+@pytest.mark.parametrize("kind", ["atomworks", "rdkit", "ase"])
+def test_encode_live_object_subclasses(kind):
+    feature = AtomicStructure()
+    if kind == "atomworks":
+        from atomworks.io.utils.atom_array_plus import AtomArrayPlus
+
+        class CustomArray(AtomArrayPlus):
+            pass
+
+        source = _parse_with_atomworks(CIF_FILE)
+        value = CustomArray(len(source))
+        value.coord = source.coord.copy()
+        value.bonds = source.bonds.copy()
+        for name in source.get_annotation_categories():
+            value.set_annotation(name, source.get_annotation(name).copy())
+        encoded = {"path": "original.cif", "bytes": CIF_FILE.read_bytes()}
+        value.set_annotation("_hf_encoded", {"owner": id(value), "value": encoded}, n_body=0)
+        assert feature.encode_example(value) == encoded
+    elif kind == "rdkit":
+        Chem = pytest.importorskip("rdkit.Chem")
+
+        class CustomMol(Chem.Mol):
+            pass
+
+        value = CustomMol(Chem.MolFromMolBlock(ACETIC_ACID_SDF, removeHs=False))
+        assert _roundtrip(value).array_length() == 4
+    else:
+        ase = pytest.importorskip("ase")
+
+        class CustomAtoms(ase.Atoms):
+            pass
+
+        value = CustomAtoms("Cu", positions=[[0, 0, 0]])
+        assert _roundtrip(value).element.tolist() == ["Cu"]
+
+
+@require_atomworks
+def test_ase_preserves_existing_atom_residue_and_chain_names():
+    ase = pytest.importorskip("ase")
+
+    value = ase.Atoms("ON", positions=[[0, 0, 0], [5, 0, 0]])
+    value.set_array("atom_name", np.array(["O", ""]))
+    value.set_array("res_name", np.array(["HOH", ""]))
+    value.set_array("chain_id", np.array(["B", ""]))
+    atoms = _roundtrip(value)
+    assert atoms.atom_name.tolist() == ["O", "N2"]
+    assert atoms.res_name.tolist() == ["HOH", "UNL"]
+    assert atoms.chain_id.tolist() == ["B", "A"]
+    np.testing.assert_array_equal(atoms.coord, value.get_positions())
 
 
 @require_atomworks

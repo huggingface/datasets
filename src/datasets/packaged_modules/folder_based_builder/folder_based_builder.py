@@ -65,6 +65,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
         return self.BASE_FEATURE()
 
     def _is_base_file(self, path: str) -> bool:
+        """Recognize the same extensions during discovery and loading, including compressed files."""
         root, extension = os.path.splitext(path.split("::")[0])
         _, inner_extension = os.path.splitext(root)
         return extension.lower() in self.EXTENSIONS or inner_extension.lower() in self.EXTENSIONS
