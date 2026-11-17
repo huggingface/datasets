@@ -92,15 +92,17 @@ class JsonDatasetWriter:
         self.to_json_kwargs = to_json_kwargs
 
     def write(self) -> int:
-        _ = self.to_json_kwargs.pop("path_or_buf", None)
-        orient = self.to_json_kwargs.pop("orient", "records")
-        lines = self.to_json_kwargs.pop("lines", True if orient == "records" else False)
-        if "index" not in self.to_json_kwargs and orient in ["split", "table"]:
-            self.to_json_kwargs["index"] = False
+        # The writer may be reused; don't consume the caller's options.
+        to_json_kwargs = self.to_json_kwargs.copy()
+        _ = to_json_kwargs.pop("path_or_buf", None)
+        orient = to_json_kwargs.pop("orient", "records")
+        lines = to_json_kwargs.pop("lines", True if orient == "records" else False)
+        if "index" not in to_json_kwargs and orient in ["split", "table"]:
+            to_json_kwargs["index"] = False
 
         # Determine the default compression value based on self.path_or_buf type
         default_compression = "infer" if isinstance(self.path_or_buf, (str, bytes, os.PathLike)) else None
-        compression = self.to_json_kwargs.pop("compression", default_compression)
+        compression = to_json_kwargs.pop("compression", default_compression)
 
         if compression not in [None, "infer", "gzip", "bz2", "xz"]:
             raise NotImplementedError(f"`datasets` currently does not support {compression} compression")
@@ -114,14 +116,14 @@ class JsonDatasetWriter:
             with fsspec.open(
                 self.path_or_buf, "wb", compression=compression, **(self.storage_options or {})
             ) as buffer:
-                written = self._write(file_obj=buffer, orient=orient, lines=lines, **self.to_json_kwargs)
+                written = self._write(file_obj=buffer, orient=orient, lines=lines, **to_json_kwargs)
         else:
             if compression:
                 raise NotImplementedError(
                     f"The compression parameter is not supported when writing to a buffer, but compression={compression}"
                     " was passed. Please provide a local path instead."
                 )
-            written = self._write(file_obj=self.path_or_buf, orient=orient, lines=lines, **self.to_json_kwargs)
+            written = self._write(file_obj=self.path_or_buf, orient=orient, lines=lines, **to_json_kwargs)
         return written
 
     def _batch_json(self, args):

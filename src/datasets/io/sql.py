@@ -72,11 +72,13 @@ class SqlDatasetWriter:
         self.to_sql_kwargs = to_sql_kwargs
 
     def write(self) -> int:
-        _ = self.to_sql_kwargs.pop("sql", None)
-        _ = self.to_sql_kwargs.pop("con", None)
-        index = self.to_sql_kwargs.pop("index", False)
+        # The writer may be reused; don't consume the caller's options.
+        to_sql_kwargs = self.to_sql_kwargs.copy()
+        _ = to_sql_kwargs.pop("sql", None)
+        _ = to_sql_kwargs.pop("con", None)
+        index = to_sql_kwargs.pop("index", False)
 
-        written = self._write(index=index, **self.to_sql_kwargs)
+        written = self._write(index=index, **to_sql_kwargs)
         return written
 
     def _batch_sql(self, args):
