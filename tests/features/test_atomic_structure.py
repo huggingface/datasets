@@ -247,6 +247,53 @@ def test_encode_rdkit_molecule():
 
 
 @require_atomworks
+@pytest.mark.parametrize("num_conformers", [2, 32])
+def test_rdkit_preserves_atomworks_names_and_multiple_conformers(num_conformers):
+    Chem = pytest.importorskip("rdkit.Chem")
+    from atomworks.io.tools.rdkit import atom_array_to_rdkit
+
+    source = _parse_with_atomworks(CIF_FILE)
+    source.chain_id[:] = "B"
+    molecule = atom_array_to_rdkit(source, hydrogen_policy="keep")
+    first = molecule.GetConformer()
+    first.SetId(4)
+    for conformer_index in range(1, num_conformers):
+        conformer = Chem.Conformer(first)
+        conformer.SetId(4 + 5 * conformer_index)
+        for i in range(molecule.GetNumAtoms()):
+            position = first.GetAtomPosition(i)
+            conformer.SetAtomPosition(i, (position.x + 5 * conformer_index, position.y, position.z))
+        molecule.AddConformer(conformer, assignId=False)
+    expected = np.asarray([c.GetPositions() for c in molecule.GetConformers()], dtype=np.float32)
+    atoms = _roundtrip(molecule)
+    np.testing.assert_array_equal(atoms.coord, expected)
+    np.testing.assert_array_equal(atoms.atom_name, source.atom_name)
+    np.testing.assert_array_equal(atoms.res_name, source.res_name)
+    assert atoms.chain_id.tolist() == ["B"] * len(source)
+    assert [c.GetId() for c in molecule.GetConformers()] == [4 + 5 * i for i in range(num_conformers)]
+    np.testing.assert_array_equal(
+        np.asarray([c.GetPositions() for c in molecule.GetConformers()], dtype=np.float32), expected
+    )
+
+
+@require_atomworks
+@pytest.mark.parametrize(
+    "smiles", ["CCO", "c1ccccc1", "[NH4+]", "[Na+].[Cl-]", "C(=O)[O-]", "[H][H]", "F[C@](Cl)(Br)I"]
+)
+def test_rdkit_chemistry_without_coordinates(smiles):
+    Chem = pytest.importorskip("rdkit.Chem")
+
+    molecule = Chem.MolFromSmiles(smiles)
+    atoms = _roundtrip(molecule)
+    assert atoms.array_length() == molecule.GetNumAtoms()
+    assert atoms.element.tolist() == [atom.GetSymbol() for atom in molecule.GetAtoms()]
+    assert atoms.charge.tolist() == [atom.GetFormalCharge() for atom in molecule.GetAtoms()]
+    assert atoms.bonds.get_bond_count() == molecule.GetNumBonds()
+    assert np.isnan(atoms.coord).all()
+    assert molecule.GetNumConformers() == 0
+
+
+@require_atomworks
 def test_encode_ase_structure():
     ase_build = pytest.importorskip("ase.build")
 
@@ -305,6 +352,31 @@ def test_ase_preserves_existing_atom_residue_and_chain_names():
     assert atoms.res_name.tolist() == ["HOH", "UNL"]
     assert atoms.chain_id.tolist() == ["B", "A"]
     np.testing.assert_array_equal(atoms.coord, value.get_positions())
+
+
+@require_atomworks
+def test_ase_generated_names_do_not_collide_with_existing_names():
+    ase = pytest.importorskip("ase")
+
+    value = ase.Atoms("NNN", positions=[[0, 0, 0], [4, 0, 0], [8, 0, 0]])
+    value.set_array("atom_name", np.array(["", "N1", "N2"]))
+    atoms = _roundtrip(value)
+    assert atoms.atom_name.tolist() == ["N3", "N1", "N2"]
+    assert value.arrays["atom_name"].tolist() == ["", "N1", "N2"]
+    np.testing.assert_array_equal(atoms.coord, value.get_positions())
+
+
+@require_atomworks
+def test_ase_scalar_arrays_survive_and_vector_arrays_raise():
+    ase = pytest.importorskip("ase")
+
+    value = ase.Atoms("CuCu", positions=[[0, 0, 0], [4, 0, 0]], tags=[1, 2], charges=[0.25, -0.25])
+    atoms = _roundtrip(value)
+    np.testing.assert_array_equal(atoms.get_annotation("tags"), value.get_tags())
+    np.testing.assert_array_equal(atoms.get_annotation("initial_charges"), value.get_initial_charges())
+    value.set_momenta([[1, 2, 3], [4, 5, 6]])
+    with pytest.raises(ValueError, match="momenta"):
+        AtomicStructure().encode_example(value)
 
 
 @require_atomworks
@@ -586,6 +658,14 @@ def test_materialize_rejects_integer_overflow():
 
 
 @require_atomworks
+def test_materialize_rejects_complex_annotation_instead_of_stringifying():
+    atoms = _parse_with_atomworks(CIF_FILE)
+    atoms.set_annotation("amplitude", np.arange(len(atoms)).astype(complex) + 1j)
+    with pytest.raises(ValueError, match="unsupported dtype complex"):
+        AtomicStructure().materialize(atoms)
+
+
+@require_atomworks
 @pytest.mark.parametrize("kind", ["multidimensional", "system", "pairwise"])
 def test_materialize_rejects_each_unsupported_annotation_kind(kind):
     from atomworks.io.utils.atom_array_plus import AnnotationList2D
@@ -691,3 +771,16 @@ def test_decode_remote_file(monkeypatch, path, token):
         {"path": path, "bytes": None}, token_per_repo_id={"user/structures": "test-token"}
     )
     _assert_same_atoms(atoms, _parse_with_atomworks(CIF_FILE))
+
+
+@require_atomworks
+@pytest.mark.parametrize("file_type,payload", [("sdf", ACETIC_ACID_SDF), ("mol2", ETHANOL_MOL2)])
+def test_small_molecule_url_with_query_and_fragment(file_type, payload):
+    row = {
+        "path": f"https://example.com/molecule.{file_type}.gz?download=true#structure",
+        "bytes": gzip.compress(payload.encode()),
+    }
+    feature = AtomicStructure()
+    atoms = feature.decode_example(row)
+    assert atoms.array_length() == (4 if file_type == "sdf" else 3)
+    assert feature.encode_example(atoms) == row

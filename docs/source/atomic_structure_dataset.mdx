@@ -31,6 +31,20 @@ Decoded output is an `AtomArrayPlus` for one model, an `AtomArrayPlusStack` for 
 
 mmCIF (`.cif`, `.mmcif`), BinaryCIF (`.bcif`), PDB (`.pdb`, `.ent`), MOL/SDF (`.mol`, `.sdf`, first record) and Mol2 (`.mol2`) files are supported, optionally compressed with gzip, bz2 or zstd. RDKit `Mol`, ASE `Atoms` and Biotite `AtomArray` objects can be used instead of paths. MOL/SDF and Mol2 bytes need a `path` with the corresponding extension so the decoder can identify the format.
 
+RDKit inputs keep all conformers and the annotations supported by AtomWorks' converter. Molecules without conformers retain missing coordinates instead of generating new ones. ASE inputs keep existing atom, residue and chain names; missing names are filled automatically without collisions. Store ASE `info`, calculator results and other application metadata in separate dataset columns. Vector arrays such as momenta are unsupported custom annotations and raise an error.
+
+Specify `features` when creating a dataset from live objects, so Arrow does not have to infer their types:
+
+```py
+>>> from rdkit import Chem
+>>> from datasets import AtomicStructure, Dataset, Features
+>>> molecule = Chem.MolFromMolFile("path/to/ligand.sdf", removeHs=False)
+>>> structure_dataset = Dataset.from_dict(
+...     {"structure": [molecule]},
+...     features=Features({"structure": AtomicStructure()}),
+... )
+```
+
 By default decoding uses AtomWorks' `minimal` preset: waters, hydrogens and crystallization aids are kept, and no missing atoms or biological assemblies are added. Minimal parsing still selects the first alternate conformer, normalizes identifiers and infers bonds. This is a parsed representation, not an exact copy of every file field; the stored source bytes remain unchanged. Use `decode=False` to retrieve the original encoding.
 
 Pass `parse_config` to opt into preparation at **decode time**. Unspecified options use the minimal preset; for example `AtomicStructure(parse_config={"remove_waters": True})`. Presets such as `default` or `rcsb` opt into their full cleanup, including atom completion and filtering. `assembly` opts into building a biological assembly. These settings also apply to BinaryCIF inputs and can be changed with `cast_column` without rewriting stored data:
@@ -165,6 +179,7 @@ This example disables reuse of `map` caches because external files and CCD defin
 | Scalar per-atom annotations | Values tested for integers, floats, booleans and strings; inferred dtypes may change |
 | Registered StandardAnnotations | Supported by the upstream writer; regression-tested |
 | Arbitrary custom multidimensional, system-wide or pairwise annotations | Rejected explicitly |
+| Complex-valued custom annotations | Rejected explicitly rather than converted to strings |
 | Integer annotations outside signed 32-bit range | Rejected explicitly |
 | Empty models | Rejected by materialization; filter these rows before preparing storage |
 

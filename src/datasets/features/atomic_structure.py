@@ -61,6 +61,7 @@ class AtomicStructure:
     serialization require Python 3.12+ and AtomWorks 3.1.0+. Supported files are PDB, mmCIF,
     BinaryCIF, MOL/SDF (first record), and Mol2, optionally gzip, bz2 or zstd compressed.
     MOL/SDF and Mol2 bytes need a filename in `path` to identify the format.
+    RDKit inputs retain all conformers; molecules without coordinates keep NaN coordinates.
 
     Outputs are `AtomArrayPlus`, `AtomArrayPlusStack`, or a list of arrays for models
     with different atoms. Decoded arrays retain their original encoding in the `_hf_encoded` system annotation,
@@ -121,11 +122,7 @@ class AtomicStructure:
 
             if isinstance(value, Mol):
                 _require_atomworks()
-                from atomworks.io.tools.rdkit import atom_array_from_rdkit
-
-                atoms = atom_array_from_rdkit(value, remove_hydrogens=False)
-                atoms.chain_id[:] = "A"
-                return {"path": None, "bytes": _serialize_structure(atoms)}
+                return {"path": None, "bytes": _serialize_structure(_from_rdkit(value))}
         if "ase" in sys.modules:
             from ase import Atoms
 
@@ -398,6 +395,11 @@ def _serialize_structure(atoms) -> bytes:
             )
         for name in model.get_annotation_categories():
             values = model.get_annotation(name)
+            if values.dtype.kind not in "biufUS" and name not in registered:
+                raise ValueError(
+                    f"Annotation {name!r} has unsupported dtype {values.dtype}. "
+                    "Custom scalar annotations must contain booleans, integers, floats or strings."
+                )
             if values.dtype.kind in "iu" and values.size and (values.min() < -(2**31) or values.max() >= 2**31):
                 raise ValueError(f"Annotation {name!r} exceeds BinaryCIF's signed 32-bit integer range.")
         if model.array_length() == 0:
@@ -445,7 +447,7 @@ def _require_atomworks():
 
 
 def _read_small_molecule(data: bytes, file_type: str):
-    from atomworks.io.tools.rdkit import atom_array_from_rdkit, sdf_to_rdkit
+    from atomworks.io.tools.rdkit import sdf_to_rdkit
     from rdkit import Chem
 
     text = data.decode("utf-8")
@@ -455,9 +457,24 @@ def _read_small_molecule(data: bytes, file_type: str):
             raise ValueError("RDKit could not read the Mol2 file.")
     else:
         molecule = sdf_to_rdkit(io.StringIO(text), remove_hydrogens=False)
+    return _from_rdkit(molecule)
+
+
+def _from_rdkit(molecule):
+    """Use AtomWorks conversion, retaining all conformers and any existing chain IDs."""
+    from atomworks.io.tools.rdkit import atom_array_from_rdkit
+
     atoms = atom_array_from_rdkit(molecule, remove_hydrogens=False)
-    atoms.chain_id[:] = "A"
-    return atoms
+    atoms.chain_id[atoms.chain_id == ""] = "A"
+    if molecule.GetNumConformers() <= 1:
+        return atoms
+    # Chemistry and annotations are shared; avoid repeating the full conversion per conformer.
+    models = []
+    for conformer in molecule.GetConformers():
+        model = atoms.copy()
+        model.coord = conformer.GetPositions()
+        models.append(model)
+    return models
 
 
 def _from_ase(atoms):
@@ -468,8 +485,21 @@ def _from_ase(atoms):
 
     array = ase_to_atom_array(atoms)
     n = array.array_length()
-    default_names = np.char.add(array.element.astype(str), np.arange(1, n + 1).astype(str))
-    array.set_annotation("atom_name", np.where(array.atom_name == "", default_names, array.atom_name))
+    names = array.atom_name.tolist()
+    used_names = set(names)
+    next_id = 1
+    for index, name in enumerate(names):
+        if name:
+            continue
+        next_id = max(next_id, index + 1)
+        name = f"{array.element[index]}{next_id}"
+        while name in used_names:
+            next_id += 1
+            name = f"{array.element[index]}{next_id}"
+        names[index] = name
+        used_names.add(name)
+        next_id += 1
+    array.set_annotation("atom_name", np.asarray(names, dtype=str))
     array.set_annotation("res_name", np.where(array.res_name == "", "UNL", array.res_name))
     array.set_annotation("chain_id", np.where(array.chain_id == "", "A", array.chain_id))
     if array.bonds is None:
@@ -504,7 +534,8 @@ def _decompress(data: bytes) -> bytes:
             raise ImportError("To read zstd-compressed structure files, please install 'zstandard'.")
         import zstandard
 
-        return zstandard.ZstdDecompressor().stream_reader(data).read()
+        with zstandard.ZstdDecompressor().stream_reader(data) as reader:
+            return reader.read()
     return data
 
 
@@ -523,7 +554,10 @@ _FILE_TYPE_BY_EXTENSION = {
 def _detect_format(data: bytes, path: Optional[str]) -> str:
     """`file_type` of atomworks (`cif`, `bcif`, `pdb`) or `mol` / `mol2`, from the extension, else the content."""
     if path:
-        name = path.split("::")[0].lower()
+        name = path.split("::")[0]
+        if not is_local_path(name):
+            name = name.split("?", 1)[0].split("#", 1)[0]
+        name = name.lower()
         for ext in _COMPRESSION_EXTENSIONS:
             name = name.removesuffix(ext)
         for ext, file_type in _FILE_TYPE_BY_EXTENSION.items():
