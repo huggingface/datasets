@@ -1133,16 +1133,17 @@ def test_append_infers_both_known_directories_without_configs(hub):
     assert configured_rows(hub) == {"train": [{"x": 0}, {"x": 1}, {"x": 2}]}
 
 
-def test_append_compares_max_shard_size_to_the_uncompressed_arrow_size(hub):
-    # repeated text: the Parquet file is much smaller than the Arrow data
+def test_append_measures_the_last_shard_from_its_parquet_footer(hub):
+    # repeated text: the Parquet footer size is much smaller than the Arrow data
     data = Dataset.from_dict({"x": ["a" * 1000] * 400})
     data.push_to_hub(hub.repo_id)
     original = next(iter(hub.files().values()))
     arrow_size = data.data.nbytes
-    assert len(original) < arrow_size
-    # the appended rows fit in the compressed tail file, but not in an uncompressed shard of this size
-    data.push_to_hub(hub.repo_id, append=True, max_shard_size=arrow_size + arrow_size // 2)
+    assert footer_size(original) < arrow_size // 2
+    # the appended rows fit next to the footer size, but not next to the Arrow size of the shard
+    max_shard_size = arrow_size + arrow_size // 2
+    data.push_to_hub(hub.repo_id, append=True, max_shard_size=max_shard_size)
     files = hub.files()
-    assert len(files) == 2
-    assert next(iter(files.values())) == original
+    assert len(files) == 1
+    assert len(next(iter(files.values()))) <= max_shard_size
     assert rows(files) == [{"x": "a" * 1000}] * 800

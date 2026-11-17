@@ -6722,7 +6722,12 @@ def _prepare_parquet_append(
     shared_paths: set[str],
 ) -> tuple[list, int, int, dict[str, str]]:
     """Prepare additions, byte counts, and path replacements within this split."""
-    from .io.parquet import _append_parquet_file, _get_parquet_features, _get_parquet_temporal_writer_options
+    from .io.parquet import (
+        _append_parquet_file,
+        _get_parquet_features,
+        _get_parquet_temporal_writer_options,
+        _get_parquet_uncompressed_size,
+    )
 
     old_count = len(files)
     path_prefix = "" if data_dir == "." else data_dir + "/"
@@ -6759,11 +6764,11 @@ def _prepare_parquet_append(
         raise ValueError("max_shard_size must be greater than zero.")
     appended = os.path.join(temporary_dir, "appended.parquet")
     new_nbytes = dset._estimate_nbytes()
-    # Like for push_to_hub, max_shard_size is the uncompressed size of the Arrow data in a shard.
-    # The sizes in the Parquet footer can't be used here: dictionary-encoded columns are much
-    # smaller there (e.g. 1 KB instead of 400 KB of repeated text), so the shard would keep growing.
+    # The last shard is measured from its Parquet footer to avoid decoding it. This size can be much
+    # smaller than the Arrow data (e.g. for dictionary-encoded repeated text), so the shard can hold
+    # more rows than a shard written by push_to_hub, but the Parquet file stays under max_shard_size.
     fits_in_last_shard = num_shards is None and (
-        sum(batch.nbytes for batch in pq.ParquetFile(original).iter_batches()) + new_nbytes <= max_size
+        _get_parquet_uncompressed_size(pq.read_metadata(original)) + new_nbytes <= max_size
     )
     if num_shards == old_count or fits_in_last_shard:
         _append_parquet_file(dset, original, appended)
