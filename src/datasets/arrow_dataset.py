@@ -588,6 +588,24 @@ def transmit_format(func):
     return wrapper
 
 
+def _select_column_metadata(
+    column_metadata: dict[str, dict[str, str]], column_names: Iterable[str]
+) -> Optional[dict[str, dict[str, str]]]:
+    """Return the column metadata of the given columns, or None if there is none."""
+    column_names = set(column_names)
+    selected = {column: metadata for column, metadata in column_metadata.items() if column in column_names}
+    return selected or None
+
+
+def _rename_column_metadata(
+    column_metadata: Optional[dict[str, dict[str, str]]], column_mapping: dict[str, str]
+) -> Optional[dict[str, dict[str, str]]]:
+    """Return the column metadata with the columns renamed."""
+    if not column_metadata:
+        return column_metadata
+    return {column_mapping.get(column, column): metadata for column, metadata in column_metadata.items()}
+
+
 def update_metadata_with_features(table: Table, features: Features):
     """To be used in dataset transforms that modify the features of the dataset, in order to update the features stored in the metadata of its schema."""
     features = Features({col_name: features[col_name] for col_name in table.column_names})
@@ -751,6 +769,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 raise ValueError(
                     f"{e}\nThe 'source' features come from dataset_info.json, and the 'target' ones are those of the dataset arrow file."
                 )
+
+        # Drop the metadata of the columns that aren't in the dataset anymore
+        if self.info.column_metadata:
+            self.info.column_metadata = _select_column_metadata(self.info.column_metadata, self.info.features)
 
         # In case there are types like pa.dictionary that we need to convert to the underlying type
 
@@ -2538,6 +2560,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         for column_name in column_names:
             del dataset._info.features[column_name]
+        if dataset._info.column_metadata:
+            dataset._info.column_metadata = _select_column_metadata(
+                dataset._info.column_metadata, dataset._info.features
+            )
 
         dataset._data = dataset._data.drop(column_names)
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
@@ -2603,6 +2629,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 new_column_name if col == original_column_name else col: feature
                 for col, feature in self._info.features.items()
             }
+        )
+        dataset._info.column_metadata = _rename_column_metadata(
+            dataset._info.column_metadata, {original_column_name: new_column_name}
         )
 
         dataset._data = dataset._data.rename_columns(new_column_names)
@@ -2671,6 +2700,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 for col, feature in (self._info.features or {}).items()
             }
         )
+        dataset._info.column_metadata = _rename_column_metadata(dataset._info.column_metadata, column_mapping)
 
         dataset._data = dataset._data.rename_columns(new_column_names)
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
@@ -2722,8 +2752,54 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset = copy.deepcopy(self)
         dataset._data = dataset._data.select(column_names)
         dataset._info.features = Features({col: self._info.features[col] for col in dataset._data.column_names})
+        if dataset._info.column_metadata:
+            dataset._info.column_metadata = _select_column_metadata(
+                dataset._info.column_metadata, dataset._info.features
+            )
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         dataset._fingerprint = new_fingerprint
+        return dataset
+
+    def with_column_metadata(self, column_metadata: dict[str, dict[str, str]]) -> "Dataset":
+        """
+        Return a dataset with the given metadata for some columns.
+
+        The metadata of a column is a dict of strings, like the metadata of Arrow fields. It's kept in
+        [`DatasetInfo.column_metadata`], follows the column when it's renamed, and is written in the Arrow field
+        metadata of the Parquet files of [`~Dataset.to_parquet`] and [`~Dataset.push_to_hub`].
+
+        Args:
+            column_metadata (`dict[str, dict[str, str]]`):
+                Mapping from column name to its new metadata. It replaces the current metadata of these columns, and
+                an empty dict removes it. The metadata of the other columns doesn't change.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
+        >>> ds = ds.with_column_metadata({"text": {"language": "en"}})
+        >>> ds.info.column_metadata
+        {'text': {'language': 'en'}}
+        ```
+        """
+        for column, metadata in column_metadata.items():
+            if column not in self._info.features:
+                raise ValueError(
+                    f"Column {column!r} not in the dataset. Current columns in the dataset: {self.column_names}"
+                )
+            if not isinstance(metadata, dict) or not all(
+                isinstance(key, str) and isinstance(value, str) for key, value in metadata.items()
+            ):
+                raise TypeError(
+                    f"The metadata of column {column!r} must be a dict of strings, like the metadata of Arrow fields, "
+                    f"but got {metadata!r}"
+                )
+        dataset = copy.deepcopy(self)
+        new_column_metadata = {**(dataset._info.column_metadata or {}), **copy.deepcopy(column_metadata)}
+        dataset._info.column_metadata = {
+            column: metadata for column, metadata in new_column_metadata.items() if metadata
+        } or None
         return dataset
 
     @transmit_format
