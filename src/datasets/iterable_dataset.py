@@ -2864,6 +2864,8 @@ class IterableDataset(DatasetInfoMixin):
         >>> dataloader.load_state_dict(state_dict)  # uses ds.load_state_dict() under the hood
         ```
         """
+        # resume in the epoch the state was saved in
+        self.set_epoch(state_dict["epoch"])
         self._starting_state_dict = state_dict
 
     def __repr__(self):
@@ -4079,6 +4081,9 @@ class IterableDataset(DatasetInfoMixin):
         )
 
     def set_epoch(self, epoch: int):
+        if epoch != self.epoch:
+            # a state loaded with load_state_dict() only applies to its own epoch
+            self._starting_state_dict = None
         self._epoch += epoch - self._epoch  # update torch value in shared memory in-place
 
     def skip(self, n: int) -> "IterableDataset":

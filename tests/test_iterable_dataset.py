@@ -2803,7 +2803,7 @@ def test_iterable_dataset_load_state_dict_resumes_only_once():
     assert list(resumed) == all_examples
 
 
-def test_iterable_dataset_load_state_dict_waits_for_its_epoch():
+def test_iterable_dataset_load_state_dict_restores_epoch():
     ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"file{i}.txt" for i in range(4)]})
     all_examples = list(IterableDataset(ex_iterable))
 
@@ -2815,10 +2815,51 @@ def test_iterable_dataset_load_state_dict_waits_for_its_epoch():
 
     resumed = IterableDataset(ex_iterable)
     resumed.load_state_dict(state_dict)
-    # a pass in another epoch does not use up the loaded state
-    assert list(resumed) == all_examples
+    assert resumed.epoch == 1
+    # resumes right away, without calling set_epoch(1) first
+    assert consumed + list(resumed) == all_examples
+
+
+def test_iterable_dataset_set_epoch_after_load_state_dict():
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"file{i}.txt" for i in range(4)]})
+    all_examples = list(IterableDataset(ex_iterable))
+
+    dataset = IterableDataset(ex_iterable)
+    it = iter(dataset)
+    consumed = [next(it) for _ in range(3)]
+    state_dict = dataset.state_dict()
+
+    # setting the same epoch keeps the loaded state
+    resumed = IterableDataset(ex_iterable)
+    resumed.load_state_dict(state_dict)
+    resumed.set_epoch(0)
+    assert consumed + list(resumed) == all_examples
+
+    # moving to another epoch drops it, even when coming back to the checkpoint's epoch
+    resumed = IterableDataset(ex_iterable)
+    resumed.load_state_dict(state_dict)
     resumed.set_epoch(1)
-    assert consumed + list(resumed) == list(dataset)
+    resumed.set_epoch(0)
+    assert list(resumed) == all_examples
+
+
+@pytest.mark.parametrize("drop_last_batch", [False, True])
+def test_iterable_dataset_batched_iter_resumes_only_once(drop_last_batch):
+    def gen():
+        yield from ({"id": i} for i in range(5))
+
+    dataset = IterableDataset.from_generator(gen)
+    it = iter(dataset)
+    for _ in range(4):
+        next(it)
+    resumed = IterableDataset.from_generator(gen)
+    resumed.load_state_dict(dataset.state_dict())
+    # the resumed pass has no full batch left, but it still uses up the loaded state
+    assert list(resumed.iter(batch_size=2, drop_last_batch=drop_last_batch)) == (
+        [] if drop_last_batch else [{"id": [4]}]
+    )
+    expected = [{"id": [0, 1]}, {"id": [2, 3]}] + ([] if drop_last_batch else [{"id": [4]}])
+    assert list(resumed.iter(batch_size=2, drop_last_batch=drop_last_batch)) == expected
 
 
 @pytest.mark.parametrize("method", ["skip", "take"])
