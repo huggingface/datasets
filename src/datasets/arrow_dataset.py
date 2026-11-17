@@ -685,7 +685,7 @@ class Column(Sequence_):
             else:
                 source = self.source._fast_select_column(self.column_name)
             return source[key][self.column_name]
-        elif isinstance(key, int):
+        elif isinstance(key, (int, np.integer)):
             return self.source[key][self.column_name]
         else:
             return [item[self.column_name] for item in self.source[key]]
