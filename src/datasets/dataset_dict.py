@@ -36,7 +36,7 @@ from .features.features import FeatureType
 from .iterable_dataset import IterableDataset
 from .naming import _split_re
 from .splits import NamedSplit, Split, SplitInfo
-from .table import Table
+from .table import InMemoryTable, Table
 from .utils import logging
 from .utils.doc_utils import is_documented_by
 from .utils.typing import PathLike
@@ -500,7 +500,8 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         """Casts the given column as [`~datasets.features.ClassLabel`] and updates the tables.
 
         The classes of all the splits are used, so a class has the same id in every split.
-        Empty splits receive the same class labels. If every split is empty, the class names are an empty list.
+        Empty splits, including those produced by filtering or selection, receive the same class labels.
+        If every split is empty, the class names are an empty list.
 
         Args:
             column (`str`):
@@ -539,11 +540,11 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         )
         for split, dataset in list(encoded.items()):
             if not len(dataset):
-                # map() leaves empty splits unchanged, so cast their schema directly.
+                # map() leaves empty splits unchanged; build a table with the shared schema and no rows.
                 info = dataset.info.copy()
                 info.features[column] = class_label
                 encoded[split] = Dataset(
-                    dataset.data.cast(info.features.arrow_schema), info=info, split=dataset.split
+                    InMemoryTable(info.features.arrow_schema.empty_table()), info=info, split=dataset.split
                 ).with_format(**dataset.format)
                 continue
             names = dataset.features[column].names

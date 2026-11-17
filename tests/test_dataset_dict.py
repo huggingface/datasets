@@ -364,6 +364,29 @@ class DatasetDictTest(TestCase):
                     self.assertEqual(len(encoded["test"]), 0)
                     self.assertListEqual(concatenate_datasets([encoded["train"], encoded["test"]])["label"][:], labels)
 
+    def test_class_encode_column_empty_split_after_filter_or_select(self):
+        features = Features({"label": Value("string"), "id": Value("int32")})
+        train = Dataset.from_dict({"label": ["dog", "cat"], "id": [0, 1]}, features=features, split="train")
+        info = DatasetInfo(description="empty evaluation split", features=features)
+        full = Dataset.from_dict({"label": ["fish"], "id": [2]}, info=info, split="test").with_format(
+            "numpy", columns=["id"], output_all_columns=True, dtype=np.int64
+        )
+        expected_info = info.copy()
+        expected_info.features["label"] = ClassLabel(names=["cat", "dog"])
+        for operation, empty in [("filter", full.filter(lambda ex: False)), ("select", full.select([]))]:
+            with self.subTest(operation=operation):
+                encoded = DatasetDict({"train": train, "test": empty}).class_encode_column("label")
+                self.assertEqual(encoded["test"].info, expected_info)
+                self.assertEqual(encoded["test"].split, full.split)
+                self.assertEqual(encoded["test"].format, full.format)
+                self.assertEqual(len(encoded["test"]), 0)
+                self.assertEqual(encoded["test"].with_format(None).to_dict(), {"label": [], "id": []})
+                self.assertListEqual(concatenate_datasets([encoded["train"], encoded["test"]])["label"][:], [1, 0])
+                self.assertEqual(empty.info, info)
+                self.assertEqual(empty.format, full.format)
+                self.assertListEqual(full.with_format(None)["label"][:], ["fish"])
+                self.assertListEqual(train["label"][:], ["dog", "cat"])
+
     def test_class_encode_column_all_empty_splits(self):
         features = Features({"label": Value("string"), "id": Value("int32")})
         info = DatasetInfo(description="empty dataset", features=features)
