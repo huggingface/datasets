@@ -497,6 +497,29 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         self._check_values_type()
         return DatasetDict({k: dataset.select_columns(column_names=column_names) for k, dataset in self.items()})
 
+    def with_column_metadata(self, column_metadata: dict[str, dict[str, str]]) -> "DatasetDict":
+        """
+        Return a dataset dict with the given metadata for some columns of every split.
+        See [`~datasets.Dataset.with_column_metadata`] for more details.
+
+        Args:
+            column_metadata (`dict[str, dict[str, str]]`):
+                Mapping from column name to its new metadata, a dict of strings like the metadata of Arrow fields.
+                It replaces the current metadata of these columns, and an empty dict removes it.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
+        >>> ds = ds.with_column_metadata({"text": {"language": "en"}})
+        >>> ds["train"].info.column_metadata
+        {'text': {'language': 'en'}}
+        ```
+        """
+        self._check_values_type()
+        return DatasetDict({k: dataset.with_column_metadata(column_metadata) for k, dataset in self.items()})
+
     def class_encode_column(self, column: str, include_nulls: bool = False) -> "DatasetDict":
         """Casts the given column as [`~datasets.features.ClassLabel`] and updates the tables.
 

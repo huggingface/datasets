@@ -97,15 +97,19 @@ def identity_func(x):
     return x
 
 
-def _rename_columns_fn(example: dict, column_mapping: dict[str, str]):
-    if any(col not in example for col in column_mapping):
+def _rename_columns_fn(example: Union[dict, pa.Table], column_mapping: dict[str, str]):
+    column_names = example.column_names if isinstance(example, pa.Table) else example
+    if any(col not in column_names for col in column_mapping):
         raise ValueError(
-            f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_mapping) - set(example)} are not in the dataset."
+            f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_mapping) - set(column_names)} are not in the dataset."
         )
-    if any(col in example for col in column_mapping.values()):
+    if any(col in column_names for col in column_mapping.values()):
         raise ValueError(
-            f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(example) - set(column_mapping.values())} are already in the dataset."
+            f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_names) - set(column_mapping.values())} are already in the dataset."
         )
+    if isinstance(example, pa.Table):
+        # the output of a function applied to a table replaces the input table, so it must contain every column
+        return example.rename_columns([column_mapping.get(col, col) for col in example.column_names])
     return {
         new_column_name: example[original_column_name]
         for original_column_name, new_column_name in column_mapping.items()
@@ -199,6 +203,21 @@ def shift_ex_examples_rngs(ex_iterable: "_BaseExamplesIterable", value: int) -> 
         return ex_iterable
 
     return set_seed_recursively(ex_iterable)
+
+
+def _copy_ex_iterables_tree(ex_iterable: "_BaseExamplesIterable") -> "_BaseExamplesIterable":
+    """Shallow-copy every node of the ex_iterables tree.
+
+    Datasets derived from the same dataset (e.g. `ds.skip(n)` and `ds.take(n)`) share its ex_iterables.
+    `_init_state_dict()` replaces a node's state dict, so without a copy, preparing one of them for iteration
+    would detach the state dict that another one's running iterator is still updating.
+    """
+    ex_iterable = copy(ex_iterable)
+    if hasattr(ex_iterable, "ex_iterable"):
+        ex_iterable.ex_iterable = _copy_ex_iterables_tree(ex_iterable.ex_iterable)
+    if hasattr(ex_iterable, "ex_iterables"):
+        ex_iterable.ex_iterables = [_copy_ex_iterables_tree(ei) for ei in ex_iterable.ex_iterables]
+    return ex_iterable
 
 
 _PRIMITIVE_TYPES = (int, float, bool, str, bytes, type(None))
@@ -2845,6 +2864,8 @@ class IterableDataset(DatasetInfoMixin):
         >>> dataloader.load_state_dict(state_dict)  # uses ds.load_state_dict() under the hood
         ```
         """
+        # resume in the epoch the state was saved in
+        self.set_epoch(state_dict["epoch"])
         self._starting_state_dict = state_dict
 
     def __repr__(self):
@@ -2887,6 +2908,8 @@ class IterableDataset(DatasetInfoMixin):
         return self.num_shards
 
     def _iter_pytorch(self):
+        # _prepare_ex_iterable_for_iteration() consumes the loaded state, but the worker's shards need it too
+        starting_state_dict = self._starting_state_dict
         ex_iterable = self._prepare_ex_iterable_for_iteration()
         # Fix for fsspec when using multiprocess to avoid hanging in the ML training loop. (only required for fsspec >= 0.9.0)
         # See https://github.com/fsspec/gcsfs/issues/379
@@ -2922,8 +2945,8 @@ class IterableDataset(DatasetInfoMixin):
                 "examples_iterable": ex_iterable._init_state_dict(),
                 "epoch": self.epoch,
             }
-            if self._starting_state_dict and self.epoch == self._starting_state_dict["epoch"]:
-                ex_iterable.load_state_dict(self._starting_state_dict["examples_iterable"])
+            if starting_state_dict and self.epoch == starting_state_dict["epoch"]:
+                ex_iterable.load_state_dict(starting_state_dict["examples_iterable"])
                 # re-point at the live ex_iterable state so progress tracking
                 self._state_dict["examples_iterable"] = ex_iterable._state_dict
 
@@ -2958,7 +2981,10 @@ class IterableDataset(DatasetInfoMixin):
     def _prepare_ex_iterable_for_iteration(
         self, batch_size: int = 1, drop_last_batch: bool = False
     ) -> _BaseExamplesIterable:
-        ex_iterable = self._ex_iterable
+        # Each iteration gets its own nodes, so it owns the state dicts it updates.
+        # shift_ex_examples_rngs() below copies the tree again, but only when epoch > 0:
+        # this copy is what protects epoch 0 (#8991), so keep it even though it is redundant there.
+        ex_iterable = _copy_ex_iterables_tree(self._ex_iterable)
 
         if self.epoch:
             try:
@@ -3030,6 +3056,8 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable.load_state_dict(self._starting_state_dict["examples_iterable"])
             # re-point at the live ex_iterable state so progress tracking
             self._state_dict["examples_iterable"] = ex_iterable._state_dict
+            # resume once: the next pass over the dataset starts from the beginning again
+            self._starting_state_dict = None
         return ex_iterable
 
     def __iter__(self):
@@ -4053,6 +4081,9 @@ class IterableDataset(DatasetInfoMixin):
         )
 
     def set_epoch(self, epoch: int):
+        if epoch != self.epoch:
+            # a state loaded with load_state_dict() only applies to its own epoch
+            self._starting_state_dict = None
         self._epoch += epoch - self._epoch  # update torch value in shared memory in-place
 
     def skip(self, n: int) -> "IterableDataset":
@@ -4328,9 +4359,17 @@ class IterableDataset(DatasetInfoMixin):
         """
 
         original_features = self._info.features.copy() if self._info.features else None
-        ds_iterable = self.map(
-            partial(_rename_columns_fn, column_mapping=column_mapping), remove_columns=list(column_mapping)
-        )
+        if self._formatting and self._formatting.is_table:
+            # with a table format (arrow, pandas, polars...) the function gets tables instead of dicts
+            ds_iterable = (
+                self.with_format("arrow")
+                .map(partial(_rename_columns_fn, column_mapping=column_mapping), batched=True)
+                .with_format(self._formatting.format_type)
+            )
+        else:
+            ds_iterable = self.map(
+                partial(_rename_columns_fn, column_mapping=column_mapping), remove_columns=list(column_mapping)
+            )
         if original_features is not None:
             ds_iterable._info.features = Features(
                 {

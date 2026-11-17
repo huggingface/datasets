@@ -145,6 +145,19 @@ def _append_parquet_file(dataset: Dataset, original: str, destination: str) -> N
         output.truncate()
 
 
+def _with_column_metadata(schema: pa.Schema, column_metadata: Optional[dict[str, dict[str, str]]]) -> pa.Schema:
+    """Return the schema with the metadata of the columns as Arrow field metadata."""
+    if not column_metadata:
+        return schema
+    return pa.schema(
+        [
+            field.with_metadata(column_metadata[field.name]) if field.name in column_metadata else field
+            for field in schema
+        ],
+        metadata=schema.metadata,
+    )
+
+
 class ParquetDatasetReader(AbstractDatasetReader):
     def __init__(
         self,
@@ -247,7 +260,7 @@ class ParquetDatasetWriter:
         """
         written = 0
         _ = parquet_writer_kwargs.pop("path_or_buf", None)
-        schema = self.dataset.features.arrow_schema
+        schema = _with_column_metadata(self.dataset.features.arrow_schema, self.dataset.info.column_metadata)
 
         writer = pq.ParquetWriter(
             file_obj,
