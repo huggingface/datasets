@@ -84,7 +84,7 @@ def _batch_accumulate_arrow_table_by_columns(
     # keep accumulating if key is the same, otherwise include the accumulated tables
     if tables_accumulator and accumulate_last_batch:
         for column in columns:
-            if any(_not_equal_nulls_equal(table[column], tables_accumulator[0][column][0]).to_pylist()):
+            if pc.any(_not_equal_nulls_equal(table[column], tables_accumulator[0][column][0])).as_py():
                 break
         else:
             tables_accumulator.append(table)
