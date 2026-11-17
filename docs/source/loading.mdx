@@ -311,6 +311,16 @@ further preparation and `assembly` to build a biological assembly, without alter
 
 Extensions `.pdb` and `.ent` are supported, optionally compressed with gzip, bz2 or zstd.
 
+For example, stream a PDB structure from [RosettaCommons/SAAINTDB](https://huggingface.co/datasets/RosettaCommons/SAAINTDB):
+
+```py
+>>> files = "hf://datasets/RosettaCommons/SAAINTDB@645b492c7624fe3628bf0d16ea608f76984e7020/PDB/test/1a3l_model_0.pdb"
+>>> dataset = load_dataset("pdb", data_files=files, split="train", streaming=True)
+>>> atoms = next(iter(dataset))["structure"]
+>>> atoms.coord.shape
+(3306, 3)
+```
+
 ### SQL
 
 Read database contents with [`~datasets.Dataset.from_sql`] by specifying the URI to connect to your database. You can read both table names and queries:
@@ -389,6 +399,26 @@ further preparation and `assembly` to build a biological assembly, without alter
 
 Extensions `.cif`, `.mmcif` and `.bcif` (BinaryCIF) are supported, optionally compressed with gzip, bz2 or zstd.
 
+For example, stream an ESMFold2-predicted structure from [genesisml/PocketWatch](https://huggingface.co/datasets/genesisml/PocketWatch):
+
+```py
+>>> files = "hf://datasets/genesisml/PocketWatch@db7bd0611a14cb98e3b1d24b343565418b7193ef/structures/A0A009IHW8.cif.gz"
+>>> dataset = load_dataset("mmcif", data_files=files, split="train", streaming=True)
+>>> atoms = next(iter(dataset))["structure"]
+>>> atoms.coord.shape
+(2175, 3)
+```
+
+[nvidia/RFD4-Proteina](https://huggingface.co/datasets/nvidia/RFD4-Proteina/tree/main/examples/bcif-zstd)
+also provides `.bcif.zst` examples across its structure components. Select these files explicitly;
+the repository's named configurations load sampling metadata. The following example pins the dataset revision for reproducibility:
+
+```py
+>>> files = "hf://datasets/nvidia/RFD4-Proteina@65317acc929767a714504d662bdd48b7bf55e078/examples/bcif-zstd/*/*.bcif.zst"
+>>> dataset = load_dataset("mmcif", data_files=files, split="train", streaming=True)
+>>> atoms = next(iter(dataset))["structure"]
+```
+
 ### GenBank
 
 [GenBank](https://www.ncbi.nlm.nih.gov/genbank/) is a text-based format from NCBI for nucleotide and protein sequences together with their annotations. Files use the `.gb`, `.gbk`, or `.genbank` extension (optionally compressed), and each record's `FEATURES` section is decoded into structured objects.
@@ -466,7 +496,17 @@ You can also load only specific columns:
 >>> dataset = load_dataset("fasta", data_files="sequences.fa", columns=["id", "sequence"])
 ```
 
-FASTA files with various extensions are supported: `.fa`, `.fasta`, `.fna` (nucleic acid), `.ffn` (nucleotide of gene regions), `.faa` (amino acid), and `.frn` (non-coding RNA). Compressed files (gzip, bzip2, xz) are automatically detected and decompressed.
+FASTA files with various extensions are supported: `.fa`, `.fasta`, `.fna` (nucleic acid), `.ffn` (nucleotide of gene regions), `.faa` (amino acid), and `.frn` (non-coding RNA). Compressed files (gzip, bzip2, xz, zstd) are automatically detected and decompressed.
+
+For example, stream sequences from a FASTA shard in [LiteFold/UniRef50](https://huggingface.co/datasets/LiteFold/UniRef50)
+without preparing the full shard:
+
+```py
+>>> files = "hf://datasets/LiteFold/UniRef50@338d0ed9964a1aca1f22eec65a2db7cc96654758/sequences/sequence_uniref50_uniref50.fasta.gz/shard-000000.fasta.zst"
+>>> dataset = load_dataset("fasta", data_files=files, split="train", streaming=True, columns=["id", "sequence"])
+>>> next(iter(dataset))["id"]
+'UniRef50_UPI002E2621C6'
+```
 
 ## Remote files
 
