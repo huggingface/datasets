@@ -4490,6 +4490,9 @@ class IterableDataset(DatasetInfoMixin):
         ```
         """
         feature = _fix_for_backward_compatible_features(feature)
+        # Features may be unknown (e.g. after `map`, or streamed CSV files without declared features):
+        # resolve them from the first examples, as done e.g. in `concatenate_datasets` and `push_to_hub`.
+        self = self._resolve_features()
         info = self._info.copy()
         info.features[column] = feature
         return IterableDataset(
