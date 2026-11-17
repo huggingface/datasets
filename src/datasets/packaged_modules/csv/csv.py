@@ -1,3 +1,4 @@
+import copy
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, Union
 
@@ -144,9 +145,26 @@ class CsvConfig(datasets.BuilderConfig):
 
 class Csv(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = CsvConfig
+    UPDATES_DATASET_CARD_INFO = True
 
     def _info(self):
-        return datasets.DatasetInfo(features=self.config.features)
+        if self.dataset_card_info is None:
+            return datasets.DatasetInfo(features=self.config.features)
+        info = copy.deepcopy(self.dataset_card_info)
+        if self.config.skiprows is not None:
+            # skiprows counts lines from the start of each file, including the header
+            info.features = None
+        elif self.config.usecols is not None:
+            # pandas returns the selected columns in the order of the file
+            usecols = self.config.usecols
+            if info.features is not None and all(isinstance(col, str) and col in info.features for col in usecols):
+                info.features = datasets.Features({col: info.features[col] for col in info.features if col in usecols})
+            else:
+                info.features = None
+        if self.config.skiprows is not None or self.config.nrows is not None:
+            # unknown: they apply to each file
+            info.splits = None
+        return info
 
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
