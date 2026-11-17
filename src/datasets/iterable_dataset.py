@@ -2700,7 +2700,7 @@ class IterableColumn:
 
     def __iter__(self) -> Iterator[Any]:
         for example in self.source:
-            yield example[self.column_name]
+            yield example[self.column_name] if example is not None else None
 
     def __getitem__(self, column_name: str) -> "IterableColumn":
         return IterableColumn(self, column_name)
