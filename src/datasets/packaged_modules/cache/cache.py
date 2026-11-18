@@ -22,6 +22,15 @@ def _get_modification_time(cached_directory_path):
     return (Path(cached_directory_path)).stat().st_mtime
 
 
+def _get_config_name(cached_directory_path: str) -> Optional[str]:
+    try:
+        return json.loads(Path(cached_directory_path, "dataset_info.json").read_text(encoding="utf-8"))[
+            "config_name"
+        ]
+    except (FileNotFoundError, KeyError, json.JSONDecodeError):
+        return None
+
+
 def _find_hash_in_cache(
     dataset_name: str,
     config_name: Optional[str],
@@ -53,6 +62,23 @@ def _find_hash_in_cache(
             == Path(cached_directory_path).parts[-3]  # no extra params => config_id == config_name
         )
     ]
+    if not cached_directory_paths and "data_files" in config_kwargs:
+        # Hub data files are resolved to revision-pinned URLs before their config ID is computed.
+        # In offline mode only the unresolved user patterns are available, so the exact config ID
+        # cannot be reconstructed. Falling back is safe if only one cached custom configuration
+        # corresponds to the requested base config name.
+        requested_config_name = config_name or "default"
+        matching_directory_paths = [
+            cached_directory_path
+            for cached_directory_path in glob.glob(
+                os.path.join(cached_datasets_directory_path_root, "*", "*", "*")
+            )
+            if os.path.isdir(cached_directory_path)
+            and _get_config_name(cached_directory_path) == requested_config_name
+        ]
+        matching_config_ids = {Path(path).parts[-3] for path in matching_directory_paths}
+        if len(matching_config_ids) == 1:
+            cached_directory_paths = matching_directory_paths
     if not cached_directory_paths:
         cached_directory_paths = [
             cached_directory_path
