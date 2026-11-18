@@ -243,7 +243,7 @@ class Fasta(datasets.ArrowBasedBuilder):
             batch_bytes = 0
 
             # Keep the streaming-patched open for compressed inputs, and preserve line endings.
-            with open(file, "rb") as f, TextIOWrapper(f, encoding="utf-8", newline="") as fp:
+            with open(file, "rb") as f, TextIOWrapper(f, encoding="utf-8-sig", newline="") as fp:
                 for record in self._parse_fasta(fp, include_record=include_record):
                     seq_id, description, sequence = record[:3]
                     # Calculate record size (approximate UTF-8 byte size)
