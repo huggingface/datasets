@@ -160,7 +160,12 @@ class Pdf:
                     )
                     download_config = DownloadConfig(token=token)
                     f = xopen(path, "rb", download_config=download_config)
-                    return pdfplumber.open(f)
+                    try:
+                        # This stream belongs to the decoder, so PDF.close() must close it.
+                        return pdfplumber.PDF(f, stream_is_external=False)
+                    except BaseException:
+                        f.close()
+                        raise
         else:
             with pdfplumber.open(BytesIO(bytes_)) as p:
                 pdf = p
