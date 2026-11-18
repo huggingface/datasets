@@ -239,7 +239,27 @@ def infer_module_for_data_files_list(
                 ext,
             )
 
-        for (ext, _), _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
+        sorted_extensions = sorted(extensions_counter.items(), key=sort_key, reverse=True)
+        first_supported_ext = next(
+            (ext for (ext, _), _ in sorted_extensions if ext in _EXTENSION_TO_MODULE or ext == ".zip"),
+            None,
+        )
+        if (
+            first_supported_ext in _EXTENSION_TO_MODULE
+            and _EXTENSION_TO_MODULE[first_supported_ext][0] == "imagefolder"
+        ):
+            mesh_ext = next(
+                (
+                    ext
+                    for (ext, _), _ in sorted_extensions
+                    if ext in _EXTENSION_TO_MODULE and _EXTENSION_TO_MODULE[ext][0] == "meshfolder"
+                ),
+                None,
+            )
+            if mesh_ext:
+                return _EXTENSION_TO_MODULE[mesh_ext]
+
+        for (ext, _), _ in sorted_extensions:
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
             elif ext == ".zip":
