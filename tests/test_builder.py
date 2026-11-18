@@ -564,7 +564,7 @@ def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_leng
         assert dataset.split == expected_split
         assert len(dataset) == expected_dataset_length
         assert dataset.features == Features({"text": Value("string")})
-        dataset.column_names == ["text"]
+        assert dataset.column_names == ["text"]
 
 
 @pytest.mark.parametrize("in_memory", [False, True])
