@@ -223,6 +223,14 @@ def test_distributed_shuffle_iterable():
     assert len(list(ds_rank0)) == 1 + full_size // world_size
 
 
+@pytest.mark.skipif(os.name == "nt", reason="execute_subprocess_async doesn't support windows")
+def test_execute_subprocess_async():
+    # unit test, so that the helper used by the integration tests below also runs on every Python version in CI
+    result = execute_subprocess_async([sys.executable, "-c", "print('hello')"], quiet=True, echo=False)
+    assert result.returncode == 0
+    assert result.stdout == ["hello"]
+
+
 @pytest.mark.parametrize("streaming", [False, True])
 @require_torch
 @pytest.mark.skipif(os.name == "nt", reason="execute_subprocess_async doesn't support windows")
