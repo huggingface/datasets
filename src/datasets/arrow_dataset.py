@@ -79,7 +79,7 @@ from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 from tqdm.contrib.concurrent import thread_map
 
 from . import __version__, config
-from .arrow_reader import ArrowReader
+from .arrow_reader import ArrowReader, ReadInstruction
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .data_files import (
     _is_inside_unrequested_special_dir,
@@ -164,6 +164,49 @@ logger = logging.get_logger(__name__)
 PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED = (
     "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.parquet"
 )
+
+
+def _parse_split_read_instruction(
+    split: Union[str, ReadInstruction, Split],
+    available_splits: Optional[Sequence_[str]] = None,
+) -> ReadInstruction:
+    """Parse a split specification into a ``ReadInstruction``, validating split names if known."""
+    if isinstance(split, ReadInstruction):
+        read_instruction = split
+    else:
+        split_str = str(split)
+        if available_splits is not None and split_str == "all" and "all" not in available_splits:
+            split_str = "+".join(available_splits)
+        read_instruction = ReadInstruction.from_spec(split_str)
+
+    if available_splits is not None:
+        available = list(available_splits)
+        for rel_instr in read_instruction._relative_instructions:
+            if rel_instr.splitname not in available:
+                raise ValueError(f'Unknown split "{rel_instr.splitname}". Should be one of {available}.')
+    return read_instruction
+
+
+def _apply_read_instruction(
+    splits_map: Mapping[str, "Dataset"],
+    read_instruction: ReadInstruction,
+    keep_in_memory: Optional[bool] = None,
+    split_label: Optional[Union[str, ReadInstruction, Split]] = None,
+) -> "Dataset":
+    """Slice and optionally concatenate datasets according to ``read_instruction``."""
+    name2len = {name: len(ds) for name, ds in splits_map.items()}
+    abs_instructions = read_instruction.to_absolute(name2len)
+    sliced = []
+    for abs_instr in abs_instructions:
+        ds = splits_map[abs_instr.splitname]
+        if abs_instr.from_ == 0 and abs_instr.to == len(ds):
+            sliced.append(ds)
+        else:
+            sliced.append(ds.select(range(abs_instr.from_, abs_instr.to), keep_in_memory=bool(keep_in_memory)))
+    result = sliced[0] if len(sliced) == 1 else _concatenate_map_style_datasets(sliced)
+    if split_label is not None:
+        result._split = Split(str(split_label))
+    return result
 
 
 class DatasetInfoMixin:
@@ -2019,6 +2062,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset_path: PathLike,
         keep_in_memory: Optional[bool] = None,
         storage_options: Optional[dict] = None,
+        split: Optional[Union[str, ReadInstruction, Split]] = None,
     ) -> "Dataset":
         """
         Loads a dataset that was previously saved using [`save_to_disk`] from a dataset directory, or from a
@@ -2037,6 +2081,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Key/value pairs to be passed on to the file-system backend, if any.
 
                 <Added version="2.8.0"/>
+            split (`Split` or `str` or `ReadInstruction`, *optional*):
+                Which split or slice of the data to load (e.g. `"train[:50%]"`).
+                If `None`, loads the entire dataset.
 
         Returns:
             [`Dataset`] or [`DatasetDict`]:
@@ -2095,6 +2142,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         with open(dataset_state_json_path, encoding="utf-8") as state_file:
             state = json.load(state_file)
+        read_instruction = None
+        if split is not None:
+            available_splits = [state["_split"]] if state["_split"] is not None else []
+            read_instruction = _parse_split_read_instruction(split, available_splits=available_splits)
         with open(dataset_info_path, encoding="utf-8") as dataset_info_file:
             dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
 
@@ -2115,13 +2166,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
         )
 
-        split = state["_split"]
-        split = Split(split) if split is not None else split
+        loaded_split = state["_split"]
+        loaded_split = Split(loaded_split) if loaded_split is not None else loaded_split
 
         dataset = Dataset(
             arrow_table=arrow_table,
             info=dataset_info,
-            split=split,
+            split=loaded_split,
             fingerprint=state["_fingerprint"],
         )
 
@@ -2132,6 +2183,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             "output_all_columns": state["_output_all_columns"],
         }
         dataset = dataset.with_format(**format)
+        if read_instruction is not None:
+            dataset = _apply_read_instruction(
+                {str(dataset.split): dataset},
+                read_instruction,
+                keep_in_memory=keep_in_memory,
+                split_label=split,
+            )
 
         return dataset
 
