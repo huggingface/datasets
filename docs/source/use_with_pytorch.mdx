@@ -129,18 +129,25 @@ torch.Size([2, 512, 512, 4])
 > To use the [`Audio`] feature type, you'll need to install the `audio` extra as
 > `pip install datasets[audio]`.
 
+Audio is decoded with a TorchCodec `AudioDecoder`, which is returned as is. Use `get_all_samples()` to get the samples as a PyTorch tensor:
+
 ```py
 >>> from datasets import Dataset, Features, Audio, Image
 >>> audio = ["path/to/audio.wav"] * 10
 >>> features = Features({"audio": Audio()})
 >>> ds = Dataset.from_dict({"audio": audio}, features=features) 
 >>> ds = ds.with_format("torch")  
->>> ds[0]["audio"]["array"]
-tensor([ 6.1035e-05,  1.5259e-05,  1.6785e-04,  ..., -1.5259e-05,
-        -1.5259e-05,  1.5259e-05])
->>> ds[0]["audio"]["sampling_rate"]
-tensor(44100)
+>>> ds[0]["audio"]
+<datasets.features._torchcodec.AudioDecoder object at 0x7f12eb336790>
+>>> samples = ds[0]["audio"].get_all_samples()
+>>> samples.data
+tensor([[ 6.1035e-05,  1.5259e-05,  1.6785e-04,  ..., -1.5259e-05,
+         -1.5259e-05,  1.5259e-05]])
+>>> samples.sample_rate
+44100
 ```
+
+`samples.data` has shape `(num_channels, num_samples)`, so mono audio still has a leading channel dimension. Unlike `["array"]`, it keeps each channel instead of averaging them into a single waveform.
 
 ## Data loading
 
