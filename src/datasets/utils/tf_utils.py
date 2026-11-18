@@ -18,6 +18,7 @@ import os
 import warnings
 from functools import partial
 from math import ceil
+from unittest.mock import patch
 from uuid import uuid4
 
 import numpy as np
@@ -344,7 +345,9 @@ class NumpyMultiprocessingGenerator:
                     **base_args,
                 }
                 worker = ctx.Process(target=self.worker_loop, kwargs=worker_kwargs, daemon=True)
-                worker.start()
+                # Spawn imports user code before worker_loop can hide GPUs through TensorFlow.
+                with patch.dict(os.environ, {"CUDA_VISIBLE_DEVICES": ""}):
+                    worker.start()
                 workers.append(worker)
 
             end_signal_received = False
