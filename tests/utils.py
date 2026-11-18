@@ -2,6 +2,7 @@ import asyncio
 import importlib.metadata
 import os
 import re
+import signal
 import sys
 import tempfile
 import unittest
@@ -59,6 +60,22 @@ require_not_windows = pytest.mark.skipif(
     sys.platform == "win32",
     reason="test should not be run on Windows",
 )
+
+
+@contextmanager
+def fail_after(seconds):
+    """Raise TimeoutError instead of hanging if the block runs for more than `seconds`. Uses SIGALRM: not on Windows."""
+
+    def _raise(signum, frame):
+        raise TimeoutError(f"still running after {seconds}s")
+
+    previous_handler = signal.signal(signal.SIGALRM, _raise)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, previous_handler)
 
 
 require_faiss = pytest.mark.skipif(find_spec("faiss") is None or sys.platform == "win32", reason="test requires faiss")

@@ -624,6 +624,81 @@ def iflatmap_unordered(
                 [async_result.get(timeout=0.05) for async_result in async_results]
 
 
+def imap_with_dead_worker_check(
+    pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool],
+    func: Callable[..., Y],
+    iterable: Iterable,
+) -> Iterable[Y]:
+    """Like `pool.imap(func, iterable)`, but raises instead of waiting forever if a subprocess dies.
+
+    When a worker dies (e.g. killed by the OOM killer), the pool replaces it but never completes the task it was
+    running, so `pool.imap` and `pool.map` would wait forever. This assumes that the pool doesn't replace its workers
+    for other reasons (e.g. `maxtasksperchild`).
+
+    The pool is terminated when the iteration ends or a worker died, because `pool.terminate()` can block forever
+    after a worker died (see `_terminate_pool_without_blocking`). So the pool can't be used afterwards.
+    """
+    initial_pool_pid = _get_pool_pid(pool)
+    results = pool.imap(func, iterable)
+    while True:
+        try:
+            result = results.next(timeout=0.05)
+        except StopIteration:
+            # a subprocess may also die once it has nothing left to do, so never leave it to pool.terminate()
+            _terminate_pool_without_blocking(pool)
+            return
+        except (multiprocessing.TimeoutError, multiprocess.TimeoutError) as e:
+            if e.__cause__ is not None:  # raised by a task, not by the wait
+                raise
+            if _get_pool_pid(pool) != initial_pool_pid:
+                # One of the subprocesses has died. We should not wait forever.
+                _terminate_pool_without_blocking(pool)
+                raise RuntimeError(
+                    "One of the subprocesses has abruptly died. To debug the error, disable multiprocessing."
+                ) from None
+        else:
+            yield result
+
+
+def _terminate_pool_without_blocking(
+    pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool], timeout: float = 5
+) -> None:
+    """Terminate the pool like `pool.terminate()`, but without blocking forever if a worker died abruptly.
+
+    A worker killed while waiting for a task, receiving a task or sending a result dies holding a lock that the
+    workers share, and may leave a message half-read or half-written in a pipe. `pool.terminate()` (called when
+    leaving `with Pool(...)`) waits for that lock, and the pool's threads wait on those pipes. So, like
+    `concurrent.futures.ProcessPoolExecutor` does for a broken pool, kill the workers first and never wait for
+    them: the parent then holds the only ends of the pipes, and closing them makes a thread stuck sending a task get
+    a broken pipe, and a thread stuck receiving a result get an end of file.
+    """
+    try:
+        cancel_terminate, wake_up_worker_handler = pool._terminate.cancel, pool._change_notifier.put
+        worker_handler, task_handler, result_handler = pool._worker_handler, pool._task_handler, pool._result_handler
+        tasks_reader, tasks_writer = pool._inqueue._reader, pool._inqueue._writer
+        results_reader, results_writer = pool._outqueue._reader, pool._outqueue._writer
+        pool._outqueue._wlock, pool._pool, multiprocessing.pool.TERMINATE
+    except AttributeError:  # not the pool implementation we know: nothing was changed, pool.terminate() is used
+        return
+    cancel_terminate()  # so that terminate() on `with` exit does nothing
+    pool._state = worker_handler._state = task_handler._state = result_handler._state = multiprocessing.pool.TERMINATE
+    pool._outqueue._wlock = None  # the task handler writes to it as it exits; a dead worker may hold the lock
+    wake_up_worker_handler(None)
+    worker_handler.join(timeout)  # no worker is replaced after this
+    for worker in pool._pool:
+        worker.kill()
+    for worker in pool._pool:
+        worker.join(timeout)
+    tasks_reader.close()
+    task_handler.join(timeout)
+    results_writer.close()
+    result_handler.join(timeout)
+    if not task_handler.is_alive():  # otherwise it may still use the pipe
+        tasks_writer.close()
+    if not result_handler.is_alive():
+        results_reader.close()
+
+
 T = TypeVar("T")
 
 

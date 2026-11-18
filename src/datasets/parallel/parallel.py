@@ -65,8 +65,10 @@ def _map_with_multiprocessing_pool(
     initargs, initializer = None, None
     if not disable_tqdm:
         initargs, initializer = (RLock(),), tqdm.set_lock
+    from ..utils.py_utils import imap_with_dead_worker_check  # avoid circular import
+
     with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
-        mapped = pool.map(single_map_nested_func, split_kwds)
+        mapped = list(imap_with_dead_worker_check(pool, single_map_nested_func, split_kwds))
     logger.info(f"Finished {num_proc} processes")
     mapped = [obj for proc_res in mapped for obj in proc_res]
     logger.info(f"Unpacked {len(mapped)} objects")
