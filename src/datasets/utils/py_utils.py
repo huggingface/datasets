@@ -385,7 +385,13 @@ def _single_map_nested(args):
         and isinstance(data_struct, types)
         and all(not isinstance(v, (dict, types)) for v in data_struct)
     ):
-        return [mapped_item for batch in iter_batched(data_struct, batch_size) for mapped_item in function(batch)]
+        mapped = [mapped_item for batch in iter_batched(data_struct, batch_size) for mapped_item in function(batch)]
+        if isinstance(data_struct, list):
+            return mapped
+        elif isinstance(data_struct, tuple):
+            return tuple(mapped)
+        else:
+            return np.array(mapped)
 
     # Reduce logging to keep things readable in multiprocessing with tqdm
     if rank is not None and logging.get_verbosity() < logging.WARNING:
