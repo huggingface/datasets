@@ -230,7 +230,8 @@ def infer_module_for_data_files_list(
         ):
             matches = [re.match(r"^(?:(.*)[/\\])?sub-[A-Za-z0-9]+[/\\]", filepath) for filepath in data_files_list]
             if all(matches) and all(
-                _is_bids_dataset(m.group(1) or "", download_config=download_config) for m in dict.fromkeys(matches)
+                _is_bids_dataset(root, download_config=download_config)
+                for root in dict.fromkeys(m.group(1) or "" for m in matches)
             ):
                 return "bids", {}
 

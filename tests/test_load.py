@@ -294,6 +294,14 @@ def test_infer_module_for_data_files(data_files, expected_module, expected_build
     assert builder_kwargs == expected_builder_kwargs
 
 
+def test_infer_module_for_bids_checks_each_root_once(tmp_path, monkeypatch):
+    files = [str(tmp_path / f"sub-0{i}" / "eeg" / f"sub-0{i}_task-rest_eeg.edf") for i in (1, 2)]
+    roots = []
+    monkeypatch.setattr(datasets.load, "_is_bids_dataset", lambda root, **kwargs: roots.append(root) or True)
+    assert infer_module_for_data_files_list(files)[0] == "bids"
+    assert roots == [str(tmp_path)]  # dataset_description.json is read once per root, not per file
+
+
 @pytest.mark.parametrize(
     "data_file, expected_module",
     [
