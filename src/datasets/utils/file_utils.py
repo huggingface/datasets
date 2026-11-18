@@ -538,7 +538,7 @@ def _get_extraction_protocol_with_magic_number(f) -> Optional[str]:
 def _get_extraction_protocol(urlpath: str, download_config: Optional[DownloadConfig] = None) -> Optional[str]:
     # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
     urlpath = str(urlpath)
-    path = urlpath.split("::")[0]
+    path = [hop for i, hop in enumerate(reversed(urlpath.split("::"))) if "://" in hop or i == 0][-1]
     extension = _get_path_extension(path)
     if (
         extension in BASE_KNOWN_EXTENSIONS
@@ -581,9 +581,11 @@ def xjoin(a, *p):
         zip://folder1/file.txt::https://host.com/archive.zip
     """
     a, *b = str(a).split("::")
-    if is_local_path(a):
+    if not b and is_local_path(a):
         return os.path.join(a, *p)
     else:
+        if b and "://" not in a:
+            a += "://"
         a = posixpath.join(a, *p)
         return "::".join([a] + b)
 
@@ -608,7 +610,7 @@ def xdirname(a):
         zip://folder1::https://host.com/archive.zip
     """
     a, *b = str(a).split("::")
-    if is_local_path(a):
+    if not b and is_local_path(a):
         a = os.path.dirname(Path(a).as_posix())
     else:
         a = posixpath.dirname(a)
@@ -631,13 +633,13 @@ def xexists(urlpath: str, download_config: Optional[DownloadConfig] = None):
     """
 
     main_hop, *rest_hops = _as_str(urlpath).split("::")
-    if is_local_path(main_hop):
+    if not rest_hops and is_local_path(main_hop):
         return os.path.exists(main_hop)
     else:
         urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
         main_hop, *rest_hops = urlpath.split("::")
-        fs, *_ = url_to_fs(urlpath, **storage_options)
-        return fs.exists(main_hop)
+        fs, urlpath = url_to_fs(urlpath, **storage_options)
+        return fs.exists(urlpath)
 
 
 def xbasename(a):
@@ -660,7 +662,7 @@ def xbasename(a):
         file.txt
     """
     a, *b = str(a).split("::")
-    if is_local_path(a):
+    if not b and is_local_path(a):
         return os.path.basename(Path(a).as_posix())
     else:
         return posixpath.basename(a)
@@ -686,7 +688,7 @@ def xsplit(a):
         ('zip://folder1::https://host.com/archive.zip', 'file.txt')
     """
     a, *b = str(a).split("::")
-    if is_local_path(a):
+    if not b and is_local_path(a):
         return os.path.split(Path(a).as_posix())
     else:
         a, tail = posixpath.split(a)
@@ -713,7 +715,7 @@ def xsplitext(a):
         ('zip://folder1/file::https://host.com/archive.zip', '.txt')
     """
     a, *b = str(a).split("::")
-    if is_local_path(a):
+    if not b and is_local_path(a):
         return os.path.splitext(Path(a).as_posix())
     else:
         a, ext = posixpath.splitext(a)
@@ -731,13 +733,13 @@ def xisfile(path, download_config: Optional[DownloadConfig] = None) -> bool:
         `bool`
     """
     main_hop, *rest_hops = str(path).split("::")
-    if is_local_path(main_hop):
+    if not rest_hops and is_local_path(main_hop):
         return os.path.isfile(path)
     else:
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         main_hop, *rest_hops = path.split("::")
-        fs, *_ = url_to_fs(path, **storage_options)
-        return fs.isfile(main_hop)
+        fs, urlpath = url_to_fs(path, **storage_options)
+        return fs.isfile(urlpath)
 
 
 def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
@@ -751,14 +753,14 @@ def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
         `int`: optional
     """
     main_hop, *rest_hops = str(path).split("::")
-    if is_local_path(main_hop):
+    if not rest_hops and is_local_path(main_hop):
         return os.path.getsize(path)
     else:
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         main_hop, *rest_hops = path.split("::")
-        fs, *_ = fs, *_ = url_to_fs(path, **storage_options)
+        fs, urlpath = url_to_fs(path, **storage_options)
         try:
-            size = fs.size(main_hop)
+            size = fs.size(urlpath)
         except huggingface_hub.utils.EntryNotFoundError:
             raise FileNotFoundError(f"No such file: {path}")
         if size is None:
@@ -779,16 +781,16 @@ def xisdir(path, download_config: Optional[DownloadConfig] = None) -> bool:
         `bool`
     """
     main_hop, *rest_hops = str(path).split("::")
-    if is_local_path(main_hop):
+    if not rest_hops and is_local_path(main_hop):
         return os.path.isdir(path)
     else:
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         main_hop, *rest_hops = path.split("::")
-        fs, *_ = fs, *_ = url_to_fs(path, **storage_options)
-        inner_path = main_hop.split("://")[-1]
+        fs, urlpath = url_to_fs(path, **storage_options)
+        inner_path = main_hop.split("://", 1)[-1]
         if not inner_path.strip("/"):
             return True
-        return fs.isdir(inner_path)
+        return fs.isdir(urlpath)
 
 
 def xrelpath(path, start=None):
@@ -802,7 +804,7 @@ def xrelpath(path, start=None):
         `str`
     """
     main_hop, *rest_hops = str(path).split("::")
-    if is_local_path(main_hop):
+    if not rest_hops and is_local_path(main_hop):
         return os.path.relpath(main_hop, start=start) if start else os.path.relpath(main_hop)
     else:
         return posixpath.relpath(main_hop, start=str(start).split("::")[0]) if start else os.path.relpath(main_hop)
@@ -955,7 +957,7 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
     # This works as well for `xopen(str(Path(...)))`
     file_str = _as_str(file)
     main_hop, *rest_hops = file_str.split("::")
-    if is_local_path(main_hop):
+    if not rest_hops and is_local_path(main_hop):
         # ignore fsspec-specific kwargs
         kwargs.pop("block_size", None)
         return open(main_hop, mode, *args, **kwargs)
@@ -1015,17 +1017,17 @@ def xlistdir(path: str, download_config: Optional[DownloadConfig] = None) -> lis
         `list` of `str`
     """
     main_hop, *rest_hops = _as_str(path).split("::")
-    if is_local_path(main_hop):
+    if not rest_hops and is_local_path(main_hop):
         return os.listdir(path)
     else:
         # globbing inside a zip in a private repo requires authentication
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         main_hop, *rest_hops = path.split("::")
-        fs, *_ = url_to_fs(path, **storage_options)
-        inner_path = main_hop.split("://")[-1]
-        if inner_path.strip("/") and not fs.isdir(inner_path):
+        fs, urlpath = url_to_fs(path, **storage_options)
+        inner_path = main_hop.split("://", 1)[-1]
+        if inner_path.strip("/") and not fs.isdir(urlpath):
             raise FileNotFoundError(f"Directory doesn't exist: {path}")
-        paths = fs.listdir(inner_path, detail=False)
+        paths = fs.listdir(urlpath, detail=False)
         return [os.path.basename(path.rstrip("/")) for path in paths]
 
 
@@ -1042,15 +1044,14 @@ def xglob(urlpath, *, recursive=False, download_config: Optional[DownloadConfig]
         `list` of `str`
     """
     main_hop, *rest_hops = _as_str(urlpath).split("::")
-    if is_local_path(main_hop):
+    if not rest_hops and is_local_path(main_hop):
         return glob.glob(main_hop, recursive=recursive)
     else:
         # globbing inside a zip in a private repo requires authentication
         urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
         main_hop, *rest_hops = urlpath.split("::")
-        fs, *_ = url_to_fs(urlpath, **storage_options)
-        inner_path = main_hop.split("://")[1]
-        globbed_paths = fs.glob(inner_path)
+        fs, path = url_to_fs(urlpath, **storage_options)
+        globbed_paths = fs.glob(path)
         protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
         return ["::".join([f"{protocol}://{globbed_path}"] + rest_hops) for globbed_path in globbed_paths]
 
@@ -1068,15 +1069,15 @@ def xwalk(urlpath, download_config: Optional[DownloadConfig] = None, **kwargs):
         `tuple`: 3-tuple (dirpath, dirnames, filenames).
     """
     main_hop, *rest_hops = _as_str(urlpath).split("::")
-    if is_local_path(main_hop):
+    if not rest_hops and is_local_path(main_hop):
         yield from os.walk(main_hop, **kwargs)
     else:
         # walking inside a zip in a private repo requires authentication
         urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
         main_hop, *rest_hops = urlpath.split("::")
-        fs, *_ = url_to_fs(urlpath, **storage_options)
-        inner_path = main_hop.split("://")[-1]
-        if inner_path.strip("/") and not fs.isdir(inner_path):
+        fs, path = url_to_fs(urlpath, **storage_options)
+        inner_path = main_hop.split("://", 1)[-1]
+        if inner_path.strip("/") and not fs.isdir(path):
             return []
         protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
         for dirpath, dirnames, filenames in fs.walk(inner_path, **kwargs):
@@ -1089,7 +1090,7 @@ class xPath(type(Path())):
     def __str__(self):
         path_str = super().__str__()
         main_hop, *rest_hops = path_str.split("::")
-        if is_local_path(main_hop):
+        if not rest_hops and is_local_path(main_hop):
             return main_hop
         path_as_posix = path_str.replace("\\", "/")
         path_as_posix = SINGLE_SLASH_AFTER_PROTOCOL_PATTERN.sub("://", path_as_posix)
@@ -1141,7 +1142,7 @@ class xPath(type(Path())):
         """
         posix_path = self.as_posix()
         main_hop, *rest_hops = posix_path.split("::")
-        if is_local_path(main_hop):
+        if not rest_hops and is_local_path(main_hop):
             yield from Path(main_hop).glob(pattern)
         else:
             # globbing inside a zip in a private repo requires authentication
@@ -1152,8 +1153,8 @@ class xPath(type(Path())):
                 posix_path = "::".join([main_hop, urlpath, *rest_hops[1:]])
             else:
                 storage_options = None
-            fs, *_ = url_to_fs(xjoin(posix_path, pattern), **(storage_options or {}))
-            globbed_paths = fs.glob(xjoin(main_hop, pattern))
+            fs, path = url_to_fs(xjoin(posix_path, pattern), **(storage_options or {}))
+            globbed_paths = fs.glob(path)
             for globbed_path in globbed_paths:
                 yield type(self)("::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops))
 
@@ -1232,7 +1233,7 @@ class xPath(type(Path())):
 
     def with_suffix(self, suffix):
         main_hop, *rest_hops = str(self).split("::")
-        if is_local_path(main_hop):
+        if not rest_hops and is_local_path(main_hop):
             return type(self)(str(super().with_suffix(suffix)))
         return type(self)("::".join([type(self)(PurePosixPath(main_hop).with_suffix(suffix)).as_posix()] + rest_hops))
 

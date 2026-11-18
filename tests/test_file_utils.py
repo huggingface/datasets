@@ -494,6 +494,14 @@ def test_xopen_remote():
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
 
 
+@pytest.mark.integration
+def test_xopen_cached_remote():
+    with xopen("sharedblockcache::" + TEST_URL, "r", encoding="utf-8") as f:
+        assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
+    with xPath("sharedblockcache::" + TEST_URL).open("r", encoding="utf-8") as f:
+        assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
+
+
 def test_import_datasets_does_not_import_aiohttp():
     code = "import sys, datasets; assert 'aiohttp' not in sys.modules"
     subprocess.run([sys.executable, "-c", code], check=True)
