@@ -126,7 +126,7 @@ class Audio:
             return {"bytes": value, "path": None}
         elif AudioDecoder is not None and isinstance(value, AudioDecoder):
             return encode_torchcodec_audio(value)
-        elif "array" in value:
+        elif value.get("array") is not None:
             # convert the audio array to wav bytes
             buffer = BytesIO()
             AudioEncoder(
