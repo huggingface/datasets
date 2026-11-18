@@ -104,17 +104,17 @@ def parallel_backend(backend_name: str):
        dataset = load_dataset(..., num_proc=2)
      ```
     """
+    previous_backend = ParallelBackendConfig.backend_name
     ParallelBackendConfig.backend_name = backend_name
-
-    if backend_name == "spark":
-        from joblibspark import register_spark
-
-        register_spark()
-
-        # TODO: call create_cache_and_write_probe if "download" in steps
-        # TODO: raise NotImplementedError when Dataset.map etc is called
-
     try:
+        if backend_name == "spark":
+            from joblibspark import register_spark
+
+            register_spark()
+
+            # TODO: call create_cache_and_write_probe if "download" in steps
+            # TODO: raise NotImplementedError when Dataset.map etc is called
+
         yield
     finally:
-        ParallelBackendConfig.backend_name = None
+        ParallelBackendConfig.backend_name = previous_backend
