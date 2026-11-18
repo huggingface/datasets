@@ -30,12 +30,14 @@ from datasets.load import (
     HubDatasetModuleFactory,
     LocalDatasetModuleFactory,
     PackagedDatasetModuleFactory,
+    configure_builder_class,
     infer_module_for_data_files_list,
     infer_module_for_data_files_list_in_archives,
     load_dataset_builder,
 )
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder, ImageFolderConfig
+from datasets.packaged_modules.text.text import Text, TextConfig
 from datasets.utils.logging import INFO, get_logger
 
 from .utils import (
@@ -1260,6 +1262,33 @@ def test_load_dataset_then_move_then_reload(data_dir, tmp_path, caplog):
     assert dataset._fingerprint == fingerprint1, "for the caching mechanism to work, fingerprint should stay the same"
     dataset = load_dataset(data_dir, split="test", cache_dir=cache_dir2)
     assert dataset._fingerprint != fingerprint1
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_builder_with_unrestricted_forwarded_patterns(tmp_path, streaming):
+    data_dir = tmp_path / "data"
+    for split in ["train", "test"]:
+        (data_dir / split).mkdir(parents=True)
+        for extension in ["txt", "csv", "json"]:
+            (data_dir / split / f"sample.{extension}").write_text(f"{split}-{extension}\n", encoding="utf-8")
+    patterns = DataFilesPatternsDict.from_patterns({"train": ["train/*"], "test": ["test/*"]})
+    forwarded = patterns.filter_extensions([".csv"])
+    builder_class = configure_builder_class(
+        Text,
+        [TextConfig(name="forwarded", data_files=forwarded)],
+        default_config_name="forwarded",
+        dataset_name="forwarded_patterns",
+    )
+    builder = builder_class(base_path=str(data_dir), cache_dir=str(tmp_path / "cache"))
+    if streaming:
+        dataset = builder.as_streaming_dataset()
+    else:
+        builder.download_and_prepare()
+        dataset = builder.as_dataset()
+    for split in ["train", "test"]:
+        assert sorted(row["text"] for row in dataset[split]) == [
+            f"{split}-{extension}" for extension in ["csv", "json", "txt"]
+        ]
 
 
 def test_load_dataset_builder_then_edit_then_load_again(tmp_path: Path):
