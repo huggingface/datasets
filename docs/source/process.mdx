@@ -731,7 +731,7 @@ Here is the list of supported dataframes or tables formats:
 - Polars: format name is "polars", for more information see [Using Datasets with Polars](use_with_polars)
 - PyArrow: format name is "arrow", for more information see [Using Datasets with PyArrow](use_with_tensorflow)
 
-When a dataset is formatted in a dataframe or table format, every dataset row or batches of rows is formatted as a dataframe or table, and dataset colums are formatted as a series or array:
+When a dataset is formatted in a dataframe or table format, every dataset row or batches of rows is formatted as a dataframe or table, and dataset columns are formatted as a series or array:
 
 ```python
 >>> ds = Dataset.from_dict({"text": ["foo", "bar"], "label": [0, 1]})
