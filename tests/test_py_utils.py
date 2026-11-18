@@ -14,6 +14,7 @@ from datasets.utils.py_utils import (
     NestedDataStructure,
     asdict,
     iflatmap_unordered,
+    iflatmap_unordered_in_threads,
     map_nested,
     string_to_dict,
     temp_seed,
@@ -288,3 +289,26 @@ def test_string_to_dict():
     file_name_parts = string_to_dict(file_name, cache_file_name_pattern)
     assert file_name_parts is not None
     assert file_name_parts == {"rank": f"{rank:05d}", "num_proc": f"{num_proc:05d}"}
+
+
+def test_iflatmap_unordered_in_threads():
+    out = list(iflatmap_unordered_in_threads(2, _split_text, kwargs_iterable=[{"text": "hello there"}] * 10))
+    assert sorted(out) == ["hello"] * 10 + ["there"] * 10
+
+
+def _generator_failing_at(index, failing_index, started):
+    started.append(index)
+    if index == failing_index:
+        raise ValueError(f"generator {index} failed")
+    for i in range(5):
+        time.sleep(0.05)
+        yield i
+
+
+def test_iflatmap_unordered_in_threads_stops_the_other_generators_after_an_error():
+    started = []
+    kwargs_iterable = [{"index": i, "failing_index": 1, "started": started} for i in range(10)]
+    with pytest.raises(ValueError, match="generator 1 failed"):
+        list(iflatmap_unordered_in_threads(2, _generator_failing_at, kwargs_iterable=kwargs_iterable))
+    # generators that didn't start before the error don't run
+    assert sorted(started) == [0, 1]

@@ -1,9 +1,11 @@
 import os
+import threading
 import time
 import uuid
 from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Optional
 from unittest.mock import patch
 
@@ -243,3 +245,32 @@ def offline_parquet_uploads(tmp_path):
             pool, initializer=_init_offline_parquet_uploads, initargs=(tmp_path,)
         )
         yield tmp_path
+
+
+@pytest.fixture
+def recorded_parquet_uploads():
+    """Record the Parquet shards `push_to_hub` would upload, and the maximum number of uploads running at once.
+
+    Each upload waits a bit so that uploads running in other threads overlap with it.
+    """
+    uploads = SimpleNamespace(files={}, max_concurrent=0, fail_on=None)
+    lock = threading.Lock()
+    concurrent = 0
+
+    def preupload_lfs_files(self, *args, additions, **kwargs):
+        nonlocal concurrent
+        with lock:
+            concurrent += 1
+            uploads.max_concurrent = max(uploads.max_concurrent, concurrent)
+        try:
+            time.sleep(0.2)
+            for addition in additions:
+                if addition.path_in_repo == uploads.fail_on:
+                    raise RuntimeError(f"upload of {addition.path_in_repo} failed")
+                uploads.files[addition.path_in_repo] = Path(addition.path_or_fileobj).read_bytes()
+        finally:
+            with lock:
+                concurrent -= 1
+
+    with patch.object(HfApi, "preupload_lfs_files", new=preupload_lfs_files):
+        yield uploads
