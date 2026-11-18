@@ -699,6 +699,10 @@ class BaseDatasetTest(TestCase):
                 with dset.rename_columns({"col_1": "col_2", "col_2": "col_1"}) as new_dset:
                     self.assertListEqual(list(new_dset.column_names), ["col_2", "col_1", "col_3"])
 
+                # Chained rename is allowed
+                with dset.rename_columns({"col_1": "col_2", "col_2": "col_4"}) as new_dset:
+                    self.assertListEqual(list(new_dset.column_names), ["col_2", "col_4", "col_3"])
+
     def test_select_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
