@@ -26,6 +26,7 @@ from datasets.builder import (
 from datasets.data_files import DataFilesList
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.download.download_manager import DownloadMode
+from datasets.exceptions import DatasetGenerationError
 from datasets.features import Features, Value
 from datasets.info import DatasetInfo
 from datasets.iterable_dataset import IterableDataset
@@ -933,3 +934,25 @@ def test_arrow_based_builder_download_and_prepare_with_ambiguous_shards(num_proc
     builder = DummyArrowBasedBuilderWithAmbiguousShards(cache_dir=tmp_path)
     with expectation:
         builder.download_and_prepare(num_proc=num_proc)
+
+
+@pytest.mark.parametrize("builder_class", [DummyGeneratorBasedBuilder, DummyArrowBasedBuilder])
+def test_builder_download_and_prepare_when_finalize_fails(builder_class, tmp_path):
+    writers = []
+
+    class FailingArrowWriter(ArrowWriter):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            writers.append(self)
+
+        def finalize(self, close_stream=True):
+            raise ValueError("failed to finalize")
+
+    builder = builder_class(cache_dir=tmp_path)
+    with patch("datasets.builder.ArrowWriter", FailingArrowWriter):
+        with pytest.raises(DatasetGenerationError) as exc_info:
+            builder.download_and_prepare()
+    assert isinstance(exc_info.value.__cause__, ValueError)
+    # an arrow file left open makes the cleanup of the ".incomplete" directory fail on Windows
+    assert len(writers) == 1 and writers[0].stream.closed
+    assert not os.path.exists(builder._output_dir + ".incomplete")
