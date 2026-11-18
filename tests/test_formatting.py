@@ -973,6 +973,29 @@ def arrow_table():
     return pa.Table.from_pydict({"col_int": [0, 1, 2], "col_float": [0.0, 1.0, 2.0]})
 
 
+@pytest.mark.parametrize(
+    "col",
+    [
+        [None, [3, 4]],  # the null row comes first
+        [[1, 2], None],
+        [[1, 2], None, [5, 6]],
+        [None, [3], [4, 5]],  # ragged, with the null row first
+    ],
+)
+def test_numpy_formatter_list_column_with_none(col):
+    # a null row has no shape, so it must not be used as the reference to compare the other rows to
+    pa_table = pa.table({"col": pa.array(col, type=pa.list_(pa.int64()))})
+    formatter = NumpyFormatter()
+
+    column = formatter.format_column(pa_table)
+    assert column.dtype == object
+    assert [None if row is None else row.tolist() for row in column] == col
+
+    batch = formatter.format_batch(pa_table)
+    assert batch["col"].dtype == object
+    assert [None if row is None else row.tolist() for row in batch["col"]] == col
+
+
 @require_tf
 @pytest.mark.parametrize(
     "cast_schema",
