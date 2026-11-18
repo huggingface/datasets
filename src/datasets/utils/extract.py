@@ -1,5 +1,6 @@
 import bz2
 import gzip
+import json
 import lzma
 import os
 import shutil
@@ -32,12 +33,15 @@ class ExtractManager:
         self.extractor = Extractor
 
     def _get_output_path(self, path: str) -> str:
-        from .file_utils import hash_url_to_filename
+        from .file_utils import hash_url_to_filename  # avoid circular import with file_utils
 
-        # Path where we extract compressed archives
-        # We extract in the cache dir, and get the extracted path name by hashing the original path"
+        # Extraction cache identity is the absolute source path plus one size and
+        # integer st_mtime_ns snapshot. Hash that into a single digest so
+        # Path(output).with_suffix(".lock") stays specific to this version.
         abs_path = os.path.abspath(path)
-        return os.path.join(self.extract_dir, hash_url_to_filename(abs_path))
+        stat = os.stat(abs_path)
+        identity = json.dumps([abs_path, stat.st_size, int(stat.st_mtime_ns)], separators=(",", ":"))
+        return os.path.join(self.extract_dir, hash_url_to_filename(identity))
 
     def _do_extract(self, output_path: str, force_extract: bool) -> bool:
         return force_extract or (

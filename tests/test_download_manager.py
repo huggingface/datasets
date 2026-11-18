@@ -7,7 +7,7 @@ import pytest
 from datasets.download.download_config import DownloadConfig
 from datasets.download.download_manager import DownloadManager
 from datasets.download.streaming_download_manager import StreamingDownloadManager
-from datasets.utils.file_utils import hash_url_to_filename, xopen
+from datasets.utils.file_utils import xopen
 from datasets.utils.py_utils import NestedDataStructure
 
 
@@ -105,7 +105,8 @@ def test_download_manager_extract(paths_type, xz_file, text_file, extract_on_the
             if not extract_on_the_fly:
                 extracted_path = Path(extracted_path)
                 parts = extracted_path.parts
-                assert parts[-1] == hash_url_to_filename(input_path, etag=None)
+                assert dl_manager.extract(input_path) == str(extracted_path)
+                assert "." not in parts[-1]
                 assert parts[-2] == extracted_subdir
                 assert extracted_path.exists()
                 extracted_file_content = extracted_path.read_text()
@@ -132,7 +133,8 @@ def test_download_manager_delete_extracted_files(xz_file):
     extracted_path = Path(extracted_path)
     parts = extracted_path.parts
 
-    assert parts[-1] == hash_url_to_filename(str(xz_file), etag=None)
+    assert dl_manager.extract(xz_file) == str(extracted_path)
+    assert "." not in parts[-1]
     assert parts[-2] == extracted_subdir
     assert extracted_path.exists()
     dl_manager.delete_extracted_files()
