@@ -103,6 +103,28 @@ def test_dataset_to_sql_invalidproc(sqlite_path, tmp_path, set_sqlalchemy_silenc
 
 
 @require_sqlalchemy
+def test_dataset_to_sql_index_numbers_rows_across_batches(tmp_path, set_sqlalchemy_silence_uber_warning):
+    # With index=True the index column must number the dataset's rows, not each batch's rows:
+    # every batch is converted to pandas on its own and gets a fresh RangeIndex from 0.
+    dataset = Dataset.from_dict({"a": list(range(7))})
+    output_sqlite_path = os.path.join(tmp_path, "out.sqlite")
+    SqlDatasetWriter(dataset, "dataset", "sqlite:///" + output_sqlite_path, batch_size=3, index=True).write()
+    with contextlib.closing(sqlite3.connect(output_sqlite_path)) as con:
+        rows = con.execute("SELECT * FROM dataset").fetchall()
+    assert rows == [(i, i) for i in range(7)]
+
+
+@require_sqlalchemy
+def test_dataset_to_sql_index_numbers_selected_rows(tmp_path, set_sqlalchemy_silence_uber_warning):
+    dataset = Dataset.from_dict({"a": list(range(15))}).select(range(5, 12))
+    output_sqlite_path = os.path.join(tmp_path, "out.sqlite")
+    SqlDatasetWriter(dataset, "dataset", "sqlite:///" + output_sqlite_path, batch_size=3, index=True).write()
+    with contextlib.closing(sqlite3.connect(output_sqlite_path)) as con:
+        rows = con.execute("SELECT * FROM dataset").fetchall()
+    assert rows == [(i, value) for i, value in enumerate(range(5, 12))]
+
+
+@require_sqlalchemy
 @pytest.mark.parametrize("dtype, big", [("int64", 9007199254740993), ("uint64", 9007199254740993)])
 def test_dataset_to_sql_preserves_nullable_int(dtype, big, tmp_path, set_sqlalchemy_silence_uber_warning):
     # A nullable integer column must land in an INTEGER SQL column with its exact value.
