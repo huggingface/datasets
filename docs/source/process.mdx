@@ -800,7 +800,7 @@ The example below uses the [`pydub`](http://pydub.com/) package as an alternativ
 
 Once your dataset is ready, you can save it as a Hugging Face Dataset in Parquet format and reuse it later with [`load_dataset`].
 
-Save your dataset by providing the name of the dataset repository on Hugging Face you wish to save it to to [`~Dataset.push_to_hub`]:
+Save your dataset by providing the name of the dataset repository on Hugging Face you wish to save it to [`~Dataset.push_to_hub`]:
 
 ```python
 encoded_dataset.push_to_hub("username/my_dataset")
