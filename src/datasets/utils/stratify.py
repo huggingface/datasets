@@ -25,7 +25,7 @@ def approximate_mode(class_counts, n_draws, rng):
     """
     # this computes a bad approximation to the mode of the
     # multivariate hypergeometric given by class_counts and n_draws
-    continuous = n_draws * class_counts / class_counts.sum()
+    continuous = (class_counts / class_counts.sum()) * n_draws
     # floored means we don't overshoot n_samples, but probably undershoot
     floored = np.floor(continuous)
     # we add samples according to how much "left over" probability
