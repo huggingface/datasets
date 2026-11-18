@@ -800,12 +800,19 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
         self,
         name: str,
         cache_dir: Optional[str] = None,
+        download_mode: Optional[Union[DownloadMode, str]] = None,
     ):
         self.name = name
         self.cache_dir = cache_dir
+        self.download_mode = download_mode
         assert self.name.count("/") <= 1
 
     def get_module(self) -> DatasetModule:
+        if self.download_mode and DownloadMode(self.download_mode) == DownloadMode.FORCE_REDOWNLOAD:
+            raise ValueError(
+                f"Can't use the cached version of the dataset {self.name} "
+                f"since download_mode is set to {DownloadMode.FORCE_REDOWNLOAD.value}"
+            )
         cache_dir = os.path.expanduser(str(self.cache_dir or config.HF_DATASETS_CACHE))
         namespace_and_dataset_name = self.name.split("/")
         namespace_and_dataset_name[-1] = camelcase_to_snakecase(namespace_and_dataset_name[-1])
@@ -1167,7 +1174,7 @@ def dataset_module_factory(
         except Exception as e1:
             # All the attempts failed, before raising the error we should check if the module is already cached
             try:
-                return CachedDatasetModuleFactory(path, cache_dir=cache_dir).get_module()
+                return CachedDatasetModuleFactory(path, cache_dir=cache_dir, download_mode=download_mode).get_module()
             except Exception:
                 # If it's not in the cache, then it doesn't exist.
                 if isinstance(e1, OfflineModeIsEnabled):
