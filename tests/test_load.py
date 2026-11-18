@@ -1398,3 +1398,19 @@ def test_update_dataset_card_data_with_standalone_yaml():
     assert isinstance(
         builder.info.features["label"], datasets.ClassLabel
     )  # correctly loaded from long labels list in standalone yaml
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_csv_splits_from_files_in_one_zip(streaming, zip_csv_path):
+    # each split reads one file of the archive, using fsspec URL chaining: zip://<file in the archive>::<archive>
+    data_files = {
+        "train": f"zip://dataset.csv::{zip_csv_path}",
+        "test": f"zip://dataset2.csv::{zip_csv_path}",
+    }
+    features = Features({"col_1": Value("string"), "col_2": Value("int32"), "col_3": Value("float32")})
+    ds = load_dataset("csv", data_files=data_files, features=features, streaming=streaming)
+    assert list(ds) == ["train", "test"]
+    for split in ds:
+        rows = list(ds[split])
+        assert len(rows) == 4  # one file of the archive, not the 8 rows of both files
+        assert rows[0] == {"col_1": "0", "col_2": 0, "col_3": 0.0}
