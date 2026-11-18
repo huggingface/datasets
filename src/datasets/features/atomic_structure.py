@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Union
 
 import pyarrow as pa
+import pyarrow.compute as pc
 
 from .. import config
 from ..download.download_config import DownloadConfig
@@ -21,7 +22,7 @@ if TYPE_CHECKING:
     from .features import FeatureType
 
 
-_COMPRESSION_EXTENSIONS = (".gz", ".gzip", ".bz2", ".zst")
+_COMPRESSION_EXTENSIONS = (".gz", ".gzip", ".bz2", ".zst", ".zstd")
 
 
 class _AtomicStructureModels(list):
@@ -255,16 +256,17 @@ class AtomicStructure:
         Returns:
             `pa.StructArray`: Array in the AtomicStructure arrow storage type.
         """
-        data, paths = storage.field("bytes").to_pylist(), storage.field("path").to_pylist()
+        if storage.field("path").null_count == len(storage):
+            return storage
         embedded = []
         embedded_paths = []
+        data = pc.struct_field(storage, "bytes").to_pylist()
+        paths = pc.struct_field(storage, "path").to_pylist()
         for bytes_, path in zip(data, paths):
             if bytes_ is None and path is not None and (local_files if is_local_path(path) else remote_files):
                 bytes_ = _read_file(path, token_per_repo_id)
             embedded.append(bytes_)
-            embedded_paths.append(
-                os.path.basename(path.split("::")[0]) if path is not None and bytes_ is not None else path
-            )
+            embedded_paths.append(_source_filename(path) if path is not None and bytes_ is not None else path)
         return pa.StructArray.from_arrays(
             [pa.array(embedded, type=pa.binary()), pa.array(embedded_paths, type=pa.string())],
             ["bytes", "path"],
@@ -551,13 +553,17 @@ _FILE_TYPE_BY_EXTENSION = {
 }
 
 
+def _source_filename(path: str) -> str:
+    name = path.split("::")[0]
+    if not is_local_path(name):
+        name = name.split("?", 1)[0].split("#", 1)[0]
+    return os.path.basename(name)
+
+
 def _detect_format(data: bytes, path: Optional[str]) -> str:
     """`file_type` of atomworks (`cif`, `bcif`, `pdb`) or `mol` / `mol2`, from the extension, else the content."""
     if path:
-        name = path.split("::")[0]
-        if not is_local_path(name):
-            name = name.split("?", 1)[0].split("#", 1)[0]
-        name = name.lower()
+        name = _source_filename(path).lower()
         for ext in _COMPRESSION_EXTENSIONS:
             name = name.removesuffix(ext)
         for ext, file_type in _FILE_TYPE_BY_EXTENSION.items():

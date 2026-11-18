@@ -427,7 +427,7 @@ def test_decode_false_and_flatten():
 
 def test_embed_storage_keeps_bytes_and_reads_missing_ones():
     """A row that holds its bytes is not read from its path again, which may not exist any more."""
-    kept = {"bytes": b"embedded", "path": "gone/1abc.cif"}
+    kept = {"bytes": b"embedded", "path": "https://example.org/1abc.cif?signature=temporary"}
     missing = {"bytes": None, "path": str(CIF_FILE)}
     storage = pa.array([kept, missing, None], type=AtomicStructure.pa_type)
     embedded = AtomicStructure().embed_storage(storage).to_pylist()

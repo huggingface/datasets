@@ -15,7 +15,7 @@ import datasets
 from datasets import config
 from datasets.builder import Key
 from datasets.features.features import FeatureType, _visit, _visit_with_path, _VisitPath, require_storage_cast
-from datasets.utils.file_utils import readline
+from datasets.utils.file_utils import SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL, readline
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -67,8 +67,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
     def _is_base_file(self, path: str) -> bool:
         """Recognize the same extensions during discovery and loading, including compressed files."""
         root, extension = os.path.splitext(path.split("::")[0])
-        _, inner_extension = os.path.splitext(root)
-        return extension.lower() in self.EXTENSIONS or inner_extension.lower() in self.EXTENSIONS
+        if extension.lower().lstrip(".") in SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL:
+            _, extension = os.path.splitext(root)
+        return extension.lower() in self.EXTENSIONS
 
     def _info(self):
         if not self.config.data_dir and not self.config.data_files:
@@ -458,6 +459,8 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                 if isinstance(downloaded_files, str):
                     downloaded_files = [downloaded_files]
                 for sample_idx, downloaded_file in enumerate(downloaded_files):
+                    if downloaded_dir and not self._is_base_file(downloaded_file):
+                        continue
                     sample = {self.BASE_COLUMN_NAME: downloaded_file}
                     if add_labels:
                         label_path = downloaded_file if downloaded_dir else original_file or downloaded_file

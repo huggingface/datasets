@@ -47,6 +47,8 @@ def test_compressed_structure_folders_keep_labels(tmp_path, file_type, compressi
     if archived:
         archive = tmp_path / "structures.zip"
         with zipfile.ZipFile(archive, "w") as output:
+            output.writestr("README.md", "Archive notes")
+            output.writestr(f"enzyme/one.{file_type}.bak", "Backup")
             for path in data_dir.glob("*/*"):
                 output.write(path, path.relative_to(data_dir))
         kwargs = {"data_files": str(archive)}
