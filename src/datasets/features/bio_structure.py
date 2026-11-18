@@ -163,6 +163,9 @@ class BioStructure:
         if token_per_repo_id is None:
             token_per_repo_id = {}
 
+        if not isinstance(value, (dict, str)):
+            return value  # decoding is idempotent: a value that is already a structure is returned as is
+
         path, bytes_ = value["path"], value["bytes"]
         structure_id = os.path.splitext(os.path.basename(path))[0] if path else "structure"
 
