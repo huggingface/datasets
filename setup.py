@@ -200,7 +200,7 @@ TESTS_REQUIRE = [
     "nibabel>=5.3.1",
     "trimesh>=4.10.0",
     "teich==0.1.5",
-    "mne>=1.6.0",
+    "mne>=1.13",
     "mne-bids[full]>=0.14",
 ]
 
@@ -227,7 +227,7 @@ BIO_REQUIRE = ["biopython>=1.80"]
 
 NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 
-BIDS_REQUIRE = ["mne>=1.6.0", "mne-bids>=0.14"]
+BIDS_REQUIRE = ["mne>=1.13", "mne-bids>=0.14"]
 
 ICEBERG_REQUIRE = ["pyiceberg>=0.7.0"]
 
