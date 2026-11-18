@@ -221,6 +221,10 @@ def infer_module_for_data_files_list(
         for filepath in data_files_list
         for suffix in xbasename(filepath).split(".")[1:]
     )
+    # Harbor tasks are identified by their task.toml and instruction.md file names,
+    # so other .toml and .md files (e.g. pyproject.toml or LICENSE.md) are not data files
+    for ext in (".toml", ".md"):
+        extensions_counter.pop((ext, False), None)
     if extensions_counter:
 
         def sort_key(ext_count: tuple[tuple[str, bool], int]) -> tuple[int, bool]:
