@@ -78,6 +78,24 @@ def test_image_feature_encode_example(shared_datadir, build_example):
 
 
 @require_pil
+def test_image_encode_archive_relative_path_keeps_bytes(tmp_path, monkeypatch):
+    import PIL.Image
+
+    monkeypatch.chdir(tmp_path)
+    path = "image.png"
+    PIL.Image.new("RGB", (2, 2), "green").save(path)
+    buffer = BytesIO()
+    PIL.Image.new("RGB", (2, 2), "red").save(buffer, format="PNG")
+    payload = buffer.getvalue()
+
+    image = Image()
+    assert image.encode_example({"path": path, "bytes": payload}) == {"path": path, "bytes": payload}
+
+    local_path = str(tmp_path / path)
+    assert image.encode_example({"path": local_path, "bytes": payload}) == {"path": local_path, "bytes": None}
+
+
+@require_pil
 def test_image_decode_example(shared_datadir):
     import PIL.Image
 
