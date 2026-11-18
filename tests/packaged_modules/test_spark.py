@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 import numpy as np
-import pyspark
 import pytest
 
 from datasets import Features, Image, IterableDataset
@@ -17,6 +16,7 @@ from datasets.packaged_modules.spark.spark import (
 from ..utils import (
     require_dill_gt_0_3_2,
     require_not_windows,
+    require_pyspark,
 )
 
 
@@ -42,7 +42,10 @@ def test_config_raises_when_invalid_data_files(data_files) -> None:
 
 @require_not_windows
 @require_dill_gt_0_3_2
+@require_pyspark
 def test_repartition_df_if_needed():
+    import pyspark
+
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     df = spark.range(100).repartition(1)
     spark_builder = Spark(df)
@@ -55,7 +58,10 @@ def test_repartition_df_if_needed():
 
 @require_not_windows
 @require_dill_gt_0_3_2
+@require_pyspark
 def test_generate_iterable_examples():
+    import pyspark
+
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     df = spark.range(10).repartition(2)
     partition_order = [1, 0]
@@ -70,7 +76,10 @@ def test_generate_iterable_examples():
 
 @require_not_windows
 @require_dill_gt_0_3_2
+@require_pyspark
 def test_spark_examples_iterable():
+    import pyspark
+
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     df = spark.range(10).repartition(1)
     it = SparkExamplesIterable(df)
@@ -82,7 +91,10 @@ def test_spark_examples_iterable():
 
 @require_not_windows
 @require_dill_gt_0_3_2
+@require_pyspark
 def test_spark_examples_iterable_shuffle():
+    import pyspark
+
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     df = spark.range(30).repartition(3)
     # Mock the generator so that shuffle reverses the partition indices.
@@ -100,7 +112,10 @@ def test_spark_examples_iterable_shuffle():
 
 @require_not_windows
 @require_dill_gt_0_3_2
+@require_pyspark
 def test_spark_examples_iterable_shard():
+    import pyspark
+
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     df = spark.range(20).repartition(4)
 
@@ -125,7 +140,10 @@ def test_spark_examples_iterable_shard():
 
 @require_not_windows
 @require_dill_gt_0_3_2
+@require_pyspark
 def test_repartition_df_if_needed_max_num_df_rows():
+    import pyspark
+
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     df = spark.range(100).repartition(1)
     spark_builder = Spark(df)
@@ -137,7 +155,10 @@ def test_repartition_df_if_needed_max_num_df_rows():
 
 @require_not_windows
 @require_dill_gt_0_3_2
+@require_pyspark
 def test_iterable_image_features():
+    import pyspark
+
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     img_bytes = np.zeros((10, 10, 3), dtype=np.uint8).tobytes()
     data = [(img_bytes,)]
@@ -151,10 +172,12 @@ def test_iterable_image_features():
 
 @require_not_windows
 @require_dill_gt_0_3_2
+@require_pyspark
 def test_iterable_image_features_decode():
     from io import BytesIO
 
     import PIL.Image
+    import pyspark
 
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     img = PIL.Image.fromarray(np.zeros((10, 10, 3), dtype=np.uint8), "RGB")
