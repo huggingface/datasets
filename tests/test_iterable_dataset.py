@@ -881,6 +881,20 @@ def test_iterable_dataset_vs_dataset_map(batched, batch_size, input_columns, rem
     assert all(x == y for x, y in zip(*r))
 
 
+def test_iterable_dataset_arrow_map_keeps_columns_returned_by_function_with_remove_columns():
+    data = {"a": [1], "b": [2]}
+
+    def replace_a(table):
+        return pa.table({"a": [10], "b": table["b"]})
+
+    mapped_dataset = Dataset.from_dict(data).with_format("arrow").map(replace_a, batched=True, remove_columns=["a"])
+    mapped_iterable_dataset = (
+        IterableDataset.from_dict(data).with_format("arrow").map(replace_a, batched=True, remove_columns=["a"])
+    )
+
+    assert list(mapped_iterable_dataset)[0].equals(mapped_dataset[:])
+
+
 def test_iterable_dataset_map_batched_shrink_without_all_columns_raises():
     # A batched function that shrinks the batch but does not re-emit every retained input column
     # used to silently produce misaligned/truncated rows instead of raising.
@@ -1269,13 +1283,9 @@ def test_mapped_examples_iterable_remove_columns_arrow_format(n, func, batched, 
         remove_columns=remove_columns,
         formatting=FormattingConfig(format_type="arrow"),
     )
-    all_examples = [x for _, x in generate_examples_fn(n=n)]
-    columns_to_remove = remove_columns if isinstance(remove_columns, list) else [remove_columns]
+    all_examples = [x for _, x in generate_examples_fn(n=n, extra_column="foo")]
     if batched is False:
-        expected = [
-            {**{k: v for k, v in func(pa.Table.from_pylist([x])).to_pylist()[0].items() if k not in columns_to_remove}}
-            for x in all_examples
-        ]
+        expected = [func(pa.Table.from_pylist([x])).to_pylist()[0] for x in all_examples]
     else:
         expected = []
         # If batch_size is None or <=0, we use the whole dataset as a single batch
@@ -1284,9 +1294,7 @@ def test_mapped_examples_iterable_remove_columns_arrow_format(n, func, batched, 
         for batch_offset in range(0, len(all_examples), batch_size):
             examples = all_examples[batch_offset : batch_offset + batch_size]
             batch = pa.Table.from_pylist(examples)
-            expected.extend(
-                [{k: v for k, v in x.items() if k not in columns_to_remove} for x in func(batch).to_pylist()]
-            )
+            expected.extend(func(batch).to_pylist())
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
     assert_load_state_dict_resumes_iteration(ex_iterable)
