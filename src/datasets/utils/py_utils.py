@@ -17,6 +17,7 @@
 
 import copy
 import functools
+import inspect
 import itertools
 import multiprocessing.pool
 import os
@@ -66,6 +67,15 @@ logger = logging.get_logger(__name__)
 # https://stackoverflow.com/questions/14946264/python-lru-cache-decorator-per-instance
 # For @property methods, use @memoized_property below.
 memoize = functools.lru_cache
+
+
+def is_async_callable(function: Callable) -> bool:
+    """Check async functions and callable objects, including functools.partial wrappers."""
+    while isinstance(function, functools.partial):
+        function = function.func
+    return inspect.iscoroutinefunction(function) or inspect.iscoroutinefunction(
+        getattr(type(function), "__call__", None)
+    )
 
 
 def size_str(size_in_bytes):
