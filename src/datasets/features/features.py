@@ -796,9 +796,15 @@ def _is_zero_copy_only(pa_type: pa.DataType, unnest: bool = False) -> bool:
 
 
 class ArrayExtensionArray(pa.ExtensionArray):
-    def __array__(self):
-        zero_copy_only = _is_zero_copy_only(self.storage.type, unnest=True)
-        return self.to_numpy(zero_copy_only=zero_copy_only)
+    def __array__(self, dtype=None, copy=None):
+        if copy is False and (self.type.shape[0] is None or self.null_count):
+            raise ValueError("Unable to avoid a copy for dynamic-shape arrays or arrays with null rows.")
+        array = self.to_numpy(zero_copy_only=copy is False)
+        if copy is False and dtype is not None and np.dtype(dtype) != array.dtype:
+            raise ValueError("Unable to avoid a copy when converting to a different dtype.")
+        if copy is True:
+            return np.array(array, dtype=dtype, copy=True)
+        return np.asarray(array, dtype=dtype)
 
     def __getitem__(self, i):
         return self.storage[i]
@@ -902,7 +908,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         self._data = data if not copy else np.array(data)
         self._dtype = PandasArrayExtensionDtype(data.dtype)
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=None):
         """
         Convert to NumPy Array.
         Note that Pandas expects a 1D array when dtype is set to object.
@@ -912,15 +918,20 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.api.extensions.ExtensionArray.html#pandas.api.extensions.ExtensionArray
 
         """
-        if dtype == np.dtype(object):
+        if dtype is not None and np.dtype(dtype) == np.dtype(object):
+            if self._data.dtype == object and self._data.ndim == 1:
+                return self._data.copy() if copy is True else self._data
+            if copy is False:
+                raise ValueError("Unable to avoid a copy when packing rows into a one-dimensional object array.")
             out = np.empty(len(self._data), dtype=object)
             for i in range(len(self._data)):
                 out[i] = self._data[i]
             return out
-        if dtype is None:
-            return self._data
-        else:
-            return self._data.astype(dtype)
+        if copy is False and dtype is not None and np.dtype(dtype) != self._data.dtype:
+            raise ValueError("Unable to avoid a copy when converting to a different dtype.")
+        if copy is True:
+            return np.array(self._data, dtype=dtype, copy=True)
+        return np.asarray(self._data, dtype=dtype)
 
     def __arrow_array__(self, type=None):
         """
