@@ -193,7 +193,7 @@ def test_image_webdataset(image_wds_file):
     assert len(examples) == 3
     assert isinstance(examples[0]["json"], dict)
     assert isinstance(examples[0]["json"]["caption"], str)
-    assert isinstance(examples[0]["jpg"], dict)  # keep encoded to avoid unecessary copies
+    assert isinstance(examples[0]["jpg"], dict)  # keep encoded to avoid unnecessary copies
     encoded = webdataset.info.features.encode_example(examples[0])
     decoded = webdataset.info.features.decode_example(encoded)
     assert isinstance(decoded["json"], dict)
@@ -299,7 +299,7 @@ def test_audio_webdataset(audio_wds_file):
     assert isinstance(examples[0]["json"], dict)
     assert isinstance(examples[0]["json"]["transcript"], str)
     assert isinstance(examples[0]["wav"], dict)
-    assert isinstance(examples[0]["wav"]["bytes"], bytes)  # keep encoded to avoid unecessary copies
+    assert isinstance(examples[0]["wav"]["bytes"], bytes)  # keep encoded to avoid unnecessary copies
     encoded = webdataset.info.features.encode_example(examples[0])
     decoded = webdataset.info.features.decode_example(encoded)
     assert isinstance(decoded["json"], dict)
@@ -389,7 +389,7 @@ def test_tensor_webdataset(tensor_wds_file):
     assert len(examples) == 3
     assert isinstance(examples[0]["json"], dict)
     assert isinstance(examples[0]["json"]["text"], str)
-    assert isinstance(examples[0]["pth"], torch.Tensor)  # keep encoded to avoid unecessary copies
+    assert isinstance(examples[0]["pth"], torch.Tensor)  # keep encoded to avoid unnecessary copies
     encoded = webdataset.info.features.encode_example(examples[0])
     decoded = webdataset.info.features.decode_example(encoded)
     assert isinstance(decoded["json"], dict)
