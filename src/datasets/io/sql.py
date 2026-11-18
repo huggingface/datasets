@@ -89,7 +89,7 @@ class SqlDatasetWriter:
         )
         df = batch.to_pandas(integer_object_nulls=True)
         num_rows = df.to_sql(self.name, self.con, index=index, **to_sql_kwargs)
-        return num_rows or len(df)
+        return num_rows if num_rows is not None else len(df)
 
     def _write(self, index, **to_sql_kwargs) -> int:
         """Writes the pyarrow table as SQL to a database.
