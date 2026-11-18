@@ -38,17 +38,26 @@ class Eval(datasets.GeneratorBasedBuilder):
                 )
             )
         if not self.info.features:
+            inferred_features = self._infer_features(logs_files_iterables)
+            if inferred_features is not None:
+                self.info.features = inferred_features
+
+        return splits
+
+    def _infer_features(self, logs_files_iterables):
+        """Infer features from the first log that contains samples."""
+        for log_files in logs_files_iterables:
             first_examples = list(
                 islice(
-                    self._iter_samples_from_log_files(logs_files_iterables[0]),
+                    self._iter_samples_from_log_files(log_files),
                     self.NUM_EXAMPLES_FOR_FEATURES_INFERENCE,
                 )
             )
-            pa_tables = [pa.Table.from_pylist([example]) for example in first_examples]
-            inferred_arrow_schema = pa.concat_tables(pa_tables, promote_options="default").schema
-            self.info.features = datasets.Features.from_arrow_schema(inferred_arrow_schema)
-
-        return splits
+            if first_examples:
+                pa_tables = [pa.Table.from_pylist([example]) for example in first_examples]
+                inferred_arrow_schema = pa.concat_tables(pa_tables, promote_options="default").schema
+                return datasets.Features.from_arrow_schema(inferred_arrow_schema)
+        return None
 
     def _sort_samples_key(self, sample_path: str):
         # looks like "{sample_id}_epoch_{epoch_idx}", where sample ids can be ints or strings
