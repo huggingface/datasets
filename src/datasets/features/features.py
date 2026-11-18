@@ -974,7 +974,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         if len(scalars) > 1 and all(
             isinstance(x, np.ndarray) and x.shape == scalars[0].shape and x.dtype == scalars[0].dtype for x in scalars
         ):
-            data = np.array(scalars, dtype=dtype if dtype is None else dtype.value_type, copy=copy)
+            data = np.asarray(scalars, dtype=dtype if dtype is None else dtype.value_type)
         else:
             data = np.empty(len(scalars), dtype=object)
             data[:] = scalars
