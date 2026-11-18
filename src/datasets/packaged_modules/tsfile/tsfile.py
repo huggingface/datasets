@@ -34,6 +34,7 @@ not by the split's total size.
 from __future__ import annotations
 
 import datetime as _dt
+from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from typing import Any, Literal, Optional
 
@@ -43,6 +44,7 @@ import pyarrow as pa
 import datasets
 from datasets.builder import Key
 from datasets.table import table_cast
+from datasets.utils.file_utils import is_local_path
 from datasets.utils.tqdm import tqdm
 
 
@@ -399,10 +401,10 @@ class TsFile(datasets.ArrowBasedBuilder):
             raise _SkipSplit
 
         readers: dict[str, Any] = {}
-        try:
+        with ExitStack() as stack:
             for file in files:
                 try:
-                    readers[file] = self._open_reader(file)
+                    readers[file] = stack.enter_context(self._open_reader(file))
                 except Exception as e:
                     if self._should_reraise(file, e):
                         raise
@@ -413,12 +415,6 @@ class TsFile(datasets.ArrowBasedBuilder):
                 return
 
             yield from self._iter_device_batches(device_index, file_meta, readers, target_schema)
-        finally:
-            for reader in readers.values():
-                try:
-                    reader.close()
-                except Exception:
-                    pass
 
     def _build_device_index(self, readers: dict):
         """Walk every open reader and build the cross-file device index.
@@ -722,24 +718,33 @@ class TsFile(datasets.ArrowBasedBuilder):
     # ----- file / error handling ---------------------------------------
 
     @staticmethod
+    @contextmanager
     def _open_reader(file: str):
-        """Open a file as a ``TsFileReader`` after verifying its magic header.
+        """Validate the magic header and keep the source alive until its reader closes.
 
-        The C library's ``TsFileReader`` constructor silently returns an
-        invalid handle for non-tsfile inputs, and any subsequent call on it
-        segfaults. The 6-byte ``TsFile`` magic header is checked first to
-        bail out cleanly.
+        In streaming mode, ``open`` is patched to ``xopen`` and returns a
+        seekable fsspec file object. TsFile 2.5.0 can read that object directly;
+        remote URLs must not be passed to the native local-path reader.
+
+        The magic check also prevents invalid files from reaching native code.
         """
         from tsfile import TsFileReader
 
-        try:
-            with open(file, "rb") as fh:
-                header = fh.read(len(_TSFILE_MAGIC))
-        except OSError as e:
-            raise ValueError(f"Cannot open file {file!r}: {e}") from e
-        if header != _TSFILE_MAGIC:
-            raise ValueError(f"File {file!r} is not a valid TsFile (bad magic header).")
-        return TsFileReader(file)
+        with ExitStack() as stack:
+            try:
+                source = stack.enter_context(open(file, "rb"))
+                header = source.read(len(_TSFILE_MAGIC))
+            except OSError as e:
+                raise ValueError(f"Cannot open file {file!r}: {e}") from e
+            if header != _TSFILE_MAGIC:
+                raise ValueError(f"File {file!r} is not a valid TsFile (bad magic header).")
+            if is_local_path(file):
+                source.close()
+                reader = TsFileReader(file)
+            else:
+                source.seek(0)
+                reader = TsFileReader(source)
+            yield stack.enter_context(reader)
 
     @staticmethod
     def _require_table_model(file: str, schemas) -> None:
