@@ -54,6 +54,17 @@ def test_column_metadata_follows_column_operations():
     assert ds.remove_columns("a").add_column("a", [0, 0, 0]).info.column_metadata == {"b": {"source": "manual"}}
 
 
+def test_column_metadata_flatten():
+    ds = Dataset.from_dict({"a": [1, 2], "s": [{"x": 1, "y": "u"}, {"x": 2, "y": "v"}]})
+    ds = ds.with_column_metadata({"a": {"unit": "cm"}, "s": {"source": "manual"}})
+    flat = ds.flatten()
+    assert flat.column_names == ["a", "s.x", "s.y"]
+    # the struct column is gone, and so is its metadata
+    assert flat.info.column_metadata == {"a": {"unit": "cm"}}
+    # a flattened field renamed to the struct's name doesn't get the old metadata
+    assert flat.rename_column("s.x", "s").info.column_metadata == {"a": {"unit": "cm"}}
+
+
 def test_column_metadata_concatenate_datasets():
     ds1 = _dataset().with_column_metadata({"a": {"unit": "cm"}, "b": {"source": "manual"}})
     ds2 = _dataset().with_column_metadata({"a": {"unit": "cm"}, "b": {"source": "scraped"}})
