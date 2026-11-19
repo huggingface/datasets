@@ -7,7 +7,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Array2D
+from datasets import Array2D, IterableDataset, load_from_disk
 from datasets.arrow_dataset import Column, Dataset
 from datasets.features import Audio, ClassLabel, Features, Image, Json, LargeList, List, Sequence, Value
 from datasets.features.features import (
@@ -463,6 +463,29 @@ def test_encode_nested_json_after_already_encoded_value(list_type, nesting):
     assert features.decode_example(encoded) == {"events": decoded_values}
     assert features.encode_column([values], "events") == [encoded_values]
     assert features.encode_batch({"events": [values]}) == {"events": [encoded_values]}
+
+
+@pytest.mark.parametrize("list_type", [List, LargeList])
+def test_mixed_json_generator_storage_round_trip(tmp_path, list_type):
+    features = Features({"events": list_type(Json())})
+    values = [None, '{"status":"ok"}', "pending", {"score": 0.5}, ["queued"], 7, True, [], {}]
+    expected = {"events": [None, {"status": "ok"}, "pending", {"score": 0.5}, ["queued"], 7, True, [], {}]}
+
+    def generate():
+        yield {"events": values}
+
+    stream = IterableDataset.from_generator(generate, features=features)
+    assert stream.features == features
+    assert list(stream) == [expected]
+
+    with Dataset.from_generator(generate, features=features, cache_dir=str(tmp_path / "cache")) as dataset:
+        assert dataset.features == features
+        assert list(dataset) == [expected]
+        dataset.save_to_disk(tmp_path / "saved")
+
+    with load_from_disk(tmp_path / "saved") as restored:
+        assert restored.features == features
+        assert list(restored) == [expected]
 
 
 @pytest.mark.parametrize("class_label_arg", ["names", "names_file"])
