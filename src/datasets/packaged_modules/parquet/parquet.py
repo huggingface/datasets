@@ -23,11 +23,15 @@ def _get_column_metadata(schema: pa.Schema) -> Optional[dict[str, dict[str, str]
     """
     column_metadata = {}
     for field in schema:
-        metadata = {
-            key.decode(): value.decode()
-            for key, value in (field.metadata or {}).items()
-            if not key.startswith((b"ARROW:", b"PARQUET:"))
-        }
+        metadata = {}
+        for key, value in (field.metadata or {}).items():
+            if key.startswith((b"ARROW:", b"PARQUET:")):
+                continue
+            try:
+                metadata[key.decode()] = value.decode()
+            except UnicodeDecodeError:
+                # Arrow allows binary metadata, but DatasetInfo only stores strings.
+                continue
         if metadata:
             column_metadata[field.name] = metadata
     return column_metadata or None
