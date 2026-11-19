@@ -640,7 +640,7 @@ class DataFilesList(list[str]):
             patterns.append(re.compile(rf".*[\/]?({fn_pattern})$"))
         if patterns:
             return DataFilesList(
-                [data_file for data_file in self if any(pattern.match(data_file) for pattern in patterns)],
+                [data_file for data_file in self if any(pattern.match(xbasename(data_file)) for pattern in patterns)],
                 origin_metadata=self.origin_metadata,
             )
         else:
