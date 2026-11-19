@@ -364,6 +364,26 @@ def test_classlabel_int2str():
         classlabel.int2str(None)
 
 
+@pytest.mark.parametrize("values", [[0, 1], [], [1, 0, 1]])
+@pytest.mark.parametrize("iterable_type", ["list", "iterator", "generator"])
+def test_classlabel_int2str_iterable(values, iterable_type):
+    classlabel = ClassLabel(names=["negative", "positive"])
+    if iterable_type == "iterator":
+        iterable = iter(values)
+    elif iterable_type == "generator":
+        iterable = (value for value in values)
+    else:
+        iterable = values
+    assert classlabel.int2str(iterable) == [classlabel.names[value] for value in values]
+
+
+@pytest.mark.parametrize("values", [[-1], [2], [0, -1], [0, 2]])
+def test_classlabel_int2str_invalid_iterator(values):
+    classlabel = ClassLabel(names=["negative", "positive"])
+    with pytest.raises(ValueError):
+        classlabel.int2str(iter(values))
+
+
 def test_classlabel_cast_storage():
     names = ["negative", "positive"]
     classlabel = ClassLabel(names=names)
