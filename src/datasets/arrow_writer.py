@@ -181,10 +181,30 @@ def get_parquet_column_options(features: Features, schema: pa.Schema) -> dict:
             return leaf_paths(f"{path}.list.element", pa_type.value_type)
         return [path]
 
+    def is_container(feature) -> bool:
+        return isinstance(feature, (dict, list, tuple)) or hasattr(feature, "feature")
+
+    def leaves_with_embed(feature, pa_type, path):
+        if isinstance(pa_type, pa.ExtensionType):
+            pa_type = pa_type.storage_type
+        if not is_container(feature):
+            for leaf in leaf_paths(path, pa_type):
+                yield leaf, require_storage_embed(feature)
+            return
+        if pa.types.is_struct(pa_type):
+            for f in pa_type:
+                sub_feature = feature[f.name] if isinstance(feature, dict) else feature
+                yield from leaves_with_embed(sub_feature, f.type, f"{path}.{f.name}")
+        elif pa.types.is_list(pa_type) or pa.types.is_large_list(pa_type) or pa.types.is_fixed_size_list(pa_type):
+            sub_feature = feature.feature if hasattr(feature, "feature") else (feature[0] if isinstance(feature, (list, tuple)) else feature)
+            yield from leaves_with_embed(sub_feature, pa_type.value_type, f"{path}.list.element")
+        else:
+            for leaf in leaf_paths(path, pa_type):
+                yield leaf, require_storage_embed(feature)
+
     compression, use_dictionary, column_encoding = {}, [], {}
     for field in schema:
-        embed = require_storage_embed(features[field.name])
-        for leaf in leaf_paths(field.name, field.type):
+        for leaf, embed in leaves_with_embed(features[field.name], field.type, field.name):
             compression[leaf] = "none" if embed else "snappy"
             if embed:
                 column_encoding[leaf] = "PLAIN"
