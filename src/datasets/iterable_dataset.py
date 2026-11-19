@@ -2908,8 +2908,9 @@ class IterableDataset(DatasetInfoMixin):
         return self.num_shards
 
     def _iter_pytorch(self):
-        # _prepare_ex_iterable_for_iteration() consumes the loaded state, but the worker's shards need it too
+        # Worker state belongs to the final worker-local iterable, not the unsharded one.
         starting_state_dict = self._starting_state_dict
+        self._starting_state_dict = None
         ex_iterable = self._prepare_ex_iterable_for_iteration()
         # Fix for fsspec when using multiprocess to avoid hanging in the ML training loop. (only required for fsspec >= 0.9.0)
         # See https://github.com/fsspec/gcsfs/issues/379
