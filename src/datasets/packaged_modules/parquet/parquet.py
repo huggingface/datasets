@@ -1,3 +1,4 @@
+import copy
 import gc
 from dataclasses import dataclass
 from typing import Literal, Optional, Union
@@ -109,6 +110,7 @@ class ParquetConfig(datasets.BuilderConfig):
 
 class Parquet(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = ParquetConfig
+    UPDATES_DATASET_CARD_INFO = True
     SLEEP_ON_THREADS_SHUTDOWNS = True  # Related to https://github.com/apache/arrow/issues/45214
 
     def _info(self):
@@ -126,7 +128,15 @@ class Parquet(datasets.ArrowBasedBuilder):
                 features = datasets.Features({col: self.config.features[col] for col in self.config.columns})
         else:
             features = self.config.features
-        return datasets.DatasetInfo(features=features)
+        if self.dataset_card_info is None:
+            return datasets.DatasetInfo(features=features)
+        info = copy.deepcopy(self.dataset_card_info)
+        if features is not None:
+            info.features = features
+        if self.config.filters is not None:
+            # unknown: the filters remove some of the examples
+            info.splits = None
+        return info
 
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""

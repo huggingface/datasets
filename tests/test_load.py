@@ -10,6 +10,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import dill
+import huggingface_hub
 import pyarrow as pa
 import pytest
 
@@ -23,7 +24,8 @@ from datasets.data_files import DataFilesDict, DataFilesPatternsDict
 from datasets.dataset_dict import DatasetDict
 from datasets.download.download_config import DownloadConfig
 from datasets.exceptions import DatasetNotFoundError
-from datasets.features import Features, Value
+from datasets.features import ClassLabel, Features, Value
+from datasets.info import DatasetInfo, DatasetInfosDict
 from datasets.iterable_dataset import IterableDataset, MappedExamplesIterable
 from datasets.load import (
     CachedDatasetModuleFactory,
@@ -36,6 +38,7 @@ from datasets.load import (
 )
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder, ImageFolderConfig
+from datasets.splits import SplitDict, SplitInfo
 from datasets.utils.logging import INFO, get_logger
 
 from .utils import (
@@ -1168,6 +1171,82 @@ def test_load_dataset_config_kwargs_passed_as_arguments():
     ds_custom = load_dataset(SAMPLE_DATASET_IDENTIFIER4, drop_metadata=True)
     assert list(ds_default["train"].features) == ["image", "caption"]
     assert list(ds_custom["train"].features) == ["image"]
+
+
+def _write_dataset_card_info(data_dir, info):
+    card_data = huggingface_hub.DatasetCardData()
+    DatasetInfosDict({"default": info}).to_dataset_card_data(card_data)
+    (data_dir / "README.md").write_text(f"---\n{card_data.to_yaml()}\n---\n", encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    "data_file, config_kwargs, expected_num_rows, expected_features",
+    [
+        ("train.csv", {}, 10, {"a": Value("int64"), "label": ClassLabel(names=["neg", "pos"])}),
+        ("train.csv", {"chunksize": 1}, 10, {"a": Value("int64"), "label": ClassLabel(names=["neg", "pos"])}),
+        ("train.csv", {"encoding": "utf-8"}, 10, {"a": Value("int64"), "label": ClassLabel(names=["neg", "pos"])}),
+        ("train.csv", {"nrows": 3}, 3, {"a": Value("int64"), "label": ClassLabel(names=["neg", "pos"])}),
+        ("train.csv", {"usecols": ["label"]}, 10, {"label": ClassLabel(names=["neg", "pos"])}),
+        # skiprows counts lines from the start of the file, so the features are inferred
+        ("train.csv", {"skiprows": [1, 2]}, 8, {"a": Value("int64"), "label": Value("int64")}),
+        ("train.parquet", {}, 10, {"a": Value("int64"), "label": ClassLabel(names=["neg", "pos"])}),
+        (
+            "train.parquet",
+            {"filters": [("a", "<", 3)]},
+            3,
+            {"a": Value("int64"), "label": ClassLabel(names=["neg", "pos"])},
+        ),
+        ("train.parquet", {"columns": ["label"]}, 10, {"label": ClassLabel(names=["neg", "pos"])}),
+    ],
+)
+def test_load_dataset_with_config_kwargs_and_dataset_info_in_metadata(
+    data_file, config_kwargs, expected_num_rows, expected_features, tmp_path
+):
+    # GH-4462: config kwargs like nrows or filters change the number of examples recorded in the dataset card
+    data_dir = tmp_path / "data_dir_with_dataset_info_in_metadata"
+    data_dir.mkdir()
+    features = Features({"a": Value("int64"), "label": ClassLabel(names=["neg", "pos"])})
+    dataset = Dataset.from_dict({"a": list(range(10)), "label": [i % 2 for i in range(10)]}, features=features)
+    if data_file.endswith(".csv"):
+        dataset.to_csv(str(data_dir / data_file), index=False)
+    else:
+        dataset.to_parquet(str(data_dir / data_file))
+    info = DatasetInfo(features=features, splits=SplitDict({"train": SplitInfo("train", num_examples=10)}))
+    _write_dataset_card_info(data_dir, info)
+    dataset = load_dataset(str(data_dir), split="train", cache_dir=str(tmp_path / "cache"), **config_kwargs)
+    assert dataset.num_rows == expected_num_rows
+    assert dataset.features == Features(expected_features)
+
+
+@pytest.mark.parametrize(
+    "data_file, content",
+    [
+        ("train.fasta", ">seq1 first\nACGT\n>seq2\nGGCC\n"),
+        ("train.fastq", "@seq1 first\nACGT\n+\nIIII\n@seq2\nGGCC\n+\nIIII\n"),
+        (
+            "train.gb",
+            "LOCUS       SEQ1                       8 bp    DNA     linear   UNK 01-JAN-2000\n"
+            "DEFINITION  first.\nACCESSION   SEQ1\nVERSION     SEQ1.1\nFEATURES             Location/Qualifiers\n"
+            "ORIGIN\n        1 acgtacgt\n//\n",
+        ),
+    ],
+)
+def test_load_dataset_with_and_without_dataset_info_in_metadata_for_builders_that_read_self_info(
+    data_file, content, tmp_path
+):
+    # these builders use self.info in _info(), so the dataset card info must not be set as self.info before
+    data_dir = tmp_path / "data_dir"
+    data_dir.mkdir()
+    (data_dir / data_file).write_text(content, encoding="utf-8")
+    without_card = load_dataset(str(data_dir), split="train", cache_dir=str(tmp_path / "cache"))
+    info = DatasetInfo(
+        features=without_card.features,
+        splits=SplitDict({"train": SplitInfo("train", num_examples=without_card.num_rows)}),
+    )
+    _write_dataset_card_info(data_dir, info)
+    with_card = load_dataset(str(data_dir), split="train", cache_dir=str(tmp_path / "cache_with_card"))
+    assert with_card.features == without_card.features
+    assert with_card.to_list() == without_card.to_list()
 
 
 @require_torchcodec
