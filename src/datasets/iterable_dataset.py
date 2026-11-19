@@ -2814,6 +2814,10 @@ class IterableDataset(DatasetInfoMixin):
         >>> dataloader.load_state_dict(state_dict)  # uses ds.load_state_dict() under the hood
         ```
         """
+        if self._starting_state_dict is not None:
+            # A loaded state is only applied when the next iteration starts. Until then it is
+            # still the current position, so a checkpoint taken now must not lose it.
+            return _fast_copy(self._starting_state_dict)
         return _fast_copy(self._state_dict)
 
     def load_state_dict(self, state_dict: dict) -> None:
