@@ -3,6 +3,7 @@ import copy
 import itertools
 import json
 import math
+import os
 import posixpath
 import random
 import re
@@ -249,7 +250,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         return {k: dataset.unique(column) for k, dataset in self.items()}
 
     def cleanup_cache_files(self) -> dict[str, int]:
-        """Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is one.
+        """Clean up all cache files in the dataset cache directories, except the currently used cache files of every split.
         Be careful when running this command that no other process is currently using other cache files.
 
         Return:
@@ -265,7 +266,27 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ```
         """
         self._check_values_type()
-        return {k: dataset.cleanup_cache_files() for k, dataset in self.items()}
+        cache_files = self.cache_files
+        current_cache_files = {
+            os.path.abspath(cache_file["filename"]) for files in cache_files.values() for cache_file in files
+        }
+        removed_files = dict.fromkeys(self, 0)
+        for split, split_cache_files in cache_files.items():
+            if not split_cache_files:
+                continue
+            cache_directory = os.path.dirname(os.path.abspath(split_cache_files[0]["filename"]))
+            logger.info(f"Listing files in {cache_directory}")
+            for f_name in os.listdir(cache_directory):
+                if not (f_name.startswith("cache-") and f_name.endswith(".arrow")):
+                    continue
+                full_name = os.path.abspath(os.path.join(cache_directory, f_name))
+                if full_name in current_cache_files:
+                    logger.info(f"Keeping currently used cache file at {full_name}")
+                    continue
+                logger.info(f"Removing {full_name}")
+                os.remove(full_name)
+                removed_files[split] += 1
+        return removed_files
 
     def __repr__(self):
         repr = "\n".join([f"{k}: {v}" for k, v in self.items()])

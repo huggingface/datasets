@@ -1,4 +1,5 @@
 import os
+import pickle
 import tempfile
 from types import SimpleNamespace
 from unittest import TestCase
@@ -672,6 +673,61 @@ class DatasetDictTest(TestCase):
         ]
         self.assertListEqual(train_expected_label_names, train_aligned_label_names)
         self.assertListEqual(test_expected_label_names, test_aligned_label_names)
+
+
+@pytest.mark.parametrize("shared_cache_dir", [False, True])
+@pytest.mark.parametrize("with_indices", [False, True])
+def test_datasetdict_cleanup_cache_files(shared_cache_dir, with_indices, tmp_path):
+    dsets = DatasetDict(
+        {
+            "train": Dataset.from_dict({"value": [0, 1, 2]}),
+            "test": Dataset.from_dict({"value": [10, 11]}),
+        }
+    )
+    cache_dirs = {split: tmp_path / ("shared" if shared_cache_dir else split) for split in dsets}
+    for cache_dir in cache_dirs.values():
+        cache_dir.mkdir(exist_ok=True)
+    raw = dsets.map(
+        cache_file_names={split: str(cache_dir / f"{split}.arrow") for split, cache_dir in cache_dirs.items()}
+    )
+    mapped = raw.map(lambda row: {"value": row["value"] + 1})
+    mapped = mapped.map(lambda row: {"value": row["value"] + 1})
+    if with_indices:
+        mapped = mapped.filter(lambda row: row["value"] % 2 == 0)
+    assert all(len(dataset.cache_files) == (2 if with_indices else 1) for dataset in mapped.values())
+    mapped["validation"] = Dataset.from_dict({"value": [99]})
+
+    cache_files = mapped.cache_files
+    current_paths = {cache_file["filename"] for files in cache_files.values() for cache_file in files}
+    stale_paths = {
+        path
+        for cache_dir in cache_dirs.values()
+        for path in cache_dir.glob("cache-*.arrow")
+        if str(path) not in current_paths
+    }
+    assert len(stale_paths) == 2
+    ignored_path = cache_dirs["train"] / "cache-not-arrow.txt"
+    ignored_path.write_text("keep", encoding="utf-8")
+    expected = {split: dataset.to_dict() for split, dataset in mapped.items()}
+    metadata = {split: (dataset._fingerprint, dataset.features, dataset.format) for split, dataset in mapped.items()}
+
+    removed = mapped.cleanup_cache_files()
+
+    # Reopening the memory-mapped tables also requires every split's indices file.
+    reloaded = pickle.loads(pickle.dumps(mapped))
+    assert {split: dataset.to_dict() for split, dataset in reloaded.items()} == expected
+    assert {split: dataset.to_dict() for split, dataset in mapped.items()} == expected
+    assert mapped.cache_files == cache_files
+    assert {
+        split: (dataset._fingerprint, dataset.features, dataset.format) for split, dataset in mapped.items()
+    } == metadata
+    assert sum(removed.values()) == len(stale_paths)
+    assert removed["validation"] == 0
+    assert all(not path.exists() for path in stale_paths)
+    assert ignored_path.read_text(encoding="utf-8") == "keep"
+    for split, dataset in raw.items():
+        assert Dataset.from_file(dataset.cache_files[0]["filename"]).to_dict() == dsets[split].to_dict()
+    assert mapped.cleanup_cache_files() == dict.fromkeys(mapped, 0)
 
 
 def test_dummy_datasetdict_serialize_fs(mockfs):
