@@ -108,6 +108,39 @@ def test_dataset_from_json_with_missing_fields(jsonl_missing_fields_path, tmp_pa
     ]
 
 
+@pytest.mark.parametrize("layout", ["field_records", "field_columns", "records"])
+@pytest.mark.parametrize("explicit_features", [False, True])
+@pytest.mark.parametrize("column", ["timestamp", "created_at"])
+@pytest.mark.parametrize("scale", [1, 1_000])
+def test_dataset_from_json_preserves_numeric_timestamps(tmp_path, layout, explicit_features, column, scale):
+    values = [1_700_000_000 * scale, 1_700_000_001 * scale]
+    data = {column: values} if layout == "field_columns" else [{column: value} for value in values]
+    kwargs = {}
+    if layout.startswith("field_"):
+        data = {"records": data}
+        kwargs["field"] = "records"
+    path = tmp_path / "timestamps.json"
+    # Leading whitespace before a top-level array exercises the pandas fallback.
+    path.write_text("\n" + json.dumps(data, indent=2), encoding="utf-8")
+    features = Features({column: Value("int64")})
+    dataset = JsonDatasetReader(
+        str(path), features=features if explicit_features else None, cache_dir=tmp_path / "cache", **kwargs
+    ).read()
+    assert dataset.to_dict() == {column: values}
+    assert dataset.features == features
+
+
+@pytest.mark.parametrize("field", [None, "records"])
+def test_dataset_from_json_with_explicit_timestamp_feature(tmp_path, field):
+    records = [{"timestamp": "2023-11-14T22:13:20"}, {"timestamp": "2023-11-14T22:13:21"}]
+    path = tmp_path / "timestamps.json"
+    path.write_text("\n" + json.dumps({field: records} if field else records), encoding="utf-8")
+    features = Features({"timestamp": Value("timestamp[s]")})
+    dataset = JsonDatasetReader(str(path), field=field, features=features, cache_dir=tmp_path / "cache").read()
+    assert dataset.features == features
+    assert dataset.data.column("timestamp").cast(pa.int64()).to_pylist() == [1_700_000_000, 1_700_000_001]
+
+
 def test_dataset_from_json_with_mixed_types(jsonl_mixed_types_path, tmp_path):
     expected_features = {"col_1": Json(), "col_2": Json(), "col_3": List(Json())}
 
