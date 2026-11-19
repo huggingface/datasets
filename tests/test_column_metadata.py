@@ -111,6 +111,25 @@ def test_column_metadata_ignores_arrow_and_parquet_field_metadata(tmp_path):
     assert ds.info.column_metadata == {"a": {"unit": "cm"}}
 
 
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("binary_metadata", [{b"opaque": b"\xff"}, {b"\xff": b"opaque"}])
+def test_column_metadata_ignores_non_utf8_entries(tmp_path, streaming, binary_metadata):
+    schema = pa.schema(
+        [
+            pa.field("a", pa.int64(), metadata={**binary_metadata, b"unit": "µm".encode("utf-8")}),
+            pa.field("b", pa.string(), metadata=binary_metadata),
+        ]
+    )
+    path = str(tmp_path / "data.parquet")
+    pq.write_table(pa.table({"a": [1, 2], "b": ["x", "y"]}, schema=schema), path)
+
+    ds = load_dataset(
+        "parquet", data_files=path, split="train", streaming=streaming, cache_dir=str(tmp_path / "cache")
+    )
+    assert list(ds) == [{"a": 1, "b": "x"}, {"a": 2, "b": "y"}]
+    assert ds.info.column_metadata == {"a": {"unit": "µm"}}
+
+
 def test_column_metadata_push_to_hub_shards(offline_parquet_uploads):
     ds = _dataset().with_column_metadata({"a": {"unit": "cm"}})
     push_parquet_shards_offline(ds, num_shards=2)
