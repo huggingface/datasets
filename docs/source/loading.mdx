@@ -66,6 +66,24 @@ The `split` parameter can also map a data file to a specific split:
 >>> c4_validation = load_dataset("allenai/c4", data_files=data_files, split="validation")
 ```
 
+### Access Parquet files from the Dataset Viewer
+
+On supported dataset pages, the Dataset Viewer lets you choose a subset and split, preview rows, and search their contents. Select **Auto-converted to Parquet** to browse the files that power the viewer on the `refs/convert/parquet` branch.
+
+For example, the [Parquet files for `lhoestq/demo1`](https://huggingface.co/datasets/lhoestq/demo1/tree/refs%2Fconvert%2Fparquet) are organized by subset and split. Use [`load_dataset`] to load all the shards for the `train` split of the `default` subset.
+
+```py
+>>> from datasets import load_dataset
+>>> train = load_dataset(
+...     "lhoestq/demo1",
+...     revision="refs/convert/parquet",
+...     data_files={"train": "default/train/*.parquet"},
+...     split="train",
+... )
+```
+
+Large datasets can have a partial conversion. See the [Hub guide to accessing Parquet files](https://huggingface.co/docs/hub/data-studio#access-the-parquet-files) for details and the API for listing the available files.
+
 ## Local and remote files
 
 Datasets can be loaded from local files stored on your computer and from remote files. The datasets are most likely stored as a `csv`, `json`, `txt`, `parquet` or `tsfile` file. The [`load_dataset`] function can load each of these file types.
