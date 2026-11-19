@@ -9,6 +9,7 @@ import pytest
 from fsspec.registry import _registry as _fsspec_registry
 from fsspec.spec import AbstractFileSystem
 
+from datasets import load_dataset_builder
 from datasets.data_files import (
     DataFilesDict,
     DataFilesList,
@@ -398,6 +399,74 @@ def test_DataFilesList_from_patterns_locally_with_extra_files(complex_data_dir, 
 def test_DataFilesList_from_patterns_raises_FileNotFoundError(complex_data_dir):
     with pytest.raises(FileNotFoundError):
         DataFilesList.from_patterns(["file_that_doesnt_exist.txt"], complex_data_dir)
+
+
+@pytest.mark.parametrize(
+    "archive_jsonl,protocol,archive_hop",
+    [
+        ("tar_jsonl_path", "tar", ""),
+        ("zip_jsonl_path", "zip", ""),
+        ("zip_nested_jsonl_path", "zip", "zip://nested/dataset.jsonl.zip::"),
+    ],
+)
+@pytest.mark.parametrize(
+    "extensions,file_names,expected_names",
+    [
+        ([".jsonl"], None, ["dataset.jsonl", "dataset2.jsonl"]),
+        (None, ["dataset.jsonl"], ["dataset.jsonl"]),
+        ([".txt"], None, []),
+        ([".txt"], ["dataset2.jsonl"], ["dataset2.jsonl"]),
+    ],
+)
+def test_DataFilesList_filter_archive_paths(
+    tmp_path, archive_jsonl, protocol, archive_hop, request, extensions, file_names, expected_names
+):
+    source_archive = request.getfixturevalue(archive_jsonl)
+    archive_path = tmp_path / f"data.txt.{protocol}"
+    archive_path.write_bytes(Path(source_archive).read_bytes())
+    archive_hops = f"{archive_hop}{archive_path}"
+    data_files = DataFilesList.from_patterns([f"{protocol}://*::{archive_hops}"], base_path="")
+
+    filtered = data_files.filter(extensions=extensions, file_names=file_names)
+
+    assert filtered == [f"{protocol}://{name}::{archive_hops}" for name in expected_names]
+    assert len(data_files) == 2
+
+
+def test_DataFilesList_filter_local_paths(tmp_path):
+    jsonl_path, text_path = tmp_path / "data.jsonl", tmp_path / "data.txt"
+    compressed_path = tmp_path / "data.jsonl.gz"
+    for path in [jsonl_path, text_path, compressed_path]:
+        path.touch()
+    data_files = DataFilesList.from_patterns(["*"], base_path=str(tmp_path))
+
+    assert data_files.filter(extensions=[".jsonl"]) == [jsonl_path.as_posix(), compressed_path.as_posix()]
+    assert data_files.filter(file_names=["data.txt"]) == [text_path.as_posix()]
+    assert data_files.filter(extensions=[".jsonl"], file_names=["data.txt"]) == data_files
+    assert data_files.filter(extensions=[".csv"]) == []
+    assert data_files.filter() == data_files
+
+
+@pytest.mark.parametrize("archive_jsonl", ["tar_jsonl_path", "zip_jsonl_path"])
+@pytest.mark.parametrize("data_dir", [None, "data"])
+def test_local_builder_with_archive_data_files(tmp_path, archive_jsonl, data_dir, request):
+    source_archive = request.getfixturevalue(archive_jsonl)
+    protocol = "tar" if str(source_archive).endswith(".tar") else "zip"
+    archive_dir = tmp_path / data_dir if data_dir else tmp_path
+    archive_dir.mkdir(exist_ok=True)
+    archive_path = archive_dir / f"data.{protocol}"
+    archive_path.write_bytes(Path(source_archive).read_bytes())
+
+    builder = load_dataset_builder(
+        str(tmp_path),
+        data_dir=data_dir,
+        data_files=f"{protocol}://*.jsonl::{archive_path}",
+        cache_dir=str(tmp_path / "cache"),
+    )
+
+    assert builder.config.data_files == {
+        "train": [f"{protocol}://{name}::{archive_path}" for name in ["dataset.jsonl", "dataset2.jsonl"]]
+    }
 
 
 class TestDataFilesDict:
