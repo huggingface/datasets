@@ -77,6 +77,7 @@ class IcebergConfig(datasets.BuilderConfig):
         catalog = config_kwargs.pop("catalog", None)
         if catalog is not None:
             config_kwargs["_catalog_id"] = f"{catalog.__class__.__name__}_{catalog.name}"
+            config_kwargs["_catalog_properties"] = catalog.properties
         # filters may contain pyiceberg Expression objects that are not picklable
         filters = config_kwargs.pop("filters", None)
         if filters is not None:
