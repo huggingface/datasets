@@ -2083,6 +2083,14 @@ def cast_array_to_feature(
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
     elif pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
         # feature must be either List(subfeature) or LargeList(subfeature)
+        if isinstance(feature, LargeList) or (isinstance(feature, List) and feature.length < 0):
+            start, stop = array.offsets[0].as_py(), array.offsets[-1].as_py()
+            if start != 0 or stop != len(array.values):
+                array = type(array).from_arrays(
+                    pc.subtract(array.offsets, start),
+                    array.values.slice(start, stop - start),
+                    mask=array.is_null(),
+                )
         if isinstance(feature, LargeList):
             casted_array_values = _c(array.values, feature.feature)
             if pa.types.is_large_list(array.type) and casted_array_values.type == array.values.type:
@@ -2137,22 +2145,22 @@ def cast_array_to_feature(
                     return pa.ListArray.from_arrays(array_offsets, casted_array_values)
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be List(subfeature)
+        array_values = array.values[
+            array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
+        ]
         if isinstance(feature, LargeList):
-            array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
+            array_offsets = np.arange(len(array) + 1) * array.type.list_size
             return pa.LargeListArray.from_arrays(
-                array_offsets, _c(array.values, feature.feature), mask=array.is_null()
+                array_offsets, _c(array_values, feature.feature), mask=array.is_null()
             )
         elif isinstance(feature, List):
             if feature.length > -1:
                 if feature.length == array.type.list_size:
-                    array_values = array.values[
-                        array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
-                    ]
                     casted_array_values = _c(array_values, feature.feature)
                     return pa.FixedSizeListArray.from_arrays(casted_array_values, feature.length, mask=array.is_null())
             else:
-                array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
-                return pa.ListArray.from_arrays(array_offsets, _c(array.values, feature.feature), mask=array.is_null())
+                array_offsets = np.arange(len(array) + 1) * array.type.list_size
+                return pa.ListArray.from_arrays(array_offsets, _c(array_values, feature.feature), mask=array.is_null())
     if pa.types.is_null(array.type):
         return array_cast(
             array,
