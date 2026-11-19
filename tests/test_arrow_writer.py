@@ -10,9 +10,9 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
-from datasets import config
+from datasets import Dataset, config
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence
-from datasets.features import Array2D, ClassLabel, Features, Image, List, Value
+from datasets.features import Array2D, ClassLabel, Features, Image, Json, List, Value
 from datasets.features.features import Array2DExtensionType, cast_to_python_objects
 
 from .utils import require_pil
@@ -22,6 +22,22 @@ class TypedSequenceTest(TestCase):
     def test_no_type(self):
         arr = pa.array(TypedSequence([1, 2, 3]))
         self.assertEqual(arr.type, pa.int64())
+
+    def test_mixed_json_with_leading_null_in_list(self):
+        rows = [
+            {"a": [None, 1], "b": 1},
+            {"a": [2], "b": "x"},
+            {"a": [3], "b": "null"},
+            {"a": [4], "b": "007"},
+        ]
+        with Dataset.from_dict({"x": rows}, on_mixed_types="use_json") as dataset:
+            self.assertEqual(dataset[:]["x"], rows)
+            self.assertEqual(dataset.features["x"], {"a": List(Value("int64")), "b": Json()})
+
+    def test_declared_json_accepts_encoded_strings(self):
+        features = Features({"x": {"json": Json()}})
+        with Dataset.from_dict({"x": [{"json": "null"}]}, features=features) as dataset:
+            self.assertEqual(dataset[:]["x"], [{"json": None}])
 
     def test_array_type_forbidden(self):
         with self.assertRaises(ValueError):

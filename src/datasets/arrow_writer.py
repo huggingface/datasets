@@ -454,21 +454,35 @@ class TypedSequence:
                         # we use "obj" to have valid JSON Lines since data may contain lists
                         original_batch = "\n".join([ujson_dumps({"obj": example}) for example in data]).encode()
                         json_field_paths = [["obj"] + json_field_path for json_field_path in json_field_paths]
-                        batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
+                        declared_json_paths = list(json_field_paths) if type is not None else []
+                        batch = json_encode_fields_in_json_lines(original_batch, json_field_paths, declared_json_paths)
+                        read_options = paj.ReadOptions(use_threads=False)
                         pa_table = None
                         while True:
                             try:  # fourth chance
-                                pa_table = paj.read_json(
-                                    io.BytesIO(batch), read_options=paj.ReadOptions(use_threads=False)
-                                )
-                                break
+                                pa_table = paj.read_json(io.BytesIO(batch), read_options=read_options)
                             except pa.ArrowInvalid as eee:
                                 if "JSON parse error: Column(" in str(eee) and ") changed from" in str(eee):
                                     json_field_path = get_json_field_path_from_pyarrow_json_error(str(eee))
                                     insert_json_field_path(json_field_paths, json_field_path)
-                                    batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
+                                    batch = json_encode_fields_in_json_lines(
+                                        original_batch, json_field_paths, declared_json_paths
+                                    )
                                 else:
                                     break
+                            else:
+                                try:
+                                    pa_table.validate(full=True)
+                                except pa.ArrowInvalid:
+                                    # A leading null can produce invalid list offsets during schema inference.
+                                    # Parse the same values again with the inferred schema supplied explicitly.
+                                    pa_table = paj.read_json(
+                                        io.BytesIO(batch),
+                                        read_options=read_options,
+                                        parse_options=paj.ParseOptions(explicit_schema=pa_table.schema),
+                                    )
+                                    pa_table.validate(full=True)
+                                break
                         if pa_table is not None:
                             features = Features.from_arrow_schema(pa_table.schema)
                             features = set_json_types_in_feature(features, json_field_paths)
