@@ -3818,6 +3818,38 @@ def test_resume_dataloader(dataset: IterableDataset):
 
 
 @require_torchdata_stateful_dataloader
+@pytest.mark.parametrize("source_type", ["arrow", "python"])
+@pytest.mark.parametrize("num_workers", [0, 2])
+def test_resume_dataloader_shuffled_input_shards(source_type, num_workers):
+    from torchdata.stateful_dataloader import StatefulDataLoader
+
+    def make_dataloader():
+        dataset = make_numbered_shards_dataset(source_type, num_shards=4).shuffle(
+            seed=42, buffer_size=1, max_buffer_input_shards=4
+        )
+        dataset.set_epoch(1)
+        return StatefulDataLoader(
+            dataset, batch_size=None, num_workers=num_workers, persistent_workers=num_workers > 0
+        )
+
+    dataloader = make_dataloader()
+    iterator = iter(dataloader)
+    consumed = list(islice(iterator, 3))
+    state = pickle.loads(pickle.dumps(dataloader.state_dict()))
+    expected_remaining = list(iterator)
+    expected = consumed + expected_remaining
+    assert sorted(example["id"] for example in expected) == list(range(40))
+    del iterator, dataloader
+
+    dataloader = make_dataloader()
+    dataloader.load_state_dict(state)
+    # A worker's two input readers must not be restored into the unsharded four-reader pipeline.
+    # With buffer_size=1 no buffered examples are discarded when restoring the checkpoint.
+    assert list(dataloader) == expected_remaining
+    assert list(dataloader) == expected
+
+
+@require_torchdata_stateful_dataloader
 @pytest.mark.parametrize("num_workers", [0, 1, 2])
 def test_resume_dataloader_twice(num_workers):
     from torchdata.stateful_dataloader import StatefulDataLoader
