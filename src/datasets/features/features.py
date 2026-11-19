@@ -1511,12 +1511,21 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
     return schema()
 
 
+def _contains_json_feature(feature: FeatureType) -> bool:
+    if isinstance(feature, dict):
+        return any(_contains_json_feature(subfeature) for subfeature in feature.values())
+    elif isinstance(feature, (LargeList, List)):
+        return _contains_json_feature(feature.feature)
+    return isinstance(feature, Json)
+
+
 def encode_nested_example(schema, obj, level=0):
     """Encode a nested example.
     This is used since some features (in particular ClassLabel) have some logic during encoding.
 
     To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be encoded.
     If the first element needs to be encoded, then all the elements of the list will be encoded, otherwise they'll stay the same.
+    Lists containing Json are always encoded element-wise, as already-encoded strings may precede values that need encoding.
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
@@ -1533,6 +1542,8 @@ def encode_nested_example(schema, obj, level=0):
         else:
             if len(obj) > 0:
                 sub_schema = schema.feature
+                if _contains_json_feature(sub_schema):
+                    return [encode_nested_example(sub_schema, o, level=level + 1) for o in obj]
                 for first_elmt in obj:
                     if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
                         break

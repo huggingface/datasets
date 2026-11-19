@@ -7,7 +7,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Array2D
+from datasets import Array2D, IterableDataset, load_from_disk
 from datasets.arrow_dataset import Column, Dataset
 from datasets.features import Audio, ClassLabel, Features, Image, Json, LargeList, List, Sequence, Value
 from datasets.features.features import (
@@ -437,6 +437,55 @@ def test_dataset_with_json_field_in_struct_and_null_rows():
     features = Features({"s": {"x": Json(), "y": Value("int64")}})
     dset = Dataset.from_dict({"s": [{"x": {"a": 1}, "y": 1}, None, {"x": [2], "y": 3}]}, features=features)
     assert dset["s"][:] == [{"x": {"a": 1}, "y": 1}, None, {"x": [2], "y": 3}]
+
+
+@pytest.mark.parametrize("list_type", [List, LargeList])
+@pytest.mark.parametrize("nesting", ["value", "struct", "list"])
+def test_encode_nested_json_after_already_encoded_value(list_type, nesting):
+    feature = Json()
+    values = [None, '{"status":"ok"}', "pending", {"score": 0.5}, ["queued"], 7, True, [], {}]
+    encoded_values = [None, '{"status":"ok"}', '"pending"', '{"score":0.5}', '["queued"]', "7", "true", "[]", "{}"]
+    decoded_values = [None, {"status": "ok"}, "pending", {"score": 0.5}, ["queued"], 7, True, [], {}]
+    if nesting == "struct":
+        feature = {"event": feature}
+        values = [{"event": value} for value in values]
+        encoded_values = [{"event": value} for value in encoded_values]
+        decoded_values = [{"event": value} for value in decoded_values]
+    elif nesting == "list":
+        feature = list_type(feature)
+        values = [[value] for value in values]
+        encoded_values = [[value] for value in encoded_values]
+        decoded_values = [[value] for value in decoded_values]
+    features = Features({"events": list_type(feature)})
+
+    encoded = features.encode_example({"events": values})
+    assert encoded == {"events": encoded_values}
+    assert features.decode_example(encoded) == {"events": decoded_values}
+    assert features.encode_column([values], "events") == [encoded_values]
+    assert features.encode_batch({"events": [values]}) == {"events": [encoded_values]}
+
+
+@pytest.mark.parametrize("list_type", [List, LargeList])
+def test_mixed_json_generator_storage_round_trip(tmp_path, list_type):
+    features = Features({"events": list_type(Json())})
+    values = [None, '{"status":"ok"}', "pending", {"score": 0.5}, ["queued"], 7, True, [], {}]
+    expected = {"events": [None, {"status": "ok"}, "pending", {"score": 0.5}, ["queued"], 7, True, [], {}]}
+
+    def generate():
+        yield {"events": values}
+
+    stream = IterableDataset.from_generator(generate, features=features)
+    assert stream.features == features
+    assert list(stream) == [expected]
+
+    with Dataset.from_generator(generate, features=features, cache_dir=str(tmp_path / "cache")) as dataset:
+        assert dataset.features == features
+        assert list(dataset) == [expected]
+        dataset.save_to_disk(tmp_path / "saved")
+
+    with load_from_disk(tmp_path / "saved") as restored:
+        assert restored.features == features
+        assert list(restored) == [expected]
 
 
 @pytest.mark.parametrize("class_label_arg", ["names", "names_file"])
