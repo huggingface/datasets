@@ -1374,9 +1374,13 @@ class Sequence:
         if (
             cls is Sequence
             and isinstance(feature, dict)
-            and any(not isinstance(subfeature, List) for subfeature in feature.values())
+            and any(not isinstance(subfeature, (List, LargeList)) for subfeature in feature.values())
         ):
-            out = {key: List(value, length=length, **kwargs) for key, value in feature.items()}
+            # don't wrap subfeatures that are already lists, otherwise they would be nested twice
+            out = {
+                key: value if isinstance(value, (List, LargeList)) else List(value, length=length, **kwargs)
+                for key, value in feature.items()
+            }
         else:
             out = super().__new__(List)
         return out
