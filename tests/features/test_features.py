@@ -439,6 +439,32 @@ def test_dataset_with_json_field_in_struct_and_null_rows():
     assert dset["s"][:] == [{"x": {"a": 1}, "y": 1}, None, {"x": [2], "y": 3}]
 
 
+@pytest.mark.parametrize("list_type", [List, LargeList])
+@pytest.mark.parametrize("nesting", ["value", "struct", "list"])
+def test_encode_nested_json_after_already_encoded_value(list_type, nesting):
+    feature = Json()
+    values = [None, '{"status":"ok"}', "pending", {"score": 0.5}, ["queued"], 7, True, [], {}]
+    encoded_values = [None, '{"status":"ok"}', '"pending"', '{"score":0.5}', '["queued"]', "7", "true", "[]", "{}"]
+    decoded_values = [None, {"status": "ok"}, "pending", {"score": 0.5}, ["queued"], 7, True, [], {}]
+    if nesting == "struct":
+        feature = {"event": feature}
+        values = [{"event": value} for value in values]
+        encoded_values = [{"event": value} for value in encoded_values]
+        decoded_values = [{"event": value} for value in decoded_values]
+    elif nesting == "list":
+        feature = list_type(feature)
+        values = [[value] for value in values]
+        encoded_values = [[value] for value in encoded_values]
+        decoded_values = [[value] for value in decoded_values]
+    features = Features({"events": list_type(feature)})
+
+    encoded = features.encode_example({"events": values})
+    assert encoded == {"events": encoded_values}
+    assert features.decode_example(encoded) == {"events": decoded_values}
+    assert features.encode_column([values], "events") == [encoded_values]
+    assert features.encode_batch({"events": [values]}) == {"events": [encoded_values]}
+
+
 @pytest.mark.parametrize("class_label_arg", ["names", "names_file"])
 def test_class_label_to_and_from_dict(class_label_arg, tmp_path_factory):
     names = ["negative", "positive"]
