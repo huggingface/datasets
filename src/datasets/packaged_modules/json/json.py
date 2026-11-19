@@ -35,6 +35,12 @@ logger = datasets.utils.logging.get_logger(__name__)
 def pandas_read_json(path_or_buf, **kwargs):
     if datasets.config.PANDAS_VERSION.major >= 2:
         kwargs["dtype_backend"] = "pyarrow"
+    # Column names such as "timestamp" must not turn numeric JSON values into dates.
+    if datasets.config.PANDAS_VERSION.release >= (3, 1):
+        # dtype=False also disables date inference starting with pandas 3.1.
+        kwargs.setdefault("dtype", False)
+    else:
+        kwargs.setdefault("convert_dates", False)
     return pd.read_json(path_or_buf, **kwargs)
 
 
