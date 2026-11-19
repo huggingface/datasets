@@ -147,6 +147,31 @@ def _save_set(pickler, obj):
     log(pickler, "# Se")
 
 
+def _with_null_counts(array: pa.Array) -> pa.Array:
+    """Make Arrow compute and cache the null count of the array and of all its nested arrays.
+
+    Arrow pickles the null count cached in each array. When it concatenates several chunks, it
+    leaves the null counts of the nested arrays unknown (-1), while a single chunk keeps the
+    computed counts, so the same data would be pickled differently depending on chunking.
+    """
+    array.null_count  # computed on first access, then cached in the array data that gets pickled
+    if isinstance(
+        array, (pa.ListArray, pa.LargeListArray, pa.FixedSizeListArray, pa.ListViewArray, pa.LargeListViewArray)
+    ):
+        children = [array.values]
+    elif isinstance(array, pa.StructArray):
+        children = [array.field(i) for i in range(array.type.num_fields)]
+    elif isinstance(array, pa.DictionaryArray):
+        children = [array.dictionary]
+    elif isinstance(array, pa.ExtensionArray):
+        children = [array.storage]
+    else:
+        children = []
+    for child in children:
+        _with_null_counts(child)
+    return array
+
+
 @pklregister(pa.Table)
 def _save_arrowTable(pickler, obj):
     # pyarrow's default pickle serializes each chunk's buffers separately, so the
@@ -160,7 +185,7 @@ def _save_arrowTable(pickler, obj):
         return pa.Table.from_arrays(columns, schema=schema)
 
     log(pickler, f"Ta: {obj}")
-    args = (obj.schema, [column.combine_chunks() for column in obj.columns])
+    args = (obj.schema, [_with_null_counts(column.combine_chunks()) for column in obj.columns])
     pickler.save_reduce(create_arrowTable, args, obj=obj)
     log(pickler, "# Ta")
 
@@ -173,7 +198,7 @@ def _save_arrowChunkedArray(pickler, obj):
         return pa.chunked_array([array])
 
     log(pickler, f"Ca: {obj}")
-    args = (obj.combine_chunks(),)
+    args = (_with_null_counts(obj.combine_chunks()),)
     pickler.save_reduce(create_arrowChunkedArray, args, obj=obj)
     log(pickler, "# Ca")
 

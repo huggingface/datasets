@@ -254,6 +254,49 @@ class HashingTest(TestCase):
         self.assertEqual(hash_few_chunks, hash_many_chunks)
         self.assertNotEqual(hash_few_chunks, hash_other_data)
 
+    def test_hash_arrow_table_with_nested_nulls_is_independent_of_chunking(self):
+        import pyarrow as pa
+
+        from datasets.features import Array2D, Features
+
+        array_2d_type = Features({"x": Array2D((2, 2), "int32")}).arrow_schema.field("x").type
+        rows = {
+            "struct": pa.array([{"text": "a", "id": 1}, {"text": None, "id": None}] * 300),
+            "list": pa.array([["a", None], None, []] * 200),
+            "list of structs": pa.array([[{"text": "a"}, {"text": None}], None] * 300),
+            "map": pa.array([[("a", 1), ("b", None)], None] * 300, type=pa.map_(pa.string(), pa.int64())),
+            "struct of dictionary": pa.StructArray.from_arrays(
+                [pa.array(["a", None, "b"] * 200).dictionary_encode()], ["text"]
+            ),
+            "Array2D": pa.ExtensionArray.from_storage(
+                array_2d_type, pa.array([[[1, None], [3, 4]], None] * 300, type=array_2d_type.storage_type)
+            ),
+        }
+        for name, values in rows.items():
+            with self.subTest(name):
+                one_chunk = pa.chunked_array([values])
+                three_chunks = pa.chunked_array([values.slice(i * 200, 200) for i in range(3)])
+                self.assertEqual(
+                    Hasher.hash(InMemoryTable(pa.table({"col": one_chunk}))),
+                    Hasher.hash(InMemoryTable(pa.table({"col": three_chunks}))),
+                )
+                self.assertEqual(Hasher.hash(one_chunk), Hasher.hash(three_chunks))
+
+    def test_hash_fixed_size_list_of_structs_is_independent_of_chunking(self):
+        # fixed-size lists of structs with nulls at both levels, split at uneven boundaries
+        import pyarrow as pa
+
+        list_type = pa.list_(pa.struct([("value", pa.int64())]), 2)
+        rows = [[{"value": 1}, {"value": None}], [None, {"value": 3}]] * 300
+        values = pa.array(rows, type=list_type)
+        one_chunk = pa.chunked_array([values])
+        three_chunks = pa.chunked_array([values.slice(0, 17), values.slice(17, 283), values.slice(300)])
+        rows[0] = [{"value": 99}, {"value": None}]
+        other_data = pa.chunked_array([pa.array(rows, type=list_type)])
+        for wrap in [lambda array: array, lambda array: InMemoryTable(pa.table({"col": array}))]:
+            self.assertEqual(Hasher.hash(wrap(one_chunk)), Hasher.hash(wrap(three_chunks)))
+            self.assertNotEqual(Hasher.hash(wrap(one_chunk)), Hasher.hash(wrap(other_data)))
+
     def test_hash_update(self):
         hasher = Hasher()
         for x in ["hello", Foo("hello")]:
