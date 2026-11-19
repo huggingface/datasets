@@ -4715,6 +4715,7 @@ class IterableDataset(DatasetInfoMixin):
                 <Added version="4.9.0"/>
             drop_last_batch (`bool`, defaults to `False`):
                 Whether to drop the last incomplete batch.
+                Batches made with `by_column` are always complete groups, so no batch is dropped in that case.
 
         Example:
 
@@ -4747,7 +4748,6 @@ class IterableDataset(DatasetInfoMixin):
                     with_indices=True,
                     batched=True,
                     batch_size=batch_size or config.DEFAULT_MAX_BATCH_SIZE,
-                    drop_last_batch=drop_last_batch,
                     features=features,
                     is_batch_accumulate_arrow_table_function=True,
                 )
