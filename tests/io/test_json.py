@@ -360,7 +360,10 @@ class TestJsonDatasetWriter:
         assert all(isinstance(row["a"], int) for row in rows if row["a"] is not None)
 
     @pytest.mark.parametrize("num_proc", [None, 2])
-    def test_dataset_to_json_array_features(self, num_proc):
+    @pytest.mark.parametrize(
+        "orient, lines, batch_size", [("records", True, 1), ("records", True, 2), ("split", False, 10)]
+    )
+    def test_dataset_to_json_array_features(self, num_proc, orient, lines, batch_size):
         features = Features(
             {
                 "id": Value("int64"),
@@ -374,10 +377,15 @@ class TestJsonDatasetWriter:
             {"id": 2, "m": [[6, 7, 8], [9, 10, 11]], "c": [[[2.5, 3.0], [3.5, 4.0]]]},
         ]
         dataset = Dataset.from_list(records, features=features).select([2, 1, 0])
+        expected = [records[2], records[1], records[0]]
         with io.BytesIO() as buffer:
-            dataset.to_json(buffer, num_proc=num_proc, batch_size=2)
+            written = dataset.to_json(buffer, num_proc=num_proc, orient=orient, lines=lines, batch_size=batch_size)
+            assert written == len(buffer.getvalue())
             buffer.seek(0)
-            assert load_json_lines(buffer) == [records[2], records[1], records[0]]
+            if lines:
+                assert load_json_lines(buffer) == expected
+            else:
+                assert json.load(buffer)["data"] == [[r["id"], r["m"], r["c"]] for r in expected]
 
     @pytest.mark.parametrize("num_proc", [None, 2])
     @pytest.mark.parametrize(
