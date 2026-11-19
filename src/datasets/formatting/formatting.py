@@ -343,12 +343,10 @@ class LazyDict(MutableMapping):
             inst = self.copy()
             other = other.copy()
             other._format_all()
-            inst.keys_to_format -= other.data.keys()
             inst.data = other.data | inst.data
             return inst
         if isinstance(other, dict):
             inst = self.copy()
-            inst.keys_to_format -= other.keys()
             inst.data = other | inst.data
             return inst
         return NotImplemented
