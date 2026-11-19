@@ -2,7 +2,16 @@ import inspect
 
 import pytest
 
-from datasets.splits import Split, SplitDict, SplitInfo
+from datasets.splits import (
+    NamedSplit,
+    NamedSplitAll,
+    PercentSlice,
+    SlicedSplitInfo,
+    Split,
+    SplitDict,
+    SplitInfo,
+    SplitReadInstruction,
+)
 from datasets.utils.py_utils import asdict
 
 
@@ -41,3 +50,51 @@ def test_split_dict_asdict_has_dataset_name(split_info):
 def test_named_split_inequality():
     # Used while building the docs, when set as a default parameter value in a function signature
     assert Split.TRAIN != inspect.Parameter.empty
+
+
+def test_custom_split_creation():
+    assert Split("custom") == NamedSplit("custom")
+    assert isinstance(Split("all"), NamedSplitAll)
+    assert Split.TRAIN == "train"
+    assert Split.TRAIN != "test"
+    assert Split.TRAIN != 123
+
+
+def test_percent_slice_validation():
+    assert PercentSlice[10:20] == slice(10, 20)
+    with pytest.raises(ValueError, match="datasets.percent should only be called with slice"):
+        _ = PercentSlice[42]
+
+
+def test_subsplit_validation():
+    # Multiple arguments error
+    with pytest.raises(ValueError, match="Only one argument of subsplit should be set"):
+        Split.TRAIN.subsplit(k=2, percent=slice(0, 50))
+
+    # Invalid k values (> 100 or negative)
+    with pytest.raises(ValueError, match="Subsplit k should be between 0 and 100"):
+        Split.TRAIN.subsplit(k=101)
+
+    with pytest.raises(ValueError, match="Subsplit k should be between 0 and 100"):
+        Split.TRAIN.subsplit(k=-5)
+
+    # Invalid argument type
+    with pytest.raises(ValueError, match="Invalid split argument"):
+        Split.TRAIN.subsplit("invalid_arg")
+
+
+def test_split_info_repr():
+    info = SplitInfo(name="train", num_bytes=100, num_examples=10)
+    rep = repr(info)
+    assert "SplitInfo" in rep
+    assert "name='train'" in rep
+    assert "num_bytes=100" in rep
+    assert "num_examples=10" in rep
+
+
+def test_split_read_instruction_double_slice():
+    instruction = SplitReadInstruction()
+    sliced = SlicedSplitInfo(split_info=SplitInfo(name="train"), slice_value=slice(0, 50))
+    instruction.add(sliced)
+    with pytest.raises(ValueError, match="which has already been sliced"):
+        _ = instruction[slice(10, 20)]
