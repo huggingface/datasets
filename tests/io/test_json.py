@@ -6,7 +6,7 @@ import fsspec
 import pyarrow as pa
 import pytest
 
-from datasets import Dataset, DatasetDict, Features, Json, List, NamedSplit, Value
+from datasets import Array2D, Array3D, Dataset, DatasetDict, Features, Json, List, NamedSplit, Value
 from datasets.formatting import query_table
 from datasets.io.json import JsonDatasetReader, JsonDatasetWriter
 
@@ -358,6 +358,26 @@ class TestJsonDatasetWriter:
             rows = load_json_lines(buffer)
         assert [row["a"] for row in rows] == [big, None, 5]
         assert all(isinstance(row["a"], int) for row in rows if row["a"] is not None)
+
+    @pytest.mark.parametrize("num_proc", [None, 2])
+    def test_dataset_to_json_array_features(self, num_proc):
+        features = Features(
+            {
+                "id": Value("int64"),
+                "m": Array2D(shape=(2, 3), dtype="int32"),
+                "c": Array3D(shape=(1, 2, 2), dtype="float32"),
+            }
+        )
+        records = [
+            {"id": 0, "m": [[0, 1, 2], [3, 4, 5]], "c": [[[0.5, 1.0], [1.5, 2.0]]]},
+            {"id": 1, "m": None, "c": None},
+            {"id": 2, "m": [[6, 7, 8], [9, 10, 11]], "c": [[[2.5, 3.0], [3.5, 4.0]]]},
+        ]
+        dataset = Dataset.from_list(records, features=features).select([2, 1, 0])
+        with io.BytesIO() as buffer:
+            dataset.to_json(buffer, num_proc=num_proc, batch_size=2)
+            buffer.seek(0)
+            assert load_json_lines(buffer) == [records[2], records[1], records[0]]
 
     @pytest.mark.parametrize("num_proc", [None, 2])
     @pytest.mark.parametrize(
