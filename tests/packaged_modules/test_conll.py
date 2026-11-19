@@ -1,8 +1,11 @@
+import importlib
 import textwrap
+from contextlib import contextmanager
 
 import pyarrow as pa
 import pytest
 
+from datasets import ClassLabel, Features, List, Value, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.conll.conll import Conll, ConllConfig
@@ -200,6 +203,99 @@ def test_generate_tables_truncates_rows_with_extra_columns(tmp_path):
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.to_pydict()["tokens"] == [["tok"]]
     assert pa_table.to_pydict()["pos_tags"] == [["POS"]]
+
+
+@pytest.mark.parametrize("num_sentences", [0, 1, 1000, 1001, 2000, 2001])
+@pytest.mark.parametrize("trailing_blank", [False, True])
+def test_generate_tables_batches_sentences(tmp_path, num_sentences, trailing_blank):
+    filename = tmp_path / "batched.conll"
+    sentences = [f"token{i} NN\n. ." for i in range(num_sentences)]
+    filename.write_text("\n\n".join(sentences) + ("\n\n" if trailing_blank else ""), encoding="utf-8")
+    builder = Conll(column_names=["tokens", "pos_tags"])
+    batches = list(builder._generate_tables(base_files=[str(filename)], files_iterables=[[str(filename)]]))
+
+    expected_sizes = [1000] * (num_sentences // 1000)
+    if num_sentences % 1000:
+        expected_sizes.append(num_sentences % 1000)
+    assert [table.num_rows for _, table in batches] == expected_sizes
+    assert len({str(key) for key, _ in batches}) == len(batches)
+    if batches:
+        assert pa.concat_tables([table for _, table in batches]).to_pydict() == {
+            "tokens": [[f"token{i}", "."] for i in range(num_sentences)],
+            "pos_tags": [["NN", "."] for _ in range(num_sentences)],
+        }
+
+
+def test_generate_tables_yields_before_reading_entire_file(tmp_path, monkeypatch):
+    filename = tmp_path / "streamed.conll"
+    filename.write_text("token NN\n\n" * 2001, encoding="utf-8")
+    lines_read = []
+
+    @contextmanager
+    def tracked_open(*args, **kwargs):
+        with open(*args, **kwargs) as f:
+
+            def tracked_lines():
+                for line in f:
+                    lines_read.append(line)
+                    yield line
+
+            yield tracked_lines()
+
+    monkeypatch.setattr(importlib.import_module(Conll.__module__), "open", tracked_open, raising=False)
+    builder = Conll(column_names=["tokens", "pos_tags"])
+    generator = builder._generate_tables(base_files=[str(filename)], files_iterables=[[str(filename)]])
+    try:
+        _, first_table = next(generator)
+        assert first_table.num_rows == 1000
+        assert len(lines_read) == 2000
+    finally:
+        generator.close()
+
+
+def test_generate_tables_batches_multiple_files_in_shard(tmp_path):
+    files = []
+    for file_idx in range(2):
+        filename = tmp_path / f"{file_idx}.conll"
+        filename.write_text("\n\n".join(f"token{file_idx}-{i} NN" for i in range(3)), encoding="utf-8")
+        files.append(str(filename))
+    builder = Conll(column_names=["tokens", "pos_tags"], batch_size=2)
+    batches = list(builder._generate_tables(base_files=files, files_iterables=[files]))
+
+    assert [table.num_rows for _, table in batches] == [2, 1, 2, 1]
+    assert [key.original_shard_id for key, _ in batches] == [0, 0, 0, 0]
+    assert [key.item_or_batch_id for key, _ in batches] == [0, 1, 2, 3]
+    assert pa.concat_tables([table for _, table in batches]).to_pydict() == {
+        "tokens": [[f"token{file_idx}-{i}"] for file_idx in range(2) for i in range(3)],
+        "pos_tags": [["NN"] for _ in range(6)],
+    }
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("with_features", [False, True])
+def test_load_dataset_batches_preserve_sentences(tmp_path, streaming, with_features):
+    filename = tmp_path / "loaded.conll"
+    filename.write_text("\n\n".join(f"token{i} NN\n. ." for i in range(5)), encoding="utf-8")
+    features = (
+        Features({"tokens": List(Value("string")), "pos_tags": List(ClassLabel(names=["NN", "."]))})
+        if with_features
+        else None
+    )
+    ds = load_dataset(
+        "conll",
+        data_files=str(filename),
+        split="train",
+        column_names=["tokens", "pos_tags"],
+        batch_size=2,
+        features=features,
+        streaming=streaming,
+        cache_dir=str(tmp_path / "cache"),
+    )
+    assert list(ds) == [
+        {"tokens": [f"token{i}", "."], "pos_tags": [0, 1] if with_features else ["NN", "."]} for i in range(5)
+    ]
+    if with_features:
+        assert ds.features == features
 
 
 def test_generate_tables_empty_column_names_raises(tmp_path):

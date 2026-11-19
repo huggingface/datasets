@@ -33,6 +33,9 @@ class ConllConfig(datasets.BuilderConfig):
     Args:
         features: (`Features`, *optional*):
             Cast the data to `features`.
+        batch_size: (`int`, defaults to `1000`):
+            Maximum number of sentences per Arrow table. Sentences are never split
+            across batches.
         column_names: (`list[str]`, defaults to `["tokens"]`):
             Names for each whitespace-separated column. The first name is the
             token column; subsequent names cover the tag columns. Common
@@ -58,6 +61,7 @@ class ConllConfig(datasets.BuilderConfig):
     """
 
     features: Optional[datasets.Features] = None
+    batch_size: int = 1000
     column_names: list[str] = field(default_factory=lambda: list(DEFAULT_COLUMN_NAMES))
     delimiter: Optional[str] = None
     encoding: str = "utf-8"
@@ -120,6 +124,7 @@ class Conll(datasets.ArrowBasedBuilder):
         comment_prefix = self.config.comment_prefix
 
         for shard_idx, files_iterable in enumerate(files_iterables):
+            batch_idx = 0
             for file in files_iterable:
                 sentences: list[list[list[str]]] = []
                 current: list[list[str]] = [[] for _ in range(num_cols)]
@@ -132,6 +137,15 @@ class Conll(datasets.ArrowBasedBuilder):
                             if current[0]:
                                 sentences.append(current)
                                 current = [[] for _ in range(num_cols)]
+                                if len(sentences) >= self.config.batch_size:
+                                    arrays = [
+                                        pa.array([sentence[col_idx] for sentence in sentences])
+                                        for col_idx in range(num_cols)
+                                    ]
+                                    pa_table = pa.Table.from_arrays(arrays, names=column_names)
+                                    yield Key(shard_idx, batch_idx), self._cast_table(pa_table)
+                                    batch_idx += 1
+                                    sentences = []
                             continue
                         if skip_docstart and line.startswith("-DOCSTART-"):
                             continue
@@ -152,4 +166,5 @@ class Conll(datasets.ArrowBasedBuilder):
                 if sentences:
                     arrays = [pa.array([sentence[col_idx] for sentence in sentences]) for col_idx in range(num_cols)]
                     pa_table = pa.Table.from_arrays(arrays, names=column_names)
-                    yield Key(shard_idx, 0), self._cast_table(pa_table)
+                    yield Key(shard_idx, batch_idx), self._cast_table(pa_table)
+                    batch_idx += 1
