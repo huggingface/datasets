@@ -59,6 +59,12 @@ class TypedSequenceTest(TestCase):
         arr = pa.array(TypedSequence([[[1, 2, 3]]], try_type=Array2D((1, 3), "int64")))
         self.assertEqual(arr.type, Array2DExtensionType((1, 3), "int64"))
 
+    def test_try_extension_type_with_incorrect_shape(self):
+        data = [[[1, 2, 3], [4]]]
+        arr = pa.array(TypedSequence(data, try_type=Array2D((2, 2), "int64")))
+        self.assertEqual(arr.to_pylist(), data)
+        self.assertNotIsInstance(arr.type, Array2DExtensionType)
+
     def test_try_incompatible_extension_type(self):
         arr = pa.array(TypedSequence(["foo", "bar"], try_type=Array2D((1, 3), "int64")))
         self.assertEqual(arr.type, pa.string())
