@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    uses: huggingface/doc-builder/.github/workflows/build_main_documentation.yml@145b9d4f6ab65ad3af87c66773b2c43294e52446  # main
+    uses: huggingface/doc-builder/.github/workflows/build_main_documentation.yml@a85d0c425b4466212c2f8b14e20fb86a821a6811  # main
     with:
       commit_sha: ${{ github.sha }}
       package: datasets
