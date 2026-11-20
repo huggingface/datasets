@@ -1,6 +1,7 @@
 import csv
 import io
 import os
+from datetime import datetime
 
 import fsspec
 import pytest
@@ -204,3 +205,16 @@ def test_dataset_to_csv_preserves_nullable_int(dtype, big, tmp_path):
     with open(output_csv, newline="") as f:
         rows = list(csv.DictReader(f))
     assert [row["a"] for row in rows] == [str(big), "", "5"]
+
+
+def test_csv_timestamp_roundtrip(tmp_path):
+    features = Features({"time": Value("timestamp[us]"), "label": Value("string")})
+    data = Dataset.from_dict(
+        {"time": [datetime(2020, 1, 1, 12, 30, 15, 123456), None], "label": ["001", "002"]},
+        features=features,
+    )
+    path = tmp_path / "timestamps.csv"
+    data.to_csv(path)
+    restored = Dataset.from_csv(str(path), features=features, cache_dir=str(tmp_path))
+    assert restored.features == features
+    assert restored.to_dict() == data.to_dict()

@@ -185,7 +185,10 @@ class Csv(datasets.ArrowBasedBuilder):
         # dtype allows reading an int column as str
         dtype = (
             {
-                name: dtype.to_pandas_dtype() if not require_storage_cast(feature) else object
+                # pandas cannot read timestamps via dtype; let Arrow parse them in _cast_table.
+                name: object
+                if pa.types.is_timestamp(dtype) or require_storage_cast(feature)
+                else dtype.to_pandas_dtype()
                 for name, dtype, feature in zip(schema.names, schema.types, self.config.features.values())
             }
             if schema is not None
