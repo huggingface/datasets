@@ -5413,3 +5413,11 @@ def test_dataset_push_to_hub_uploads_every_row_with_num_proc(offline_parquet_upl
     if num_shards == 1:
         # a single shard is written without starting a pool of processes
         assert not mp.get_context.return_value.Pool.called
+
+
+def test_select_contiguous_numpy_integer_indices():
+    dataset = Dataset.from_dict({"a": list(range(5))})
+    selected = dataset.select(np.array([1, 2], dtype=np.uint64))
+    assert selected["a"] == [1, 2]
+    selected = dataset.select(np.array([0, 1, 2], dtype=np.int32))
+    assert selected["a"] == [0, 1, 2]
