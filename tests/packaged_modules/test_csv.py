@@ -1,6 +1,8 @@
+import inspect
 import os
 import textwrap
 
+import pandas as pd
 import pyarrow as pa
 import pytest
 from packaging import version
@@ -179,6 +181,20 @@ def test_csv_pd_read_csv_kwargs_drops_new_1_3_0_params_below_pandas_1_3(monkeypa
     datasets.config.PANDAS_VERSION.release < (1, 3),
     reason="on_bad_lines requires pandas >= 1.3",
 )
+def test_csv_prefix_when_pandas_dropped_the_kwarg(tmp_path):
+    # pandas 2 removed DataFrame.read_csv(prefix=...). Headerless files should
+    # still get prefixed column names instead of TypeError.
+    if "prefix" in inspect.signature(pd.read_csv).parameters:
+        pytest.skip("installed pandas still accepts prefix")
+    path = tmp_path / "headerless.csv"
+    path.write_text("1,2\n3,4\n")
+    csv = Csv(header=None, prefix="c")
+    generator = csv._generate_tables(base_files=[str(path)], files_iterables=[[str(path)]])
+    table = pa.concat_tables([batch for _, batch in generator])
+    assert table.column_names == ["c0", "c1"]
+    assert table.to_pydict() == {"c0": [1, 3], "c1": [2, 4]}
+
+
 def test_csv_generate_tables_skips_malformed_row_with_on_bad_lines_skip(csv_file, malformed_csv_file):
     # End-to-end on the installed pandas: on_bad_lines="skip" must reach pd.read_csv, so the
     # malformed row is skipped instead of raising. On pandas 2.0-2.2 the buggy guard dropped it
