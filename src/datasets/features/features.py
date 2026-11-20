@@ -576,6 +576,9 @@ class Value:
         if pa.types.is_boolean(self.pa_type):
             return bool(value)
         elif pa.types.is_integer(self.pa_type):
+            if isinstance(value, (float, np.floating)):
+                # Use Arrow's safe cast to avoid truncating floating-point values.
+                return pa.scalar(value).cast(self.pa_type).as_py()
             return int(value)
         elif pa.types.is_floating(self.pa_type):
             return float(value)

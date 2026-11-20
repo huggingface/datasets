@@ -69,6 +69,40 @@ from .utils import (
 )
 
 
+@pytest.mark.parametrize("from_list", [False, True])
+@pytest.mark.parametrize(
+    "data, feature",
+    [
+        ([1.9, 2.5], Value("int64")),
+        (np.array([1.9, 2.5]), Value("int64")),
+        (np.array([1.9, 2.5], dtype="float32"), Value("int64")),
+        ([[1.9, 2.5]], List(Value("int64"))),
+        ([{"a": 1.9}, {"a": 2.5}], {"a": Value("int64")}),
+    ],
+)
+def test_from_dict_float_to_int_raises(data, feature, from_list):
+    features = Features({"x": feature})
+    constructor = Dataset.from_list if from_list else Dataset.from_dict
+    mapping = [{"x": value} for value in data] if from_list else {"x": data}
+    with pytest.raises(pa.ArrowInvalid, match="truncated converting to int64"):
+        constructor(mapping, features=features)
+
+
+@pytest.mark.parametrize(
+    "data, expected",
+    [
+        ([1.0, 2.0, None], [1, 2, None]),
+        (np.array([1.0, 2.0]), [1, 2]),
+        ([1, "2", True, None], [1, 2, 1, None]),
+    ],
+)
+def test_from_dict_safe_int_conversion(data, expected):
+    features = Features({"x": Value("int64")})
+    dataset = Dataset.from_dict({"x": data}, features=features)
+    assert dataset[:] == {"x": expected}
+    assert dataset.features == features
+
+
 def test_from_dict_array2d_numpy_roundtrip(tmp_path):
     data = np.arange(128 * 64 * 64, dtype="float32").reshape(128, 64, 64)
     features = Features({"a": Array2D(shape=(64, 64), dtype="float32")})
