@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 
 import fsspec
+import pyarrow as pa
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
@@ -218,3 +219,17 @@ def test_csv_timestamp_roundtrip(tmp_path):
     restored = Dataset.from_csv(str(path), features=features, cache_dir=str(tmp_path))
     assert restored.features == features
     assert restored.to_dict() == data.to_dict()
+
+
+@pytest.mark.parametrize(
+    ("timestamp_type", "ticks"),
+    [(pa.timestamp("us", tz="UTC"), 1_600_000_000_123_456), (pa.timestamp("ns"), 1_600_000_000_123_456_789)],
+)
+def test_csv_timestamp_precision_and_timezone(tmp_path, timestamp_type, ticks):
+    timestamps = pa.array([ticks, None], type=timestamp_type)
+    dataset = Dataset(pa.table({"time": timestamps}))
+    path = tmp_path / "timestamps.csv"
+    dataset.to_csv(path)
+    restored = Dataset.from_csv(str(path), features=dataset.features, cache_dir=str(tmp_path))
+    assert restored.features == dataset.features
+    assert restored.data.column("time").combine_chunks().equals(timestamps)
