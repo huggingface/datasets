@@ -156,26 +156,28 @@ def _save_arrowTable(pickler, obj):
     # never a full-table copy) so identical data produces identical bytes
     # regardless of chunking. See
     # https://github.com/huggingface/datasets/issues/8327.
-    def create_arrowTable(schema, columns):
-        return pa.Table.from_arrays(columns, schema=schema)
-
     log(pickler, f"Ta: {obj}")
     args = (obj.schema, [column.combine_chunks() for column in obj.columns])
-    pickler.save_reduce(create_arrowTable, args, obj=obj)
+    pickler.save_reduce(_create_arrow_table, args, obj=obj)
     log(pickler, "# Ta")
+
+
+def _create_arrow_table(schema, columns):
+    return pa.Table.from_arrays(columns, schema=schema)
 
 
 @pklregister(pa.ChunkedArray)
 def _save_arrowChunkedArray(pickler, obj):
     # Same rationale as _save_arrowTable: hash a chunk-count-independent form by
     # combining the chunks into a single array.
-    def create_arrowChunkedArray(array):
-        return pa.chunked_array([array])
-
     log(pickler, f"Ca: {obj}")
     args = (obj.combine_chunks(),)
-    pickler.save_reduce(create_arrowChunkedArray, args, obj=obj)
+    pickler.save_reduce(_create_arrow_chunked_array, args, obj=obj)
     log(pickler, "# Ca")
+
+
+def _create_arrow_chunked_array(array):
+    return pa.chunked_array([array])
 
 
 def _save_regexPattern(pickler, obj):
