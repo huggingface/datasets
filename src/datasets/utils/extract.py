@@ -118,6 +118,38 @@ class TarExtractor(BaseExtractor):
 
         base = resolved(output_path)
 
+        # Members seen so far, keyed by normalized name (last occurrence wins,
+        # mirroring tarfile._getmember), and the normalized names of the regular
+        # files that were actually yielded. A hard link is only safe to yield
+        # when the archive member it resolves to was itself extracted: when
+        # the link target is not already on disk, tarfile's link fallback
+        # re-extracts the target member at the link path without re-applying
+        # this filter, so a link to a skipped device/FIFO would materialise
+        # that member anyway.
+        members_by_name: dict[str, tarfile.TarInfo] = {}
+        yielded_regular: set[str] = set()
+
+        def safe_link_target(info: tarfile.TarInfo) -> Optional[bool]:
+            """Follow a hard-link chain through already-seen members.
+
+            Returns True if the chain ends at a yielded regular file, False
+            if it ends at any other member type (or loops), and None if the
+            target is not in the archive at all, in which case tarfile's own
+            behaviour for such links (KeyError) is preserved.
+            """
+            seen: set[str] = set()
+            current = info
+            while current.islnk():
+                target_name = os.path.normpath(current.linkname)
+                if target_name in seen:
+                    return False
+                seen.add(target_name)
+                target = members_by_name.get(target_name)
+                if target is None:
+                    return None
+                current = target
+            return current.isreg() and os.path.normpath(current.name) in yielded_regular
+
         for finfo in members:
             if badpath(finfo.name, base):
                 logger.error(f"Extraction of {finfo.name} is blocked (illegal path)")
@@ -125,13 +157,18 @@ class TarExtractor(BaseExtractor):
                 logger.error(f"Extraction of {finfo.name} is blocked: Symlink to {finfo.linkname}")
             elif finfo.islnk() and badlink(finfo, base):
                 logger.error(f"Extraction of {finfo.name} is blocked: Hard link to {finfo.linkname}")
+            elif finfo.islnk() and safe_link_target(finfo) is False:
+                logger.error(f"Extraction of {finfo.name} is blocked (unsupported file type)")
             elif not (finfo.isreg() or finfo.isdir() or finfo.issym() or finfo.islnk()):
                 # Device nodes, FIFOs, sockets and any other non-regular member can never be
                 # legitimate dataset content: a device aborts the whole extraction and a FIFO
                 # is materialised in the cache dir. Skip them like ArchiveIterable._iter_tar does.
                 logger.error(f"Extraction of {finfo.name} is blocked (unsupported file type)")
             else:
+                if finfo.isreg():
+                    yielded_regular.add(os.path.normpath(finfo.name))
                 yield finfo
+            members_by_name[os.path.normpath(finfo.name)] = finfo
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:

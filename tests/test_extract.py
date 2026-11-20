@@ -246,6 +246,62 @@ def test_tar_extract_device_and_fifo_members_are_skipped(tar_file_with_device_an
         assert "unsupported file type" in record.msg
 
 
+@pytest.fixture
+def tar_file_with_hardlinks_to_special_members(tmp_path, text_file):
+    import tarfile
+
+    directory = tmp_path / "data_hardlink_special"
+    directory.mkdir()
+    path = directory / "tar_file_with_hardlinks_to_special_members.tar"
+    with tarfile.TarFile(path, "w") as f:
+        device = tarfile.TarInfo("devnode")
+        device.type = tarfile.CHRTYPE
+        device.devmajor, device.devminor = 1, 3
+        f.addfile(device)
+        dev_alias = tarfile.TarInfo("dev_alias")
+        dev_alias.type = tarfile.LNKTYPE
+        dev_alias.linkname = "devnode"
+        f.addfile(dev_alias)
+        fifo = tarfile.TarInfo("myfifo")
+        fifo.type = tarfile.FIFOTYPE
+        f.addfile(fifo)
+        fifo_alias = tarfile.TarInfo("fifo_alias")
+        fifo_alias.type = tarfile.LNKTYPE
+        fifo_alias.linkname = "myfifo"
+        f.addfile(fifo_alias)
+        chain_alias = tarfile.TarInfo("chain_alias")
+        chain_alias.type = tarfile.LNKTYPE
+        chain_alias.linkname = "fifo_alias"
+        f.addfile(chain_alias)
+        f.add(text_file, arcname=text_file.name)
+        good_alias = tarfile.TarInfo("good_alias")
+        good_alias.type = tarfile.LNKTYPE
+        good_alias.linkname = text_file.name
+        f.addfile(good_alias)
+    return path
+
+
+def test_tar_extract_hardlinks_to_special_members_are_skipped(
+    tar_file_with_hardlinks_to_special_members, tmp_path, text_file, caplog
+):
+    # Regression test for https://github.com/huggingface/datasets/issues/9101:
+    # a hard link to a skipped device/FIFO member must be skipped too — tarfile's
+    # link fallback would otherwise re-extract the target member at the link
+    # path, bypassing safemembers. A hard link to a regular file must still work.
+    output_path = tmp_path / "extracted"
+    TarExtractor.extract(tar_file_with_hardlinks_to_special_members, output_path)
+    for blocked_name in ("devnode", "dev_alias", "myfifo", "fifo_alias", "chain_alias"):
+        assert not (output_path / blocked_name).exists()
+    extracted_file = output_path / text_file.name
+    assert extracted_file.read_text(encoding="utf-8") == text_file.read_text(encoding="utf-8")
+    good_alias = output_path / "good_alias"
+    assert good_alias.read_text(encoding="utf-8") == text_file.read_text(encoding="utf-8")
+    assert caplog.text
+    for record in caplog.records:
+        assert record.levelname == "ERROR"
+        assert "unsupported file type" in record.msg
+
+
 def test_is_zipfile_false_positive(tmpdir):
     # We should have less false positives than zipfile.is_zipfile
     # We do that by checking only the magic number
