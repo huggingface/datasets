@@ -16,8 +16,8 @@ from multiprocess import Pool
 
 import datasets
 from datasets import config
-from datasets.fingerprint import Hasher, fingerprint_transform
-from datasets.table import InMemoryTable
+from datasets.fingerprint import Hasher, fingerprint_transform, generate_fingerprint, validate_fingerprint
+from datasets.table import InMemoryTable, MemoryMappedTable
 
 from .utils import (
     require_not_windows,
@@ -416,6 +416,57 @@ def test_move_script_doesnt_change_hash(tmp_path: Path):
     fingerprint1 = subprocess.check_output(["python", str(script_path1)])
     fingerprint2 = subprocess.check_output(["python", str(script_path2)])
     assert fingerprint1 == fingerprint2
+
+
+@pytest.mark.parametrize("with_indices", [False, True])
+def test_generate_fingerprint_cache_file_mtime(tmp_path, with_indices):
+    dataset = datasets.Dataset.from_dict({"x": [1, 2, 3]}).map(cache_file_name=str(tmp_path / "cache.arrow"))
+    if with_indices:
+        dataset = dataset.select([2, 0], indices_cache_file_name=str(tmp_path / "indices.arrow"))
+    cache_file = dataset.cache_files[-1]["filename"]
+    stat = os.stat(cache_file)
+    fingerprint = generate_fingerprint(dataset)
+    assert generate_fingerprint(dataset) == fingerprint
+
+    os.utime(cache_file, ns=(stat.st_atime_ns, stat.st_mtime_ns + 1_000_000_000))
+    assert generate_fingerprint(dataset) != fingerprint
+    os.utime(cache_file, ns=(stat.st_atime_ns, stat.st_mtime_ns))
+    assert generate_fingerprint(dataset) == fingerprint
+
+
+@require_not_windows
+@pytest.mark.parametrize("with_indices", [False, True])
+def test_generate_fingerprint_missing_cache_file(tmp_path, with_indices, caplog):
+    dataset = datasets.Dataset.from_dict({"x": [1, 2, 3]}).map(
+        lambda e: {"x": e["x"] + 1}, cache_file_name=str(tmp_path / "cache.arrow")
+    )
+    if with_indices:
+        dataset = dataset.select([2, 0], indices_cache_file_name=str(tmp_path / "indices.arrow"))
+    expected_data = dataset[:]
+    original_fingerprint = generate_fingerprint(dataset)
+    cache_file = dataset.cache_files[-1]["filename"]
+    os.remove(cache_file)
+
+    fingerprint = generate_fingerprint(dataset)
+    validate_fingerprint(fingerprint)
+    assert fingerprint != original_fingerprint
+    assert generate_fingerprint(dataset) != fingerprint
+    assert dataset[:] == expected_data
+    assert cache_file in caplog.text
+    assert "random fingerprint" in caplog.text
+
+
+def test_generate_fingerprint_missing_cache_file_on_init(tmp_path):
+    cache_file = str(tmp_path / "missing.arrow")
+    table = InMemoryTable.from_pydict({"x": [1, 2, 3]})
+    other_table = InMemoryTable.from_pydict({"x": [4, 5, 6]})
+    dataset = datasets.Dataset(MemoryMappedTable(table.table, cache_file))
+    other_dataset = datasets.Dataset(MemoryMappedTable(other_table.table, cache_file))
+
+    validate_fingerprint(dataset._fingerprint)
+    assert dataset._fingerprint != other_dataset._fingerprint
+    assert dataset[:] == {"x": [1, 2, 3]}
+    assert other_dataset[:] == {"x": [4, 5, 6]}
 
 
 def test_fingerprint_in_multiprocessing():
