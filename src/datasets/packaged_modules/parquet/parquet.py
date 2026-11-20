@@ -16,6 +16,23 @@ from datasets.table import table_cast
 logger = datasets.utils.logging.get_logger(__name__)
 
 
+def _get_column_metadata(schema: pa.Schema) -> Optional[dict[str, dict[str, str]]]:
+    """Return the Arrow field metadata of the columns, as written by `Dataset.to_parquet`.
+
+    Keys of the namespaces reserved by Arrow and Parquet (e.g. "PARQUET:field_id") are ignored.
+    """
+    column_metadata = {}
+    for field in schema:
+        metadata = {
+            key.decode(): value.decode()
+            for key, value in (field.metadata or {}).items()
+            if not key.startswith((b"ARROW:", b"PARQUET:"))
+        }
+        if metadata:
+            column_metadata[field.name] = metadata
+    return column_metadata or None
+
+
 @dataclass
 class ParquetConfig(datasets.BuilderConfig):
     """
@@ -118,14 +135,20 @@ class Parquet(datasets.ArrowBasedBuilder):
         dl_manager.download_config.extract_on_the_fly = True
         data_files = dl_manager.download(self.config.data_files)
         splits = []
+        schema_read = False
         for split_name, files in data_files.items():
-            # Infer features if they are stored in the arrow schema
-            if self.info.features is None:
+            # Infer features if they are stored in the arrow schema, and the column metadata from its fields
+            if self.info.features is None or not schema_read:
                 for file in files:
                     try:
                         with open(file, "rb") as f:
-                            self.info.features = datasets.Features.from_arrow_schema(pq.read_schema(f))
-                            break
+                            schema = pq.read_schema(f)
+                        if self.info.features is None:
+                            self.info.features = datasets.Features.from_arrow_schema(schema)
+                        if self.info.column_metadata is None:
+                            self.info.column_metadata = _get_column_metadata(schema)
+                        schema_read = True
+                        break
                     except pa.ArrowInvalid as e:
                         if self.config.on_bad_files == "error":
                             logger.error(f"Failed to read schema from '{file}' with error {type(e).__name__}: {e}")
@@ -147,6 +170,10 @@ class Parquet(datasets.ArrowBasedBuilder):
             self.info.features = datasets.Features(
                 {col: feat for col, feat in self.info.features.items() if col in self.config.columns}
             )
+        if self.info.column_metadata:
+            self.info.column_metadata = {
+                col: metadata for col, metadata in self.info.column_metadata.items() if col in self.info.features
+            } or None
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:

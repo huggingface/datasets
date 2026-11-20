@@ -163,6 +163,9 @@ class JsonDatasetWriter:
 
         Caller is responsible for opening and closing the handle.
         """
+        if len(self.dataset) == 0 and not lines:
+            return file_obj.write(self._batch_json((0, orient, lines, to_json_kwargs)))
+
         written = 0
 
         if self.num_proc is None or self.num_proc == 1:

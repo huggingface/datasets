@@ -26,6 +26,7 @@ class MeshFolder(folder_based_builder.FolderBasedBuilder):
 
 MESH_EXTENSIONS = [
     ".glb",
+    ".gltf",
     ".ply",
     ".stl",
 ]

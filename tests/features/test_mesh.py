@@ -145,6 +145,18 @@ def test_mesh_feature_encode_trimesh_object():
     assert isinstance(decoded_example, trimesh.Scene)
 
 
+@require_trimesh
+def test_mesh_feature_decodes_gltf(tmp_path):
+    import trimesh
+
+    gltf_path = tmp_path / "box.gltf"
+    trimesh.creation.box().export(gltf_path, file_type="gltf", embed_buffers=True)
+    decoded_from_path = Mesh().decode_example({"path": str(gltf_path), "bytes": None})
+    assert isinstance(decoded_from_path, (trimesh.Trimesh, trimesh.Scene))
+    decoded_from_bytes = Mesh().decode_example({"path": str(gltf_path), "bytes": gltf_path.read_bytes()})
+    assert isinstance(decoded_from_bytes, (trimesh.Trimesh, trimesh.Scene))
+
+
 def test_require_decoding():
     assert require_decoding(Mesh())
 

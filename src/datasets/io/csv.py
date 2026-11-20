@@ -117,6 +117,9 @@ class CsvDatasetWriter:
 
         Caller is responsible for opening and closing the handle.
         """
+        if len(self.dataset) == 0:
+            return file_obj.write(self._batch_csv((0, header, index, to_csv_kwargs)))
+
         written = 0
         # one encoder for the whole file: a byte order mark, if the encoding has one, is written once
         encoder = codecs.getincrementalencoder(self.encoding)(self.encoding_errors)

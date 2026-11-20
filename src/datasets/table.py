@@ -68,6 +68,15 @@ def _batch_arrow_table(table: pa.Table) -> pa.Table:
     return pa.Table.from_arrays(batched_columns, names=table.column_names)
 
 
+def _not_equal_nulls_equal(left, right):
+    # Like pc.not_equal, but two nulls are equal and a null differs from any non-null value.
+    # pc.not_equal returns null in both cases, and has no kernel for the null type.
+    nulls_differ = pc.xor(pc.is_null(left), pc.is_null(right))
+    if pa.types.is_null(left.type) or pa.types.is_null(right.type):
+        return nulls_differ
+    return pc.or_(pc.fill_null(pc.not_equal(left, right), False), nulls_differ)
+
+
 def _batch_accumulate_arrow_table_by_columns(
     table: pa.Table, indices: list[int], columns: tuple[str], tables_accumulator: list[pa.Table], length: Optional[int]
 ) -> pa.Table:
@@ -75,7 +84,7 @@ def _batch_accumulate_arrow_table_by_columns(
     # keep accumulating if key is the same, otherwise include the accumulated tables
     if tables_accumulator and accumulate_last_batch:
         for column in columns:
-            if any(pc.not_equal(table[column], tables_accumulator[0][column][0]).to_pylist()):
+            if any(_not_equal_nulls_equal(table[column], tables_accumulator[0][column][0]).to_pylist()):
                 break
         else:
             tables_accumulator.append(table)
@@ -93,9 +102,9 @@ def _batch_accumulate_arrow_table_by_columns(
         return table
     # cut the table per key, i.e. when the columns change value
     if len(table) > 1:
-        cut_array = pc.not_equal(table[columns[0]][1:], table[columns[0]][:-1])
+        cut_array = _not_equal_nulls_equal(table[columns[0]][1:], table[columns[0]][:-1])
         for column in columns[1:]:
-            cut_array = pc.or_(cut_array, pc.not_equal(table[column][1:], table[column][:-1]))
+            cut_array = pc.or_(cut_array, _not_equal_nulls_equal(table[column][1:], table[column][:-1]))
     else:
         cut_array = pa.array([], type=pa.uint64())
     offsets = pc.indices_nonzero(cut_array)
@@ -2220,12 +2229,16 @@ def embed_array_storage(
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
     elif pa.types.is_list(array.type):
         # feature must be either List(subfeature)
+        # Copy the array to only embed the values of its slice, since `array.values` ignores the slice
+        array = pa.concat_arrays([array])
         # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
         array_offsets = _combine_list_array_offsets_with_mask(array)
         if isinstance(feature, List) and feature.length == -1:
             return pa.ListArray.from_arrays(array_offsets, _e(array.values, feature.feature))
     elif pa.types.is_large_list(array.type):
         # feature must be LargeList(subfeature)
+        # Copy the array to only embed the values of its slice, since `array.values` ignores the slice
+        array = pa.concat_arrays([array])
         # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
         array_offsets = _combine_list_array_offsets_with_mask(array)
         return pa.LargeListArray.from_arrays(array_offsets, _e(array.values, feature.feature))
@@ -2453,7 +2466,7 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
                     _visit(array.field(name), subfeature)
             elif pa.types.is_list(array.type):
                 if isinstance(feature, (LargeList, List)):
-                    _visit(array.values, feature.feature)
+                    _visit(array.flatten(), feature.feature)
 
     for name, feature in features.items():
         _visit(table[name], feature)
