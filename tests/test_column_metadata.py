@@ -89,6 +89,27 @@ def test_column_metadata_to_parquet_and_back(tmp_path):
     assert streamed.info.column_metadata == {"a": {"unit": "cm"}, "b": {"source": "manual"}}
 
 
+def test_column_metadata_iterable_dataset_to_parquet(tmp_path):
+    ds = _dataset().with_column_metadata({"a": {"unit": "cm"}, "b": {"source": "manual"}})
+    assert ds.to_iterable_dataset().info.column_metadata == {"a": {"unit": "cm"}, "b": {"source": "manual"}}
+    path = str(tmp_path / "data.parquet")
+    ds.to_iterable_dataset().to_parquet(path)
+    schema = pq.read_schema(path)
+    assert schema.field("a").metadata == {b"unit": b"cm"}
+    assert schema.field("b").metadata == {b"source": b"manual"}
+    assert schema.field("c").metadata is None
+
+
+@pytest.mark.parametrize("num_shards", [2, 5])
+def test_column_metadata_iterable_dataset_push_to_hub_shards(offline_parquet_uploads, num_shards):
+    # with at most as many output shards as source shards they are written with `to_parquet`, otherwise round-robin
+    ds = _dataset().with_column_metadata({"a": {"unit": "cm"}}).to_iterable_dataset(num_shards=2)
+    push_parquet_shards_offline(ds, num_shards=num_shards)
+    files = sorted(offline_parquet_uploads.glob("*.parquet"))
+    assert len(files) == num_shards
+    assert all(pq.read_schema(file).field("a").metadata == {b"unit": b"cm"} for file in files)
+
+
 def test_dataset_dict_with_column_metadata():
     dsets = DatasetDict(train=_dataset(), test=_dataset())
     dsets = dsets.with_column_metadata({"a": {"unit": "cm"}})
