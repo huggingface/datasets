@@ -349,6 +349,82 @@ def test_tar_extract_duplicate_name_link_chain_is_blocked(
         assert "unsupported file type" in record.msg
 
 
+@pytest.fixture
+def tar_file_with_valid_duplicate_name_links(tmp_path, text_file):
+    import tarfile
+
+    directory = tmp_path / "data_valid_duplicate_links"
+    directory.mkdir()
+    path = directory / "tar_file_with_valid_duplicate_name_links.tar"
+    with tarfile.TarFile(path, "w") as f:
+        # A regular file 'a', a link 'b' -> 'a', a link also named 'a' -> 'b',
+        # and a link 'c' -> 'a'. Every step resolves backward to the original
+        # regular file; the repeated name is not a cycle.
+        f.add(text_file, arcname="a")
+        link_b = tarfile.TarInfo("b")
+        link_b.type = tarfile.LNKTYPE
+        link_b.linkname = "a"
+        f.addfile(link_b)
+        link_a = tarfile.TarInfo("a")
+        link_a.type = tarfile.LNKTYPE
+        link_a.linkname = "b"
+        f.addfile(link_a)
+        link_c = tarfile.TarInfo("c")
+        link_c.type = tarfile.LNKTYPE
+        link_c.linkname = "a"
+        f.addfile(link_c)
+        f.add(text_file, arcname=text_file.name)
+    return path
+
+
+def test_tar_extract_valid_duplicate_name_links_are_kept(
+    tar_file_with_valid_duplicate_name_links, tmp_path, text_file, caplog
+):
+    # Regression test for https://github.com/huggingface/datasets/issues/9101:
+    # hard links whose chains resolve backward to the same regular file must
+    # be kept, even when a name repeats along the chain.
+    output_path = tmp_path / "extracted"
+    TarExtractor.extract(tar_file_with_valid_duplicate_name_links, output_path)
+    expected_content = text_file.read_text(encoding="utf-8")
+    for name in ("a", "b", "c"):
+        assert (output_path / name).read_text(encoding="utf-8") == expected_content
+    assert (output_path / text_file.name).read_text(encoding="utf-8") == expected_content
+    assert not caplog.text
+
+
+@pytest.fixture
+def tar_file_with_hardlink_to_symlink(tmp_path, text_file):
+    import tarfile
+
+    directory = tmp_path / "data_hardlink_to_symlink"
+    directory.mkdir()
+    path = directory / "tar_file_with_hardlink_to_symlink.tar"
+    with tarfile.TarFile(path, "w") as f:
+        f.add(text_file, arcname=text_file.name)
+        sym = tarfile.TarInfo("sym")
+        sym.type = tarfile.SYMTYPE
+        sym.linkname = text_file.name
+        f.addfile(sym)
+        alias = tarfile.TarInfo("alias")
+        alias.type = tarfile.LNKTYPE
+        alias.linkname = "sym"
+        f.addfile(alias)
+    return path
+
+
+def test_tar_extract_hardlink_to_safe_symlink_is_kept(tar_file_with_hardlink_to_symlink, tmp_path, text_file, caplog):
+    # Regression test for https://github.com/huggingface/datasets/issues/9101:
+    # a hard link to an in-bounds symlink that was itself extracted must be
+    # kept; it only re-creates the already-approved symlink.
+    output_path = tmp_path / "extracted"
+    TarExtractor.extract(tar_file_with_hardlink_to_symlink, output_path)
+    expected_content = text_file.read_text(encoding="utf-8")
+    assert (output_path / text_file.name).read_text(encoding="utf-8") == expected_content
+    assert (output_path / "sym").read_text(encoding="utf-8") == expected_content
+    assert (output_path / "alias").read_text(encoding="utf-8") == expected_content
+    assert not caplog.text
+
+
 def test_is_zipfile_false_positive(tmpdir):
     # We should have less false positives than zipfile.is_zipfile
     # We do that by checking only the magic number
