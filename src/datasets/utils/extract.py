@@ -1,3 +1,4 @@
+import bisect
 import bz2
 import gzip
 import lzma
@@ -118,15 +119,93 @@ class TarExtractor(BaseExtractor):
 
         base = resolved(output_path)
 
+        # Members seen so far, in archive order, with whether each was yielded;
+        # plus, per normalized name, the positions at which it occurred. A hard
+        # link is only safe to yield when the archive member it resolves to was
+        # itself extracted: when the link target is not already on disk,
+        # tarfile's link fallback re-extracts the target member at the link
+        # path without re-applying this filter, so a link to a skipped
+        # device/FIFO would materialise that member anyway. Resolution must
+        # be position-limited exactly like tarfile._getmember: each link
+        # resolves against the members preceding *that* link (last occurrence
+        # wins), so a later regular file sharing a name with an earlier
+        # special member must not whitewash a chain that tarfile resolves to
+        # the earlier member.
+        seen_members: list[tuple[tarfile.TarInfo, bool]] = []
+        positions_by_name: dict[str, list[int]] = {}
+        # Resolved safety verdict per hard-link position (True/False, or None
+        # when a target is missing from the archive). Every link in one chain
+        # shares the verdict of the chain's terminal member, so memoizing it
+        # keeps validation linear: without it, a chain a0, a1 -> a0,
+        # a2 -> a1, ... would re-walk the whole chain for every new link.
+        link_safety: dict[int, Optional[bool]] = {}
+
+        def resolve_before(name: str, limit: int) -> Optional[tuple[int, tarfile.TarInfo, bool]]:
+            """Last member named `name` among the first `limit` seen members."""
+            positions = positions_by_name.get(os.path.normpath(name))
+            if not positions:
+                return None
+            index = bisect.bisect_left(positions, limit) - 1
+            if index < 0:
+                return None
+            position = positions[index]
+            member, yielded = seen_members[position]
+            return position, member, yielded
+
+        def safe_link_target(info: tarfile.TarInfo, position: int) -> Optional[bool]:
+            """Follow a hard-link chain, resolving each step against the
+            members preceding that link.
+
+            Returns True if the chain ends at a yielded regular file or a
+            yielded (in-bounds) symlink, False if it ends at any other
+            member type, and None if a target is not in the archive at all,
+            in which case tarfile's own behaviour for such links (KeyError)
+            is preserved. No cycle check is needed: each step resolves to a
+            strictly earlier member position, so the chain must terminate.
+            """
+            current = info
+            limit = position
+            yielded = False
+            trail: list[int] = []
+            while current.islnk():
+                if limit in link_safety:
+                    verdict = link_safety[limit]
+                    for trail_position in trail:
+                        link_safety[trail_position] = verdict
+                    return verdict
+                trail.append(limit)
+                target_name = os.path.normpath(current.linkname)
+                resolved = resolve_before(target_name, limit)
+                if resolved is None:
+                    for trail_position in trail:
+                        link_safety[trail_position] = None
+                    return None
+                limit, current, yielded = resolved
+            verdict = (current.isreg() or current.issym()) and yielded
+            for trail_position in trail:
+                link_safety[trail_position] = verdict
+            return verdict
+
         for finfo in members:
+            was_yielded = False
             if badpath(finfo.name, base):
                 logger.error(f"Extraction of {finfo.name} is blocked (illegal path)")
             elif finfo.issym() and badlink(finfo, base):
                 logger.error(f"Extraction of {finfo.name} is blocked: Symlink to {finfo.linkname}")
             elif finfo.islnk() and badlink(finfo, base):
                 logger.error(f"Extraction of {finfo.name} is blocked: Hard link to {finfo.linkname}")
+            elif finfo.islnk() and safe_link_target(finfo, len(seen_members)) is False:
+                logger.error(f"Extraction of {finfo.name} is blocked (unsupported file type)")
+            elif not (finfo.isreg() or finfo.isdir() or finfo.issym() or finfo.islnk()):
+                # Device nodes, FIFOs, sockets and any other non-regular member can never be
+                # legitimate dataset content: a device aborts the whole extraction and a FIFO
+                # is materialised in the cache dir. Skip them like ArchiveIterable._iter_tar does.
+                logger.error(f"Extraction of {finfo.name} is blocked (unsupported file type)")
             else:
+                was_yielded = True
                 yield finfo
+            seen_members.append((finfo, was_yielded))
+            positions_by_name.setdefault(os.path.normpath(finfo.name), []).append(len(seen_members) - 1)
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
