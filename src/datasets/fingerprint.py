@@ -360,9 +360,7 @@ def format_kwargs_for_fingerprint(
         kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k not in ignore_kwargs}
     if randomized_function:  # randomized functions have `seed` and `generator` parameters
         if kwargs_for_fingerprint.get("seed") is None and kwargs_for_fingerprint.get("generator") is None:
-            _, seed, pos, *_ = np.random.get_state()
-            seed = seed[pos] if pos < 624 else seed[0]
-            kwargs_for_fingerprint["generator"] = np.random.default_rng(seed)
+            kwargs_for_fingerprint["generator"] = np.random.default_rng()
 
     # remove kwargs that are the default values
 
@@ -401,8 +399,7 @@ def fingerprint_transform(
         randomized_function (:obj:`bool`, defaults to False): If the dataset transform is random and has
             optional parameters "seed" and "generator", then you can set randomized_function to True.
             This way, even if users set "seed" and "generator" to None, then the fingerprint is
-            going to be randomly generated depending on numpy's current state. In this case, the
-            generator is set to np.random.default_rng(np.random.get_state()[1][0]).
+            going to be randomly generated using fresh entropy from the OS.
         version (:obj:`str`, optional): version of the transform. The version is taken into account when
             computing the fingerprint. If a datase transform changes (or at least if the output data
             that are cached changes), then one should increase the version. If the version stays the
