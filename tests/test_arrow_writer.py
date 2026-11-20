@@ -308,6 +308,64 @@ def test_arrow_writer_closes_stream(raise_exception, tmp_path):
         assert writer.stream.closed
 
 
+def test_arrow_writer_context_manager_without_finalize(tmp_path):
+    # https://github.com/huggingface/datasets/issues/9096
+    path = str(tmp_path / "dataset-train.arrow")
+    with ArrowWriter(features=Features({"x": Value("int64")}), path=path) as writer:
+        writer.write({"x": 1})
+        writer.write({"x": 2})
+    assert os.path.getsize(path) > 0
+    assert pa.ipc.open_stream(path).read_all().to_pylist() == [{"x": 1}, {"x": 2}]
+
+
+def test_arrow_writer_close_without_finalize(tmp_path):
+    # https://github.com/huggingface/datasets/issues/9096
+    path = str(tmp_path / "dataset-train.arrow")
+    writer = ArrowWriter(features=Features({"x": Value("int64")}), path=path)
+    writer.write({"x": 1})
+    writer.close()
+    assert os.path.getsize(path) > 0
+    assert pa.ipc.open_stream(path).read_all().to_pylist() == [{"x": 1}]
+
+
+def test_arrow_writer_close_without_finalize_and_without_data(tmp_path):
+    # Closing a writer that never received data (and has no schema) must not
+    # raise: there is no valid file to produce, the stream is just closed.
+    path = str(tmp_path / "dataset-train.arrow")
+    writer = ArrowWriter(path=path)
+    writer.close()
+    assert writer.stream.closed
+
+
+def test_arrow_writer_close_with_invalid_data_closes_stream(tmp_path):
+    # A flush that fails during close() must still release the owned stream.
+    path = str(tmp_path / "dataset-train.arrow")
+    writer = ArrowWriter(features=Features({"x": Value("int64")}), path=path)
+    writer.write({"x": "not an integer"})
+    with pytest.raises(pa.lib.ArrowInvalid):
+        writer.close()
+    assert writer.stream.closed
+
+
+def test_arrow_writer_context_manager_with_invalid_data_closes_stream(tmp_path):
+    path = str(tmp_path / "dataset-train.arrow")
+    with pytest.raises(pa.lib.ArrowInvalid):
+        with ArrowWriter(features=Features({"x": Value("int64")}), path=path) as writer:
+            writer.write({"x": "not an integer"})
+    assert writer.stream.closed
+
+
+def test_arrow_writer_context_manager_preserves_body_exception(tmp_path, caplog):
+    # A flush failure on exit must not replace the exception raised in the body.
+    path = str(tmp_path / "dataset-train.arrow")
+    with pytest.raises(RuntimeError, match="boom"):
+        with ArrowWriter(features=Features({"x": Value("int64")}), path=path) as writer:
+            writer.write({"x": "not an integer"})
+            raise RuntimeError("boom")
+    assert writer.stream.closed
+    assert "Failed to finalize ArrowWriter while handling an exception" in caplog.text
+
+
 def test_arrow_writer_with_filesystem(mockfs):
     path = "mock://dataset-train.arrow"
     with ArrowWriter(path=path, storage_options=mockfs.storage_options) as writer:
