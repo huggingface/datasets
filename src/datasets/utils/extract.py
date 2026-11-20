@@ -125,6 +125,11 @@ class TarExtractor(BaseExtractor):
                 logger.error(f"Extraction of {finfo.name} is blocked: Symlink to {finfo.linkname}")
             elif finfo.islnk() and badlink(finfo, base):
                 logger.error(f"Extraction of {finfo.name} is blocked: Hard link to {finfo.linkname}")
+            elif not (finfo.isreg() or finfo.isdir() or finfo.issym() or finfo.islnk()):
+                # Device nodes, FIFOs, sockets and any other non-regular member can never be
+                # legitimate dataset content: a device aborts the whole extraction and a FIFO
+                # is materialised in the cache dir. Skip them like ArchiveIterable._iter_tar does.
+                logger.error(f"Extraction of {finfo.name} is blocked (unsupported file type)")
             else:
                 yield finfo
 

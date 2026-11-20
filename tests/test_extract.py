@@ -211,6 +211,41 @@ def test_tar_extract_insecure_files(
         assert error_log in record.msg
 
 
+@pytest.fixture
+def tar_file_with_device_and_fifo(tmp_path, text_file):
+    import tarfile
+
+    directory = tmp_path / "data_device_fifo"
+    directory.mkdir()
+    path = directory / "tar_file_with_device_and_fifo.tar"
+    with tarfile.TarFile(path, "w") as f:
+        device = tarfile.TarInfo("devnode")
+        device.type = tarfile.CHRTYPE
+        device.devmajor, device.devminor = 1, 3
+        f.addfile(device)
+        fifo = tarfile.TarInfo("myfifo")
+        fifo.type = tarfile.FIFOTYPE
+        f.addfile(fifo)
+        f.add(text_file, arcname=text_file.name)
+    return path
+
+
+def test_tar_extract_device_and_fifo_members_are_skipped(tar_file_with_device_and_fifo, tmp_path, text_file, caplog):
+    # Regression test for https://github.com/huggingface/datasets/issues/9101:
+    # device/FIFO members must be skipped instead of aborting the extraction
+    # (device) or being materialised in the output directory (FIFO).
+    output_path = tmp_path / "extracted"
+    TarExtractor.extract(tar_file_with_device_and_fifo, output_path)
+    assert not (output_path / "devnode").exists()
+    assert not (output_path / "myfifo").exists()
+    extracted_file = output_path / text_file.name
+    assert extracted_file.read_text(encoding="utf-8") == text_file.read_text(encoding="utf-8")
+    assert caplog.text
+    for record in caplog.records:
+        assert record.levelname == "ERROR"
+        assert "unsupported file type" in record.msg
+
+
 def test_is_zipfile_false_positive(tmpdir):
     # We should have less false positives than zipfile.is_zipfile
     # We do that by checking only the magic number
