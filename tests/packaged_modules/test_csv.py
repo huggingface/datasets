@@ -177,10 +177,6 @@ def test_csv_pd_read_csv_kwargs_drops_new_1_3_0_params_below_pandas_1_3(monkeypa
     assert "on_bad_lines" not in kwargs
 
 
-@pytest.mark.skipif(
-    datasets.config.PANDAS_VERSION.release < (1, 3),
-    reason="on_bad_lines requires pandas >= 1.3",
-)
 def test_csv_prefix_when_pandas_dropped_the_kwarg(tmp_path):
     # pandas 2 removed DataFrame.read_csv(prefix=...). Headerless files should
     # still get prefixed column names instead of TypeError.
@@ -195,6 +191,23 @@ def test_csv_prefix_when_pandas_dropped_the_kwarg(tmp_path):
     assert table.to_pydict() == {"c0": [1, 3], "c1": [2, 4]}
 
 
+@pytest.mark.skipif("prefix" in inspect.signature(pd.read_csv).parameters, reason="requires pandas without prefix")
+@pytest.mark.parametrize(
+    ("usecols", "expected"),
+    [([1], {"c1": [20, 50]}), ([0, 2], {"c0": [10, 40], "c2": [30, 60]})],
+)
+def test_csv_prefix_preserves_selected_column_positions(tmp_path, usecols, expected):
+    path = tmp_path / "headerless.csv"
+    path.write_text("10,20,30\n40,50,60\n", encoding="utf-8")
+    csv = Csv(header=None, prefix="c", usecols=usecols, chunksize=1)
+    tables = csv._generate_tables(base_files=[str(path)], files_iterables=[[str(path)]])
+    assert pa.concat_tables([batch for _, batch in tables]).to_pydict() == expected
+
+
+@pytest.mark.skipif(
+    datasets.config.PANDAS_VERSION.release < (1, 3),
+    reason="on_bad_lines requires pandas >= 1.3",
+)
 def test_csv_generate_tables_skips_malformed_row_with_on_bad_lines_skip(csv_file, malformed_csv_file):
     # End-to-end on the installed pandas: on_bad_lines="skip" must reach pd.read_csv, so the
     # malformed row is skipped instead of raising. On pandas 2.0-2.2 the buggy guard dropped it

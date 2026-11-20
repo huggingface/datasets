@@ -210,7 +210,7 @@ class Csv(datasets.ArrowBasedBuilder):
                 try:
                     for batch_idx, df in enumerate(csv_file_reader):
                         if apply_prefix:
-                            df.columns = [f"{self.config.prefix}{i}" for i in range(df.shape[1])]
+                            df.columns = [f"{self.config.prefix}{i}" for i in df.columns]
                         pa_table = pa.Table.from_pandas(df)
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
