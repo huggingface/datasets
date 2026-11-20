@@ -425,6 +425,35 @@ def test_tar_extract_hardlink_to_safe_symlink_is_kept(tar_file_with_hardlink_to_
     assert not caplog.text
 
 
+def test_tar_extract_long_hardlink_chain_is_fast(tmp_path):
+    # Regression test for https://github.com/huggingface/datasets/issues/9101:
+    # validating a long hard-link chain must stay (near-)linear, not
+    # quadratic — each link's resolved verdict is memoized per position.
+    import io
+    import tarfile
+    import time
+
+    n_links = 4000
+    bio = io.BytesIO()
+    with tarfile.open(fileobj=bio, mode="w") as f:
+        first = tarfile.TarInfo("a0")
+        first.size = 5
+        f.addfile(first, io.BytesIO(b"hello"))
+        for i in range(1, n_links):
+            link = tarfile.TarInfo(f"a{i}")
+            link.type = tarfile.LNKTYPE
+            link.linkname = f"a{i - 1}"
+            f.addfile(link)
+    bio.seek(0)
+    with tarfile.open(fileobj=bio) as tf:
+        start = time.monotonic()
+        members = list(TarExtractor.safemembers(tf, tmp_path))
+        elapsed = time.monotonic() - start
+    assert len(members) == n_links
+    # Without memoization this takes ~8s (quadratic); memoized it is ~0.4s.
+    assert elapsed < 2.0
+
+
 def test_is_zipfile_false_positive(tmpdir):
     # We should have less false positives than zipfile.is_zipfile
     # We do that by checking only the magic number

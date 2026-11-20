@@ -133,6 +133,12 @@ class TarExtractor(BaseExtractor):
         # the earlier member.
         seen_members: list[tuple[tarfile.TarInfo, bool]] = []
         positions_by_name: dict[str, list[int]] = {}
+        # Resolved safety verdict per hard-link position (True/False, or None
+        # when a target is missing from the archive). Every link in one chain
+        # shares the verdict of the chain's terminal member, so memoizing it
+        # keeps validation linear: without it, a chain a0, a1 -> a0,
+        # a2 -> a1, ... would re-walk the whole chain for every new link.
+        link_safety: dict[int, Optional[bool]] = {}
 
         def resolve_before(name: str, limit: int) -> Optional[tuple[int, tarfile.TarInfo, bool]]:
             """Last member named `name` among the first `limit` seen members."""
@@ -160,13 +166,25 @@ class TarExtractor(BaseExtractor):
             current = info
             limit = position
             yielded = False
+            trail: list[int] = []
             while current.islnk():
+                if limit in link_safety:
+                    verdict = link_safety[limit]
+                    for trail_position in trail:
+                        link_safety[trail_position] = verdict
+                    return verdict
+                trail.append(limit)
                 target_name = os.path.normpath(current.linkname)
                 resolved = resolve_before(target_name, limit)
                 if resolved is None:
+                    for trail_position in trail:
+                        link_safety[trail_position] = None
                     return None
                 limit, current, yielded = resolved
-            return (current.isreg() or current.issym()) and yielded
+            verdict = (current.isreg() or current.issym()) and yielded
+            for trail_position in trail:
+                link_safety[trail_position] = verdict
+            return verdict
 
         for finfo in members:
             was_yielded = False
