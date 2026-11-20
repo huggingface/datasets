@@ -6,7 +6,19 @@ import pyarrow.parquet as pq
 import pytest
 
 import datasets.config
-from datasets import Audio, Dataset, DatasetDict, Features, IterableDatasetDict, Json, List, NamedSplit, Value, config
+from datasets import (
+    Audio,
+    Dataset,
+    DatasetDict,
+    Features,
+    IterableDataset,
+    IterableDatasetDict,
+    Json,
+    List,
+    NamedSplit,
+    Value,
+    config,
+)
 from datasets.arrow_writer import get_arrow_writer_batch_size_from_features
 from datasets.features.image import Image
 from datasets.info import DatasetInfo
@@ -309,3 +321,43 @@ def test_dataset_to_parquet_fsspec(dataset, mockfs):
 
     with fsspec.open(dataset_path, "rb", **mockfs.storage_options) as f:
         assert f.read()
+
+
+def _row_group_sizes(path):
+    metadata = pq.read_metadata(path)
+    return [metadata.row_group(i).num_rows for i in range(metadata.num_row_groups)]
+
+
+@pytest.mark.parametrize("with_features", [True, False])
+def test_iterable_dataset_to_parquet(with_features, tmp_path):
+    features = Features({"col_1": Value("string"), "col_2": Value("int32")})
+    dataset = Dataset.from_dict({"col_1": list("abcdefg"), "col_2": list(range(7))}, features=features)
+
+    def gen():
+        yield from dataset
+
+    iterable_dataset = IterableDataset.from_generator(gen, features=features if with_features else None)
+    path = tmp_path / "data.parquet"
+    assert iterable_dataset.to_parquet(path, batch_size=3) > 0
+
+    assert _row_group_sizes(path) == [3, 3, 1]
+    reloaded = Dataset.from_parquet(str(path))
+    assert reloaded.to_dict() == dataset.to_dict()
+    if with_features:
+        assert reloaded.features == features
+
+
+def test_iterable_dataset_to_parquet_default_row_groups(tmp_path, monkeypatch):
+    dataset = Dataset.from_dict({"data": [b"x" * 100] * 7})
+    path = tmp_path / "data.parquet"
+
+    # row groups of MAX_ROW_GROUP_SIZE bytes, cut at Arrow batches
+    monkeypatch.setattr(config, "ARROW_RECORD_BATCH_SIZE_FOR_BINARY_DATASETS", 2)
+    monkeypatch.setattr(config, "MAX_ROW_GROUP_SIZE", dataset.data.nbytes // 2)
+    dataset.to_iterable_dataset(num_shards=3).to_parquet(path)
+    assert _row_group_sizes(path) == [4, 3]
+
+    monkeypatch.setattr(config, "PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS", 3)
+    dataset.to_iterable_dataset(num_shards=3).to_parquet(path)
+    assert _row_group_sizes(path) == [3, 3, 1]
+    assert pq.read_table(path).to_pydict() == dataset.to_dict()
