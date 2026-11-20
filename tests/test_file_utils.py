@@ -731,6 +731,18 @@ def test_xrelpath(input_path, start_path, expected_path):
 
 
 class TestxPath:
+    @pytest.mark.parametrize("args", [(), ("file.txt",), ("dir", "file.txt"), (Path("file.txt"),)])
+    @pytest.mark.parametrize("download_config", [None, DownloadConfig(token="token")])
+    def test_xpath_init(self, args, download_config):
+        path = xPath(*args, download_config=download_config)
+
+        assert str(path) == str(Path(*args))
+        assert path.download_config is download_config
+
+    def test_xpath_init_invalid_path(self):
+        with pytest.raises(TypeError):
+            xPath(None)
+
     @pytest.mark.parametrize(
         "input_path",
         [
@@ -807,6 +819,17 @@ class TestxPath:
                 (tmp_path / file).touch()
         output_paths = sorted([str(path) for path in xPath(input_path).glob(pattern)])
         assert output_paths == expected_paths
+
+    @pytest.mark.parametrize("method", ["glob", "rglob"])
+    def test_xpath_glob_preserves_download_config(self, method, mock_fsspec2):
+        download_config = DownloadConfig(token="token")
+        path = xPath("mock://top_level", download_config=download_config)
+
+        output_paths = list(getattr(path, method)("*"))
+
+        assert output_paths
+        assert all(isinstance(output_path, xPath) for output_path in output_paths)
+        assert all(output_path.download_config is download_config for output_path in output_paths)
 
     @pytest.mark.parametrize(
         "input_path, pattern, expected_paths",
