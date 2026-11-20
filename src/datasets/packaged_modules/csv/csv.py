@@ -1,3 +1,4 @@
+import inspect
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, Union
 
@@ -139,6 +140,10 @@ class CsvConfig(datasets.BuilderConfig):
                 if pd_read_csv_kwargs[pd_read_csv_parameter] == getattr(CsvConfig(), pd_read_csv_parameter):
                     del pd_read_csv_kwargs[pd_read_csv_parameter]
 
+        # pandas 2 removed `prefix`. Apply it ourselves when reading headerless files.
+        if "prefix" in pd_read_csv_kwargs and "prefix" not in inspect.signature(pd.read_csv).parameters:
+            del pd_read_csv_kwargs["prefix"]
+
         return pd_read_csv_kwargs
 
 
@@ -193,9 +198,19 @@ class Csv(datasets.ArrowBasedBuilder):
         )
         for shard_idx, files_iterable in enumerate(files_iterables):
             for file in files_iterable:
-                csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.pd_read_csv_kwargs)
+                read_csv_kwargs = self.config.pd_read_csv_kwargs
+                csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **read_csv_kwargs)
+                # pandas <2 applied `prefix` when there is no header (c0, c1, ...).
+                apply_prefix = (
+                    self.config.prefix
+                    and "prefix" not in read_csv_kwargs
+                    and self.config.header is None
+                    and self.config.names is None
+                )
                 try:
                     for batch_idx, df in enumerate(csv_file_reader):
+                        if apply_prefix:
+                            df.columns = [f"{self.config.prefix}{i}" for i in df.columns]
                         pa_table = pa.Table.from_pandas(df)
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")

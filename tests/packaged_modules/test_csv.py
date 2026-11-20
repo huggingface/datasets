@@ -1,6 +1,8 @@
+import inspect
 import os
 import textwrap
 
+import pandas as pd
 import pyarrow as pa
 import pytest
 from packaging import version
@@ -173,6 +175,33 @@ def test_csv_pd_read_csv_kwargs_drops_new_1_3_0_params_below_pandas_1_3(monkeypa
     kwargs = CsvConfig(encoding_errors="replace", on_bad_lines="skip").pd_read_csv_kwargs
     assert "encoding_errors" not in kwargs
     assert "on_bad_lines" not in kwargs
+
+
+def test_csv_prefix_when_pandas_dropped_the_kwarg(tmp_path):
+    # pandas 2 removed DataFrame.read_csv(prefix=...). Headerless files should
+    # still get prefixed column names instead of TypeError.
+    if "prefix" in inspect.signature(pd.read_csv).parameters:
+        pytest.skip("installed pandas still accepts prefix")
+    path = tmp_path / "headerless.csv"
+    path.write_text("1,2\n3,4\n")
+    csv = Csv(header=None, prefix="c")
+    generator = csv._generate_tables(base_files=[str(path)], files_iterables=[[str(path)]])
+    table = pa.concat_tables([batch for _, batch in generator])
+    assert table.column_names == ["c0", "c1"]
+    assert table.to_pydict() == {"c0": [1, 3], "c1": [2, 4]}
+
+
+@pytest.mark.skipif("prefix" in inspect.signature(pd.read_csv).parameters, reason="requires pandas without prefix")
+@pytest.mark.parametrize(
+    ("usecols", "expected"),
+    [([1], {"c1": [20, 50]}), ([0, 2], {"c0": [10, 40], "c2": [30, 60]})],
+)
+def test_csv_prefix_preserves_selected_column_positions(tmp_path, usecols, expected):
+    path = tmp_path / "headerless.csv"
+    path.write_text("10,20,30\n40,50,60\n", encoding="utf-8")
+    csv = Csv(header=None, prefix="c", usecols=usecols, chunksize=1)
+    tables = csv._generate_tables(base_files=[str(path)], files_iterables=[[str(path)]])
+    assert pa.concat_tables([batch for _, batch in tables]).to_pydict() == expected
 
 
 @pytest.mark.skipif(
