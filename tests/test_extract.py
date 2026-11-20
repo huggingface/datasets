@@ -302,6 +302,53 @@ def test_tar_extract_hardlinks_to_special_members_are_skipped(
         assert "unsupported file type" in record.msg
 
 
+@pytest.fixture
+def tar_file_with_duplicate_name_link_chain(tmp_path, text_file):
+    import tarfile
+
+    directory = tmp_path / "data_duplicate_link_chain"
+    directory.mkdir()
+    path = directory / "tar_file_with_duplicate_name_link_chain.tar"
+    with tarfile.TarFile(path, "w") as f:
+        # A FIFO 'a', a link 'b' -> 'a', then a *regular* file also named 'a',
+        # then a link 'c' -> 'b'. tarfile resolves each link against the
+        # members preceding that link, so 'c' resolves (via 'b') to the FIFO
+        # 'a', not to the later regular 'a' — 'c' must be blocked too.
+        fifo = tarfile.TarInfo("a")
+        fifo.type = tarfile.FIFOTYPE
+        f.addfile(fifo)
+        link_b = tarfile.TarInfo("b")
+        link_b.type = tarfile.LNKTYPE
+        link_b.linkname = "a"
+        f.addfile(link_b)
+        f.add(text_file, arcname="a")
+        link_c = tarfile.TarInfo("c")
+        link_c.type = tarfile.LNKTYPE
+        link_c.linkname = "b"
+        f.addfile(link_c)
+        f.add(text_file, arcname=text_file.name)
+    return path
+
+
+def test_tar_extract_duplicate_name_link_chain_is_blocked(
+    tar_file_with_duplicate_name_link_chain, tmp_path, text_file, caplog
+):
+    # Regression test for https://github.com/huggingface/datasets/issues/9101:
+    # a later regular file sharing the FIFO's name must not whitewash the
+    # link chain that tarfile resolves to the earlier FIFO member.
+    output_path = tmp_path / "extracted"
+    TarExtractor.extract(tar_file_with_duplicate_name_link_chain, output_path)
+    assert not (output_path / "b").exists()
+    assert not (output_path / "c").exists()
+    extracted_file = output_path / "a"
+    assert extracted_file.read_text(encoding="utf-8") == text_file.read_text(encoding="utf-8")
+    assert (output_path / text_file.name).read_text(encoding="utf-8") == text_file.read_text(encoding="utf-8")
+    assert caplog.text
+    for record in caplog.records:
+        assert record.levelname == "ERROR"
+        assert "unsupported file type" in record.msg
+
+
 def test_is_zipfile_false_positive(tmpdir):
     # We should have less false positives than zipfile.is_zipfile
     # We do that by checking only the magic number
