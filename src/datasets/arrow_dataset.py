@@ -4534,7 +4534,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 counter_from_start = itertools.count(start=start)
                 if all(i == j for i, j in zip(indices, counter_from_start)):
                     length = next(counter_from_start) - start
-                    return self._select_contiguous(start, length, new_fingerprint=new_fingerprint)
+                    # NumPy integer scalars (uint64, int32, ...) make fast_slice's
+                    # interpolation search index with a non-Python int and crash.
+                    return self._select_contiguous(int(start), int(length), new_fingerprint=new_fingerprint)
 
         # If not contiguous, we need to create a new indices mapping
         return self._select_with_indices_mapping(
