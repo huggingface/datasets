@@ -1,5 +1,6 @@
 import json
 import os
+from collections.abc import Iterator
 from typing import BinaryIO, Optional, Union
 
 import fsspec
@@ -7,8 +8,9 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from packaging import version
 
-from .. import Dataset, Features, NamedSplit, config
+from .. import Dataset, Features, IterableDataset, NamedSplit, config
 from ..arrow_writer import (
+    get_arrow_writer_batch_size_from_features,
     get_parquet_column_options,
     get_writer_batch_size_from_data_size,
     get_writer_batch_size_from_features,
@@ -17,6 +19,7 @@ from ..formatting import query_table
 from ..packaged_modules import _PACKAGED_DATASETS_MODULES
 from ..packaged_modules.parquet.parquet import Parquet
 from ..utils import tqdm as hf_tqdm
+from ..utils.py_utils import convert_file_size_to_int
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
@@ -215,7 +218,7 @@ class ParquetDatasetReader(AbstractDatasetReader):
 class ParquetDatasetWriter:
     def __init__(
         self,
-        dataset: Dataset,
+        dataset: Union[Dataset, IterableDataset],
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
         storage_options: Optional[dict] = None,
@@ -228,7 +231,12 @@ class ParquetDatasetWriter:
         self.batch_size = (
             batch_size
             or get_writer_batch_size_from_features(dataset.features)
-            or get_writer_batch_size_from_data_size(len(dataset), dataset._estimate_nbytes())
+            or (
+                get_writer_batch_size_from_data_size(len(dataset), dataset._estimate_nbytes())
+                if isinstance(dataset, Dataset)
+                # the size of an IterableDataset is unknown: row groups are cut by bytes while writing
+                else None
+            )
         )
         self.storage_options = storage_options or {}
         self.parquet_writer_kwargs = parquet_writer_kwargs
@@ -253,7 +261,29 @@ class ParquetDatasetWriter:
             )
         return written
 
-    def _write(self, file_obj: BinaryIO, batch_size: int, **parquet_writer_kwargs) -> int:
+    def _iter_row_groups(self, batch_size: Optional[int]) -> Iterator[pa.Table]:
+        """Yield the Arrow table of each row group of an IterableDataset.
+
+        A row group has `batch_size` rows, or about `config.MAX_ROW_GROUP_SIZE` bytes if `batch_size` is None.
+        """
+        if batch_size is not None:
+            yield from self.dataset.with_format("arrow").iter(batch_size=batch_size)
+            return
+        max_row_group_nbytes = convert_file_size_to_int(config.MAX_ROW_GROUP_SIZE)
+        arrow_batch_size = (
+            get_arrow_writer_batch_size_from_features(self.dataset.features) or config.DEFAULT_MAX_BATCH_SIZE
+        )
+        tables, nbytes = [], 0
+        for table in self.dataset.with_format("arrow").iter(batch_size=arrow_batch_size):
+            tables.append(table)
+            nbytes += table.nbytes
+            if nbytes >= max_row_group_nbytes:
+                yield pa.concat_tables(tables)
+                tables, nbytes = [], 0
+        if tables:
+            yield pa.concat_tables(tables)
+
+    def _write(self, file_obj: BinaryIO, batch_size: Optional[int], **parquet_writer_kwargs) -> int:
         """Writes the pyarrow table as Parquet to a binary file handle.
 
         Caller is responsible for opening and closing the handle.
@@ -271,18 +301,23 @@ class ParquetDatasetWriter:
             **parquet_writer_kwargs,
         )
 
-        for offset in hf_tqdm(
-            range(0, len(self.dataset), batch_size),
-            unit="ba",
-            desc="Creating parquet from Arrow format",
-        ):
-            batch = query_table(
-                table=self.dataset._data,
-                key=slice(offset, offset + batch_size),
-                indices=self.dataset._indices,
-            )
-            writer.write_table(batch)
-            written += batch.nbytes
+        if isinstance(self.dataset, Dataset):
+            for offset in hf_tqdm(
+                range(0, len(self.dataset), batch_size),
+                unit="ba",
+                desc="Creating parquet from Arrow format",
+            ):
+                batch = query_table(
+                    table=self.dataset._data,
+                    key=slice(offset, offset + batch_size),
+                    indices=self.dataset._indices,
+                )
+                writer.write_table(batch)
+                written += batch.nbytes
+        else:
+            for batch in hf_tqdm(self._iter_row_groups(batch_size), unit="ba", desc="Creating parquet"):
+                writer.write_table(batch)
+                written += batch.nbytes
 
         # TODO(kszucs): we may want to persist multiple parameters
         if self.use_content_defined_chunking is not False:
