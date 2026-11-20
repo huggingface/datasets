@@ -264,6 +264,31 @@ def test_resolve_pattern_locally_with_extensions(complex_data_dir, pattern, size
             resolve_pattern(pattern, complex_data_dir, allowed_extensions=extensions)
 
 
+@pytest.mark.parametrize(
+    "extension,expected",
+    [
+        (".csv", {"current.csv", "compressed.csv.gz"}),
+        (".parquet", {"current.parquet", "compressed.parquet.xz"}),
+        (".zip", {"archive.zip"}),
+    ],
+)
+def test_resolve_pattern_with_backup_and_compressed_files(tmp_path, extension, expected):
+    for filename in (
+        "current.csv",
+        "compressed.csv.gz",
+        "previous.csv.bak",
+        "current.parquet",
+        "compressed.parquet.xz",
+        "partial.parquet.tmp",
+        "archive.zip",
+        "archive.zip.bak",
+    ):
+        (tmp_path / filename).touch()
+
+    paths = resolve_pattern("*", str(tmp_path), allowed_extensions=[extension])
+    assert {Path(path).name for path in paths} == expected
+
+
 def test_fail_resolve_pattern_locally(complex_data_dir):
     with pytest.raises(FileNotFoundError):
         resolve_pattern(complex_data_dir, ["blablabla"])
