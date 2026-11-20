@@ -1,3 +1,4 @@
+import io
 import json
 import unittest.mock
 
@@ -205,6 +206,45 @@ def test_parquet_write(dataset, tmp_path):
     pf = pq.ParquetFile(tmp_path / "foo.parquet")
     output_table = pf.read()
     assert dataset.data.table == output_table
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("batch_size", [2, 3])
+@pytest.mark.parametrize("as_buffer", [False, True])
+def test_dataset_to_parquet_batch_size(streaming, batch_size, as_buffer, tmp_path):
+    dataset = Dataset.from_dict({"id": list(range(7))})
+    if streaming:
+        dataset = dataset.to_iterable_dataset(num_shards=3)
+    destination = io.BytesIO() if as_buffer else tmp_path / "data.parquet"
+
+    assert dataset.to_parquet(destination, batch_size=batch_size, write_statistics=False) > 0
+
+    parquet_file = pq.ParquetFile(destination)
+    assert parquet_file.read().to_pydict() == {"id": list(range(7))}
+    expected_row_group_sizes = [batch_size] * (7 // batch_size) + [7 % batch_size]
+    assert [
+        parquet_file.metadata.row_group(i).num_rows for i in range(parquet_file.metadata.num_row_groups)
+    ] == expected_row_group_sizes
+    assert not parquet_file.metadata.row_group(0).column(0).is_stats_set
+
+
+@pytest.mark.parametrize("batch_size", [None, 2, 4])
+def test_iterable_dataset_to_parquet_binary_row_group_size(batch_size, tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "ARROW_RECORD_BATCH_SIZE_FOR_BINARY_DATASETS", 2)
+    monkeypatch.setattr(config, "PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS", 3)
+    dataset = Dataset.from_dict({"data": [b"data"] * 7})
+    destination = tmp_path / "data.parquet"
+
+    kwargs = {} if batch_size is None else {"batch_size": batch_size}
+    dataset.to_iterable_dataset(num_shards=3).to_parquet(destination, **kwargs)
+
+    parquet_file = pq.ParquetFile(destination)
+    assert parquet_file.read().to_pydict() == dataset.to_dict()
+    row_group_size = batch_size or 3
+    expected_row_group_sizes = [row_group_size] * (7 // row_group_size) + [7 % row_group_size]
+    assert [
+        parquet_file.metadata.row_group(i).num_rows for i in range(parquet_file.metadata.num_row_groups)
+    ] == expected_row_group_sizes
 
 
 def test_parquet_write_uses_content_defined_chunking(dataset, tmp_path):
