@@ -1,3 +1,4 @@
+import datetime
 import io
 import json
 import os
@@ -358,6 +359,51 @@ class TestJsonDatasetWriter:
             rows = load_json_lines(buffer)
         assert [row["a"] for row in rows] == [big, None, 5]
         assert all(isinstance(row["a"], int) for row in rows if row["a"] is not None)
+
+    def test_dataset_to_json_temporal_columns_are_written_as_strings(self, tmp_path):
+        features = Features(
+            {
+                "timestamp": Value("timestamp[us]"),
+                "date": Value("date32"),
+                "timestamps": List(Value("timestamp[ns]")),
+                "nested": {"day": Value("date32")},
+            }
+        )
+        dataset = Dataset.from_dict(
+            {
+                "timestamp": [datetime.datetime(2020, 1, 1, 12, 30, 15, 123456), None],
+                "date": [datetime.date(2020, 1, 1), datetime.date(2021, 5, 4)],
+                "timestamps": [[datetime.datetime(2020, 1, 1, 0, 0, 0, 999999)], []],
+                "nested": [{"day": datetime.date(2022, 2, 2)}, {"day": datetime.date(2023, 3, 3)}],
+            },
+            features=features,
+        )
+        with io.BytesIO() as buffer:
+            JsonDatasetWriter(dataset, buffer, lines=True).write()
+            buffer.seek(0)
+            rows = load_json_lines(buffer)
+        assert rows[0]["timestamp"] == "2020-01-01 12:30:15.123456"
+        assert rows[0]["date"] == "2020-01-01"
+        assert rows[0]["timestamps"] == ["2020-01-01 00:00:00.999999000"]
+        assert rows[0]["nested"] == {"day": "2022-02-02"}
+        assert rows[1]["timestamp"] is None
+
+        path = tmp_path / "temporal.jsonl"
+        dataset.to_json(path)
+        reloaded = JsonDatasetReader(str(path), features=features, cache_dir=tmp_path / "cache").read()
+        assert reloaded.features == features
+        assert list(reloaded) == list(dataset)
+
+    def test_dataset_to_json_temporal_columns_with_explicit_date_format(self):
+        dataset = Dataset.from_dict(
+            {"timestamp": [datetime.datetime(2020, 1, 1, 12, 30, 15, 123456)]},
+            features=Features({"timestamp": Value("timestamp[us]")}),
+        )
+        with io.BytesIO() as buffer:
+            JsonDatasetWriter(dataset, buffer, lines=True, date_format="epoch").write()
+            buffer.seek(0)
+            rows = load_json_lines(buffer)
+        assert rows == [{"timestamp": 1577881815123}]
 
     @pytest.mark.parametrize("num_proc", [None, 2])
     @pytest.mark.parametrize(

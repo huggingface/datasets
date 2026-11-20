@@ -15,6 +15,46 @@ from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
 
+def _temporal_to_string_type(dtype: pa.DataType) -> pa.DataType:
+    if pa.types.is_timestamp(dtype) or pa.types.is_date(dtype):
+        return pa.string()
+    if pa.types.is_struct(dtype):
+        return pa.struct(
+            [
+                pa.field(
+                    field.name, _temporal_to_string_type(field.type), nullable=field.nullable, metadata=field.metadata
+                )
+                for field in dtype
+            ]
+        )
+    if pa.types.is_list(dtype) or pa.types.is_large_list(dtype) or pa.types.is_fixed_size_list(dtype):
+        value_field = pa.field(
+            dtype.value_field.name,
+            _temporal_to_string_type(dtype.value_type),
+            nullable=dtype.value_field.nullable,
+            metadata=dtype.value_field.metadata,
+        )
+        if pa.types.is_fixed_size_list(dtype):
+            return pa.list_(value_field, dtype.list_size)
+        return pa.large_list(value_field) if pa.types.is_large_list(dtype) else pa.list_(value_field)
+    return dtype
+
+
+def _cast_temporal_columns_to_string(batch: pa.Table) -> pa.Table:
+    if not isinstance(batch, pa.Table):
+        return batch
+    schema = pa.schema(
+        [
+            pa.field(
+                field.name, _temporal_to_string_type(field.type), nullable=field.nullable, metadata=field.metadata
+            )
+            for field in batch.schema
+        ],
+        metadata=batch.schema.metadata,
+    )
+    return batch.cast(schema) if schema != batch.schema else batch
+
+
 class JsonDatasetReader(AbstractDatasetReader):
     def __init__(
         self,
@@ -143,6 +183,8 @@ class JsonDatasetWriter:
                 # concatenation can hit capacity/memory limits. Leave the batch chunked
                 # so to_pandas can still convert it without this optional concatenation.
                 pass
+        if "date_format" not in to_json_kwargs:
+            batch = _cast_temporal_columns_to_string(batch)
         batch = batch.to_pandas(integer_object_nulls=True)
         for json_field_path in get_json_field_paths_from_feature(self.dataset.features):
             col, *json_field_subpath = json_field_path
