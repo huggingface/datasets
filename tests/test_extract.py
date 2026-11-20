@@ -226,3 +226,19 @@ def test_is_zipfile_false_positive(tmpdir):
         f.write(data)
     # zipfile.is_zipfile(str(not_a_zip_file)) could be a false positive for `zipfile`
     assert not ZipExtractor.is_extractable(not_a_zip_file)  # but we're right
+
+
+def test_extract_does_not_write_through_an_output_path_that_is_a_symlink(tmp_path, tar_file, text_file):
+    # A symlink planted at the extraction directory must be replaced, not followed (#8296)
+    victim = tmp_path / "victim"
+    victim.mkdir()
+    output_path = tmp_path / "extracted"
+    try:
+        os.symlink(victim, output_path, target_is_directory=True)
+    except OSError:
+        pytest.skip("creating symlinks is not permitted here")
+    Extractor.extract(tar_file, output_path, "tar")
+    assert not output_path.is_symlink()
+    assert (output_path / os.path.basename(text_file)).is_file()
+    assert list(victim.iterdir()) == []
+
