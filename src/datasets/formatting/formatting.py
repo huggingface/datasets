@@ -165,6 +165,10 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
 
     def _arrow_array_to_numpy(self, pa_array: pa.Array) -> np.ndarray:
         if isinstance(pa_array, pa.ChunkedArray):
+            if len(pa_array) and (pa.types.is_integer(pa_array.type) or pa.types.is_floating(pa_array.type)):
+                # Avoid boxing each numeric value into a Python list. Keep the
+                # result writable and independent of the Arrow buffers.
+                return pa_array.to_numpy(zero_copy_only=False).copy()
             if isinstance(pa_array.type, _ArrayXDExtensionType):
                 # don't call to_pylist() to preserve dtype of the fixed-size array
                 zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
