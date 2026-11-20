@@ -117,12 +117,12 @@ class CsvDatasetWriter:
 
         Caller is responsible for opening and closing the handle.
         """
-        if len(self.dataset) == 0:
-            return file_obj.write(self._batch_csv((0, header, index, to_csv_kwargs)))
-
         written = 0
         # one encoder for the whole file: a byte order mark, if the encoding has one, is written once
         encoder = codecs.getincrementalencoder(self.encoding)(self.encoding_errors)
+        if len(self.dataset) == 0:
+            csv_str = self._batch_csv((0, header, index, to_csv_kwargs))
+            return file_obj.write(encoder.encode(csv_str, final=True)) if csv_str else 0
 
         if self.num_proc is None or self.num_proc == 1:
             for offset in hf_tqdm(
