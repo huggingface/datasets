@@ -3807,6 +3807,28 @@ def test_concatenate_datasets_new_columns():
     }
 
 
+def test_concatenate_datasets_list_of_structs_with_null_field():
+    dataset1 = Dataset.from_dict({"a": [[{"x": 1, "y": "s"}]]})
+    dataset2 = Dataset.from_dict({"a": [[{"x": 2, "y": None}]]})
+    expected_features = Features({"a": List({"x": Value("int64"), "y": Value("string")})})
+    dataset = concatenate_datasets([dataset1, dataset2])
+    assert dataset.features == expected_features
+    assert dataset["a"] == [[{"x": 1, "y": "s"}], [{"x": 2, "y": None}]]
+    dataset = concatenate_datasets([dataset2, dataset1])
+    assert dataset.features == expected_features
+    assert dataset["a"] == [[{"x": 2, "y": None}], [{"x": 1, "y": "s"}]]
+
+
+def test_map_multiprocessing_list_of_structs_with_null_field():
+    # the first shard only has None for "y", so its features have Value("null") for it
+    def add_list_of_structs(example):
+        return {"a": [{"x": example["i"], "y": None if example["i"] < 2 else "s"}]}
+
+    dataset = Dataset.from_dict({"i": list(range(4))}).map(add_list_of_structs, num_proc=2)
+    assert dataset.features == Features({"i": Value("int64"), "a": List({"x": Value("int64"), "y": Value("string")})})
+    assert dataset["a"] == [[{"x": 0, "y": None}], [{"x": 1, "y": None}], [{"x": 2, "y": "s"}], [{"x": 3, "y": "s"}]]
+
+
 @pytest.mark.parametrize("axis", [0, 1])
 def test_concatenate_datasets_complex_features(axis):
     n = 5

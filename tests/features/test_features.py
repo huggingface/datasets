@@ -943,6 +943,50 @@ NESTED_COMPARISON = [
             Features({"label": List({"type": Value("string"), "score": Value("float64")})}),
         ],
     ],
+    # A struct field that is null in one list of structs should be aligned with the other list's field
+    [
+        [
+            Features({"a": List({"x": Value("int64"), "y": Value("string")})}),
+            Features({"a": List({"x": Value("int64"), "y": Value("null")})}),
+        ],
+        [
+            Features({"a": List({"x": Value("int64"), "y": Value("string")})}),
+            Features({"a": List({"x": Value("int64"), "y": Value("string")})}),
+        ],
+    ],
+    # Same with the null field first
+    [
+        [
+            Features({"a": List({"x": Value("int64"), "y": Value("null")})}),
+            Features({"a": List({"x": Value("int64"), "y": Value("string")})}),
+        ],
+        [
+            Features({"a": List({"x": Value("int64"), "y": Value("string")})}),
+            Features({"a": List({"x": Value("int64"), "y": Value("string")})}),
+        ],
+    ],
+    # Same in a LargeList
+    [
+        [
+            Features({"a": LargeList({"y": Value("null")})}),
+            Features({"a": LargeList({"y": Value("string")})}),
+        ],
+        [
+            Features({"a": LargeList({"y": Value("string")})}),
+            Features({"a": LargeList({"y": Value("string")})}),
+        ],
+    ],
+    # Same in a list of lists
+    [
+        [
+            Features({"a": List(List({"y": Value("null")}))}),
+            Features({"a": List(List({"y": Value("string")}))}),
+        ],
+        [
+            Features({"a": List(List({"y": Value("string")}))}),
+            Features({"a": List(List({"y": Value("string")}))}),
+        ],
+    ],
 ]
 
 
@@ -951,6 +995,19 @@ def test_features_alignment(features: tuple[list[Features], list[Features]]):
     inputs, expected = features
     _check_if_features_can_be_aligned(inputs)  # Check that we can align, will raise otherwise.
     assert _align_features(inputs) == expected
+
+
+@pytest.mark.parametrize(
+    "inputs",
+    [
+        [Features({"a": List({"y": Value("int64")})}), Features({"a": List({"y": Value("string")})})],
+        [Features({"a": List(Value("int64"))}), Features({"a": LargeList(Value("int64"))})],
+        [Features({"a": List(Value("int64"), length=2)}), Features({"a": List(Value("int64"))})],
+    ],
+)
+def test_features_alignment_of_different_lists_fails(inputs: list[Features]):
+    with pytest.raises(ValueError, match="can't be aligned"):
+        _check_if_features_can_be_aligned(inputs)
 
 
 @pytest.mark.parametrize("dtype", [pa.int32, pa.string])
