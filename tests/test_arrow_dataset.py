@@ -71,20 +71,24 @@ from .utils import (
 
 @pytest.mark.parametrize("from_list", [False, True])
 @pytest.mark.parametrize(
-    "data, feature",
+    "data, feature, value_match",
     [
-        ([1.9, 2.5], Value("int64")),
-        (np.array([1.9, 2.5]), Value("int64")),
-        (np.array([1.9, 2.5], dtype="float32"), Value("int64")),
-        ([[1.9, 2.5]], List(Value("int64"))),
-        ([{"a": 1.9}, {"a": 2.5}], {"a": Value("int64")}),
+        ([1.9, 2.5], Value("int64"), r"1\.9\d*"),
+        (np.array([1.9, 2.5]), Value("int64"), r"1\.9\d*"),
+        (np.array([1.9, 2.5], dtype="float32"), Value("int64"), r"1\.9\d*"),
+        ([[1.9, 2.5]], List(Value("int64")), r"1\.9\d*"),
+        ([{"a": 1.9}, {"a": 2.5}], {"a": Value("int64")}, r"1\.9\d*"),
+        pytest.param([np.float16(2.5)], Value("int64"), r"2\.5\d*", id="float16"),
+        pytest.param(
+            [np.nextafter(np.longdouble(1), np.longdouble(2))], Value("int64"), r"1\.\d+", id="longdouble-fraction"
+        ),
     ],
 )
-def test_from_dict_float_to_int_raises(data, feature, from_list):
+def test_from_dict_float_to_int_raises(data, feature, value_match, from_list):
     features = Features({"x": feature})
     constructor = Dataset.from_list if from_list else Dataset.from_dict
     mapping = [{"x": value} for value in data] if from_list else {"x": data}
-    with pytest.raises(pa.ArrowInvalid, match="truncated converting to int64"):
+    with pytest.raises(pa.ArrowInvalid, match=rf"Float value {value_match} was truncated converting to int64"):
         constructor(mapping, features=features)
 
 
@@ -94,6 +98,16 @@ def test_from_dict_float_to_int_raises(data, feature, from_list):
         ([1.0, 2.0, None], [1, 2, None]),
         (np.array([1.0, 2.0]), [1, 2]),
         ([1, "2", True, None], [1, 2, 1, None]),
+        pytest.param([np.longdouble(2.0)], [2], id="longdouble"),
+        pytest.param(
+            [np.longdouble("9007199254740993"), np.longdouble("9223372036854775807")],
+            [2**53 + 1, 2**63 - 1],
+            marks=pytest.mark.skipif(
+                np.finfo(np.longdouble).nmant <= np.finfo(np.float64).nmant, reason="requires extended precision"
+            ),
+            id="longdouble-precision",
+        ),
+        pytest.param([float(2**63 - 1024), np.float64(2**63 - 1024)], [2**63 - 1024] * 2, id="float64-large"),
     ],
 )
 def test_from_dict_safe_int_conversion(data, expected):
