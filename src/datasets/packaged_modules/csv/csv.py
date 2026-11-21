@@ -180,6 +180,21 @@ class Csv(datasets.ArrowBasedBuilder):
     def _generate_shards(self, base_files, files_iterables):
         yield from base_files
 
+    def _first_chunk_string_dtypes(self, file):
+        # pandas infers the dtypes of each chunk separately, so a string column of the first chunk like "A12", "007"
+        # could be parsed as numbers in a later chunk, losing "007" -> 7 before the cast to the first chunk's schema
+        with pd.read_csv(file, iterator=True, **self.config.pd_read_csv_kwargs) as csv_file_reader:
+            first_chunk = next(csv_file_reader, None)
+        if first_chunk is None:
+            return None
+        converters = self.config.converters or {}
+        string_dtypes = {
+            name: col_dtype
+            for name, col_dtype in first_chunk.dtypes.items()
+            if pd.api.types.is_string_dtype(col_dtype) and name not in converters
+        }
+        return string_dtypes or None
+
     def _generate_tables(self, base_files, files_iterables):
         schema = self.config.features.arrow_schema if self.config.features else None
         # dtype allows reading an int column as str
@@ -193,8 +208,11 @@ class Csv(datasets.ArrowBasedBuilder):
         )
         for shard_idx, files_iterable in enumerate(files_iterables):
             for file in files_iterable:
-                csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.pd_read_csv_kwargs)
                 try:
+                    file_dtype = dtype if dtype is not None else self._first_chunk_string_dtypes(file)
+                    csv_file_reader = pd.read_csv(
+                        file, iterator=True, dtype=file_dtype, **self.config.pd_read_csv_kwargs
+                    )
                     for batch_idx, df in enumerate(csv_file_reader):
                         pa_table = pa.Table.from_pandas(df)
                         # Uncomment for debugging (will print the Arrow table size and elements)

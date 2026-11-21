@@ -190,3 +190,14 @@ def test_csv_generate_tables_skips_malformed_row_with_on_bad_lines_skip(csv_file
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.num_rows == 1
     assert pa_table.to_pydict() == {"header1": [1], "header2": [2]}
+
+
+def test_csv_generate_tables_keeps_string_column_across_chunks(tmp_path):
+    # pandas infers dtypes per chunk, so a string column could be parsed as numbers in a later chunk
+    # and lose its leading zeros before being cast to the string type of the first chunk
+    filename = tmp_path / "codes.csv"
+    filename.write_text("code\nA12\n007\n007\n1.50\n")
+    csv = Csv(chunksize=2)
+    generator = csv._generate_tables(base_files=[str(filename)], files_iterables=[[str(filename)]])
+    pa_tables = [table for _, table in generator]
+    assert [pa_table.to_pydict()["code"] for pa_table in pa_tables] == [["A12", "007"], ["007", "1.50"]]
