@@ -31,9 +31,9 @@ def inject_arrow_table_documentation(arrow_table_method):
 
 
 def _in_memory_arrow_table_from_file(filename: str) -> pa.Table:
-    in_memory_stream = pa.input_stream(filename)
-    opened_stream = pa.ipc.open_stream(in_memory_stream)
-    pa_table = opened_stream.read_all()
+    with pa.input_stream(filename) as in_memory_stream:
+        opened_stream = pa.ipc.open_stream(in_memory_stream)
+        pa_table = opened_stream.read_all()
     return pa_table
 
 
