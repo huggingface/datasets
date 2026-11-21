@@ -9,6 +9,13 @@ from datasets.download import DownloadManager
 vx = pytest.importorskip("vortex")
 
 
+def test_config_raises_when_invalid_on_bad_files() -> None:
+    from datasets.packaged_modules.vortex.vortex import VortexConfig
+
+    with pytest.raises(ValueError, match="`on_bad_files` must be one of"):
+        _ = VortexConfig(name="name", on_bad_files="eror")
+
+
 def _write_vortex_file(table: pa.Table, path) -> str:
     vx.io.write(vx.array(table), str(path))
     return str(path)
