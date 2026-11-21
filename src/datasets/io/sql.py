@@ -96,6 +96,11 @@ class SqlDatasetWriter:
 
         Caller is responsible for opening and closing the SQL connection.
         """
+        if not len(self.dataset):
+            if not self.dataset.column_names and not index:
+                raise ValueError("A SQL export requires at least one column or index=True.")
+            return self._batch_sql((0, index, to_sql_kwargs))
+
         written = 0
 
         if self.num_proc is None or self.num_proc == 1:
