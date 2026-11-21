@@ -12,6 +12,7 @@ import numpy as np
 import xxhash
 
 from . import config
+from .hashing import get_ignore_kwargs
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH
 from .utils._dill import dumps
 from .utils.logging import get_logger
@@ -358,6 +359,13 @@ def format_kwargs_for_fingerprint(
         kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k in use_kwargs}
     if ignore_kwargs:
         kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k not in ignore_kwargs}
+    # leave out the `fn_kwargs` of the processing function that were registered with `datasets.hashing.register`
+    fn_ignore_kwargs = get_ignore_kwargs(kwargs_for_fingerprint.get("function"))
+    if fn_ignore_kwargs and "fn_kwargs" in kwargs_for_fingerprint:
+        fn_kwargs = kwargs_for_fingerprint["fn_kwargs"] or {}
+        fn_kwargs = {k: v for k, v in fn_kwargs.items() if k not in fn_ignore_kwargs}
+        # only ignored kwargs hashes like the default `fn_kwargs=None`, i.e. like passing no fn_kwargs at all
+        kwargs_for_fingerprint["fn_kwargs"] = fn_kwargs or None
     if randomized_function:  # randomized functions have `seed` and `generator` parameters
         if kwargs_for_fingerprint.get("seed") is None and kwargs_for_fingerprint.get("generator") is None:
             _, seed, pos, *_ = np.random.get_state()

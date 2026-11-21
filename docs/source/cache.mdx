@@ -99,6 +99,20 @@ When you disable caching, 🤗 Datasets will no longer reload cached files when 
 > [!TIP]
 > If you want to reuse a dataset from scratch, try setting the `download_mode` parameter in [`load_dataset`] instead.
 
+## Ignore function arguments in the cache
+
+The cache of [`Dataset.map`] and [`Dataset.filter`] depends on the function and on its `fn_kwargs`, so changing any of them computes the dataset again. If an argument doesn't change the output of the function, like a logging flag, register it with [`hashing.register`] to leave it out:
+
+```py
+>>> import datasets
+>>> @datasets.hashing.register(ignore_kwargs=["verbose"])
+... def add_prefix(example, prefix="My sentence: ", verbose=False):
+...     if verbose:
+...         print(example["sentence1"])
+...     return {"sentence1": prefix + example["sentence1"]}
+>>> updated_dataset = small_dataset.map(add_prefix, fn_kwargs={"verbose": True})  # reloads the cache of verbose=False
+```
+
 <a id='load_dataset_enhancing_performance'></a>
 
 ## Improve performance
