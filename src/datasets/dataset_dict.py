@@ -1458,7 +1458,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
 
     @staticmethod
     def from_csv(
-        path_or_paths: dict[str, PathLike],
+        path_or_paths: dict[str, Union[PathLike, Sequence[PathLike]]],
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
@@ -1500,8 +1500,9 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ).read()
 
     @staticmethod
+    @staticmethod
     def from_json(
-        path_or_paths: dict[str, PathLike],
+        path_or_paths: dict[str, Union[PathLike, Sequence[PathLike]]],
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
@@ -1543,8 +1544,25 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ).read()
 
     @staticmethod
+    def from_jsonl(
+        path_or_paths: dict[str, Union[PathLike, Sequence[PathLike]]],
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        **kwargs,
+    ) -> "DatasetDict":
+        """Alias of `DatasetDict.from_json`."""
+        return DatasetDict.from_json(
+            path_or_paths,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            **kwargs,
+        )
+
+    @staticmethod
     def from_parquet(
-        path_or_paths: dict[str, PathLike],
+        path_or_paths: dict[str, Union[PathLike, Sequence[PathLike]]],
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
@@ -1593,7 +1611,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
 
     @staticmethod
     def from_text(
-        path_or_paths: dict[str, PathLike],
+        path_or_paths: dict[str, Union[PathLike, Sequence[PathLike]]],
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,

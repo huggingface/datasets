@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from functools import partial
 from itertools import cycle, islice
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Optional, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Optional, Sequence, Union
 
 import fsspec.asyn
 import multiprocess as mp
@@ -3419,7 +3419,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_csv(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3461,8 +3461,9 @@ class IterableDataset(DatasetInfoMixin):
         ).read()
 
     @staticmethod
+    @staticmethod
     def from_json(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3508,8 +3509,27 @@ class IterableDataset(DatasetInfoMixin):
         ).read()
 
     @staticmethod
+    def from_jsonl(
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        keep_in_memory: bool = False,
+        field: Optional[str] = None,
+        **kwargs,
+    ) -> "IterableDataset":
+        """Alias of `IterableDataset.from_json`."""
+        return IterableDataset.from_json(
+            path_or_paths,
+            split=split,
+            features=features,
+            keep_in_memory=keep_in_memory,
+            field=field,
+            **kwargs,
+        )
+
+    @staticmethod
     def from_parquet(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3594,7 +3614,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_text(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
