@@ -943,6 +943,27 @@ NESTED_COMPARISON = [
             Features({"label": List({"type": Value("string"), "score": Value("float64")})}),
         ],
     ],
+    # A struct field that is null in one list shard takes the other shard's type.
+    [
+        [
+            Features({"a": List({"x": Value("int64"), "y": Value("string")})}),
+            Features({"a": List({"x": Value("int64"), "y": Value("null")})}),
+        ],
+        [
+            Features({"a": List({"x": Value("int64"), "y": Value("string")})}),
+            Features({"a": List({"x": Value("int64"), "y": Value("string")})}),
+        ],
+    ],
+    [
+        [
+            Features({"a": LargeList({"x": Value("int64"), "y": Value("null")})}),
+            Features({"a": LargeList({"x": Value("int64"), "y": Value("string")})}),
+        ],
+        [
+            Features({"a": LargeList({"x": Value("int64"), "y": Value("string")})}),
+            Features({"a": LargeList({"x": Value("int64"), "y": Value("string")})}),
+        ],
+    ],
 ]
 
 
