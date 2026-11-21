@@ -308,6 +308,21 @@ def test_arrow_writer_closes_stream(raise_exception, tmp_path):
         assert writer.stream.closed
 
 
+def test_arrow_writer_context_manager_writes_staged_examples(tmp_path):
+    # Leaving a `with ArrowWriter(...)` block must produce a complete file, including the examples
+    # still staged in the buffer below `writer_batch_size`. `__exit__` only called `close()`, which
+    # closes the stream without flushing the buffer, so the file stayed at 0 bytes and unreadable.
+    path = str(tmp_path / "dataset-train.arrow")
+    with ArrowWriter(path=path) as writer:
+        for i in range(3):
+            writer.write({"a": i})
+    assert writer.stream.closed
+    assert os.path.getsize(path) > 0
+    table = pa.ipc.open_stream(path).read_all()
+    assert table.num_rows == 3
+    assert table.column("a").to_pylist() == [0, 1, 2]
+
+
 def test_arrow_writer_with_filesystem(mockfs):
     path = "mock://dataset-train.arrow"
     with ArrowWriter(path=path, storage_options=mockfs.storage_options) as writer:
