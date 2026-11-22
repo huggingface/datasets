@@ -1120,6 +1120,9 @@ class DatasetBuilder:
                 f"Loading a streaming dataset cached in a {type(self._fs).__name__} is not supported yet."
             )
 
+        if isinstance(split, list):
+            return [self.as_streaming_dataset(split=single_split, base_path=base_path) for single_split in split]
+
         dl_manager = StreamingDownloadManager(
             base_path=base_path or self.base_path,
             download_config=DownloadConfig(token=self.token, storage_options=self.storage_options),
