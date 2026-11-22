@@ -251,12 +251,11 @@ class Json(datasets.ArrowBasedBuilder):
                                 else:
                                     # convert to JSON Lines
                                     full_data = batch + f.read()
-                                    if b"{" in batch[:100].split(b'"', 1)[0]:  # list of objects
-                                        batch = "\n".join(ujson_dumps(x) for x in ujson_loads(full_data)).encode()
+                                    dataset = ujson_loads(full_data)
+                                    if dataset and isinstance(dataset[0], dict):  # list of objects
+                                        batch = "\n".join(ujson_dumps(x) for x in dataset).encode()
                                     else:  # list of strings
-                                        batch = "\n".join(
-                                            ujson_dumps({"text": x}) for x in ujson_loads(full_data)
-                                        ).encode()
+                                        batch = "\n".join(ujson_dumps({"text": x}) for x in dataset).encode()
                             # Finish current line
                             try:
                                 batch += f.readline()
