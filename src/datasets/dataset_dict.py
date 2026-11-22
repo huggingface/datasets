@@ -977,7 +977,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
 
         dataset_dict = {}
         for split, dataset in self.items():
-            if with_split:
+            if with_split and function is not None:
                 function = bind(function, split)
 
             dataset_dict[split] = dataset.map(
@@ -1002,7 +1002,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 on_mixed_types=on_mixed_types,
             )
 
-            if with_split:
+            if with_split and function is not None:
                 function = function.func
 
         return DatasetDict(dataset_dict)

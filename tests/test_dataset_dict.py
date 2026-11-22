@@ -354,6 +354,19 @@ class DatasetDictTest(TestCase):
                     for label in labels:
                         self.assertIsInstance(label, float)
 
+    def test_map_without_function_with_split(self):
+        dsets = DatasetDict(
+            {
+                "train": Dataset.from_dict({"value": [1]}),
+                "test": Dataset.from_dict({"value": [2]}),
+            }
+        )
+
+        mapped_dsets = dsets.map(with_split=True)
+
+        self.assertEqual(mapped_dsets["train"]["value"], [1])
+        self.assertEqual(mapped_dsets["test"]["value"], [2])
+
     def test_iterable_map(self):
         dsets = self._create_dummy_iterable_dataset_dict()
         fn_kwargs = {"n": 3}
