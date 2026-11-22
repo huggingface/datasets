@@ -45,3 +45,23 @@ class DatasetListTest(TestCase):
         dset = Dataset.from_list([])
         self.assertEqual(len(dset), 0)
         self.assertListEqual(dset.column_names, [])
+
+    def test_create_empty_dict_records(self):
+        dset = Dataset.from_list([{}, {}])
+        self.assertEqual(len(dset), 2)
+        self.assertListEqual(dset.to_list(), [{}, {}])
+
+    def test_create_single_empty_dict_record(self):
+        dset = Dataset.from_list([{}])
+        self.assertEqual(len(dset), 1)
+        self.assertListEqual(dset.to_list(), [{}])
+
+    def test_create_single_nonempty_dict_record(self):
+        dset = Dataset.from_list([{"a": 1}])
+        self.assertEqual(len(dset), 1)
+        self.assertListEqual(dset.to_list(), [{"a": 1}])
+
+    def test_remove_all_columns_preserves_rows(self):
+        dset = Dataset.from_list([{"a": 1}, {"a": 2}]).remove_columns("a")
+        self.assertEqual(len(dset), 2)
+        self.assertListEqual(dset.to_list(), [{}, {}])
