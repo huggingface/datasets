@@ -2,7 +2,8 @@ import inspect
 
 import pytest
 
-from datasets.splits import Split, SplitDict, SplitInfo
+from datasets.naming import filename_prefix_for_split
+from datasets.splits import NamedSplit, Split, SplitDict, SplitInfo
 from datasets.utils.py_utils import asdict
 
 
@@ -41,3 +42,19 @@ def test_split_dict_asdict_has_dataset_name(split_info):
 def test_named_split_inequality():
     # Used while building the docs, when set as a default parameter value in a function signature
     assert Split.TRAIN != inspect.Parameter.empty
+
+
+@pytest.mark.parametrize("split_name", ["train\n", "train.sub\n"])
+def test_split_name_with_a_trailing_newline_is_rejected(split_name):
+    # "$" also matches right before a newline at the end of the string, so the anchors in
+    # _split_re are not enough on their own: the name has to match the pattern entirely.
+    with pytest.raises(ValueError):
+        NamedSplit(split_name)
+    with pytest.raises(ValueError):
+        filename_prefix_for_split("my_dataset", split_name)
+
+
+@pytest.mark.parametrize("split_name", ["train", "train_1", "train.sub"])
+def test_valid_split_name_is_still_accepted(split_name):
+    assert str(NamedSplit(split_name)) == split_name
+    assert filename_prefix_for_split("my_dataset", split_name) == f"my_dataset-{split_name}"
