@@ -218,6 +218,7 @@ class Image:
         The Arrow types that can be converted to the Image pyarrow storage type are:
 
         - `pa.string()` - it must contain the "path" data
+        - `pa.string_view()` - it must contain the "path" data (will be cast to string if possible)
         - `pa.large_string()` - it must contain the "path" data (will be cast to string if possible)
         - `pa.binary()` - it must contain the image bytes
         - `pa.struct({"bytes": pa.binary()})`
@@ -233,6 +234,8 @@ class Image:
             `pa.StructArray`: Array in the Image arrow storage type, that is
                 `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
+        if pa.types.is_string_view(storage.type):
+            storage = storage.cast(pa.string())
         if pa.types.is_large_string(storage.type):
             try:
                 storage = storage.cast(pa.string())

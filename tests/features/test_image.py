@@ -50,6 +50,12 @@ def test_image_feature_type_to_arrow():
     assert features.arrow_schema == pa.schema({"sequence_of_images": pa.list_(Image().pa_type)})
 
 
+def test_image_cast_storage_from_string_view():
+    features = Features({"image": Image(decode=False)})
+    dataset = Dataset.from_dict({"image": pa.array(["sample.png"], type=pa.string_view())}, features=features)
+    assert dataset.to_list() == [{"image": {"bytes": None, "path": "sample.png"}}]
+
+
 @require_pil
 @pytest.mark.parametrize(
     "build_example",
