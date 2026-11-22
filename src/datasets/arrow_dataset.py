@@ -73,7 +73,7 @@ from huggingface_hub import (
     HfFileSystem,
     HfFileSystemResolvedPath,
 )
-from huggingface_hub.errors import BucketNotFoundError
+from huggingface_hub.errors import BucketNotFoundError, EntryNotFoundError
 from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
 from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 from tqdm.contrib.concurrent import thread_map
