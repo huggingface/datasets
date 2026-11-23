@@ -2,8 +2,12 @@ name: Self-assign
 on:
   issue_comment:
     types: created
+permissions: {}
+
 jobs:
   one:
+    permissions:
+      issues: write
     runs-on: ubuntu-latest
     if: >-
       (github.event.comment.body == '#take' ||

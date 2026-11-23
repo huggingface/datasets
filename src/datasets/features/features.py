@@ -922,6 +922,48 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         else:
             return self._data.astype(dtype)
 
+    def __arrow_array__(self, type=None):
+        """
+        Convert to a PyArrow ExtensionArray (pyarrow's ``__arrow_array__`` protocol).
+
+        Called by ``pa.array`` and ``pa.Table.from_pandas``, for instance in ``Dataset.from_pandas``
+        or when a pandas-formatted ``map`` returns a DataFrame that still has an ArrayXD column.
+        """
+        if isinstance(type, _ArrayXDExtensionType):
+            pa_type = type
+        else:
+            pa_type = self._to_arrow_extension_type()
+        if self._data.dtype == object:
+            # dynamic first dimension: one array per row, np.nan for null rows
+            data = [arr if isinstance(arr, np.ndarray) else None for arr in self._data]
+        else:
+            data = self._data
+        storage = to_pyarrow_listarray(data, pa_type)
+        if type is not None and not isinstance(type, _ArrayXDExtensionType):
+            return storage.cast(type)
+        return pa.ExtensionArray.from_storage(pa_type, storage)
+
+    def _to_arrow_extension_type(self) -> "_ArrayXDExtensionType":
+        if self._data.dtype == object:
+            first_arr = next((arr for arr in self._data if isinstance(arr, np.ndarray)), None)
+            if first_arr is None:
+                raise ValueError(
+                    "Cannot infer the Arrow type of a PandasArrayExtensionArray that only has null values, "
+                    "please pass the type explicitly."
+                )
+            shape, value_type = (None, *first_arr.shape[1:]), first_arr.dtype
+        else:
+            shape, value_type = self._data.shape[1:], self._data.dtype
+        extension_types = {
+            2: Array2DExtensionType,
+            3: Array3DExtensionType,
+            4: Array4DExtensionType,
+            5: Array5DExtensionType,
+        }
+        if len(shape) not in extension_types:
+            raise ValueError(f"Unsupported number of dimensions for an ArrayXD column: {len(shape)} (shape={shape})")
+        return extension_types[len(shape)](shape, str(value_type))
+
     def copy(self, deep: bool = False) -> "PandasArrayExtensionArray":
         return PandasArrayExtensionArray(self._data, copy=True)
 
@@ -1192,7 +1234,15 @@ class ClassLabel:
                 raise ValueError(
                     f"Class label {min_max['max']} greater than configured num_classes {self.num_classes}"
                 )
-        elif isinstance(storage, pa.StringArray):
+        elif (
+            pa.types.is_string(storage.type)
+            or pa.types.is_large_string(storage.type)
+            or pa.types.is_string_view(storage.type)
+        ):
+            # Check the Arrow type rather than the array class: `pa.LargeStringArray` and
+            # `pa.StringViewArray` are not subclasses of `pa.StringArray`, and pandas 3
+            # produces `large_string` for plain string columns, so an isinstance check let
+            # those fall through to an int64 cast of the label names.
             storage = pa.array(
                 [self._strval2int(label) if label is not None else None for label in storage.to_pylist()]
             )
@@ -1280,7 +1330,11 @@ class Json:
         """
         if isinstance(storage, pa.JsonArray):
             return storage
-        elif isinstance(storage, (pa.StringArray)):
+        elif (
+            pa.types.is_string(storage.type)
+            or pa.types.is_large_string(storage.type)
+            or pa.types.is_string_view(storage.type)
+        ):
             items = storage[:5].to_pylist()
             try:
                 for item in items:
@@ -1652,7 +1706,8 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
 
 def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.ListArray:
     """Build a PyArrow ListArray from a multidimensional NumPy array"""
-    arr = np.array(arr)
+    arr = np.asarray(arr)
+    # flatten() keeps a C-contiguous copy independent of the input's layout and ownership.
     values = pa.array(arr.flatten(), type=type)
     for i in range(arr.ndim - 1):
         n_offsets = reduce(mul, arr.shape[: arr.ndim - i - 1], 1)
@@ -1928,8 +1983,14 @@ class Features(dict):
         for column_name, feature in self.items():
             self[column_name] = _visit(feature, _check_old_list)
 
-    __setitem__ = keep_features_dicts_synced(dict.__setitem__)
-    __delitem__ = keep_features_dicts_synced(dict.__delitem__)
+    def __setitem__(self, column_name: str, feature: FeatureType):
+        super().__setitem__(column_name, feature)
+        self._column_requires_decoding[column_name] = require_decoding(feature)
+
+    def __delitem__(self, column_name: str):
+        super().__delitem__(column_name)
+        self._column_requires_decoding.pop(column_name, None)
+
     update = keep_features_dicts_synced(dict.update)
     setdefault = keep_features_dicts_synced(dict.setdefault)
     pop = keep_features_dicts_synced(dict.pop)
@@ -2196,15 +2257,26 @@ class Features(dict):
         Encode column into a format for Arrow.
 
         Args:
-            column (`list[Any]`):
+            column (`list[Any]` or `np.ndarray`):
                 Data in a Dataset column.
             column_name (`str`):
                 Dataset column name.
 
         Returns:
-            `list[Any]`
+            `list[Any]` or `np.ndarray`
         """
         column = cast_to_python_objects(column)
+        if (
+            type(column) is np.ndarray
+            and column.dtype.kind in "biuf"
+            and column.size > 0
+            and type(self[column_name]) in (Array2D, Array3D, Array4D, Array5D)
+            and column.ndim == len(self[column_name].shape) + 1
+            and all(dim is None or dim == size for dim, size in zip(self[column_name].shape, column.shape[1:]))
+        ):
+            # ArrayXD encoding is an identity operation. Keep dense columns whole so Arrow
+            # can convert them once instead of copying each row and concatenating them.
+            return column
         return [encode_nested_example(self[column_name], obj, level=1) for obj in column]
 
     def encode_batch(self, batch):
