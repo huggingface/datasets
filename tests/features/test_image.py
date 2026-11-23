@@ -50,6 +50,27 @@ def test_image_feature_type_to_arrow():
     assert features.arrow_schema == pa.schema({"sequence_of_images": pa.list_(Image().pa_type)})
 
 
+@pytest.mark.parametrize("arrow_type", [pa.string(), pa.large_string(), pa.string_view()], ids=str)
+@pytest.mark.parametrize(
+    "paths", [[], [None], ["sample.png"], [None, "images/long_image_filename.png", "图像.png", None]]
+)
+@pytest.mark.parametrize("sliced", [False, True])
+def test_image_cast_storage_from_string_array(arrow_type, paths, sliced):
+    """https://github.com/huggingface/datasets/issues/9126"""
+    storage = (
+        pa.array(["unused.png", *paths], type=arrow_type).slice(1) if sliced else pa.array(paths, type=arrow_type)
+    )
+    image = Image(decode=False)
+    expected = [None if path is None else {"bytes": None, "path": path} for path in paths]
+
+    cast_storage = image.cast_storage(storage)
+    assert cast_storage.type == image.pa_type
+    assert cast_storage.to_pylist() == expected
+
+    dataset = Dataset.from_dict({"image": storage}, features=Features({"image": image}))
+    assert dataset.to_list() == [{"image": item} for item in expected]
+
+
 @require_pil
 @pytest.mark.parametrize(
     "build_example",
