@@ -115,3 +115,60 @@ def test_dataset_to_sql_preserves_nullable_int(dtype, big, tmp_path, set_sqlalch
     with contextlib.closing(sqlite3.connect(output_sqlite_path)) as con:
         rows = con.execute("SELECT a, typeof(a) FROM dataset").fetchall()
     assert rows == [(big, "integer"), (None, "null"), (5, "integer")]
+
+
+@require_sqlalchemy
+@pytest.mark.parametrize("con_type", ["uri", "engine", "connection"])
+@pytest.mark.parametrize("chunksize", [None, 2])
+def test_dataset_from_sql_selectable(con_type, chunksize, tmp_path):
+    import sqlalchemy
+
+    uri = "sqlite:///" + str(tmp_path / "samples.db")
+    engine = sqlalchemy.create_engine(uri)
+    metadata = sqlalchemy.MetaData()
+    table = sqlalchemy.Table(
+        "sample rows",
+        metadata,
+        sqlalchemy.Column("id", sqlalchemy.Integer),
+        sqlalchemy.Column("text", sqlalchemy.String),
+    )
+    metadata.create_all(engine)
+    try:
+        with engine.begin() as connection:
+            connection.execute(
+                table.insert(), [{"id": 1, "text": "中文"}, {"id": 2, "text": None}, {"id": 3, "text": "end"}]
+            )
+        with engine.connect() as connection:
+            con = {"uri": uri, "engine": engine, "connection": connection}[con_type]
+            query = sqlalchemy.select(table).order_by(table.c.id)
+            dataset = Dataset.from_sql(query, con, cache_dir=tmp_path / "cache", chunksize=chunksize)
+            assert dataset.to_dict() == {"id": [1, 2, 3], "text": ["中文", None, "end"]}
+            assert dataset.column_names == ["id", "text"]
+            assert dataset.features == Features({"id": Value("int64"), "text": Value(STRING_FROM_PANDAS)})
+            repeated = Dataset.from_sql(query, con, cache_dir=tmp_path / "cache", chunksize=chunksize)
+            assert repeated.to_dict() == dataset.to_dict()
+            assert repeated._fingerprint == dataset._fingerprint
+    finally:
+        engine.dispose()
+
+
+@require_sqlalchemy
+def test_dataset_from_sql_selectable_distinguishes_engines(tmp_path):
+    import sqlalchemy
+
+    engines = [sqlalchemy.create_engine("sqlite://"), sqlalchemy.create_engine("sqlite://")]
+    metadata = sqlalchemy.MetaData()
+    table = sqlalchemy.Table("samples", metadata, sqlalchemy.Column("value", sqlalchemy.Integer))
+    try:
+        readers = []
+        for value, engine in enumerate(engines):
+            metadata.create_all(engine)
+            with engine.begin() as connection:
+                connection.execute(table.insert(), {"value": value})
+            readers.append(SqlDatasetReader(sqlalchemy.select(table), engine, cache_dir=tmp_path / "cache"))
+        assert readers[0].builder.config_id != readers[1].builder.config_id
+        assert readers[0].read().to_dict() == {"value": [0]}
+        assert readers[1].read().to_dict() == {"value": [1]}
+    finally:
+        for engine in engines:
+            engine.dispose()
