@@ -165,6 +165,8 @@ class _CompoundField:
 
     def __post_init__(self):
         self.shape = (len(self.data) if self.data is not None else 0,) + self.dtype.shape
+        # Subarray dimensions are in shape; expose the element dtype like an h5py dataset.
+        self.dtype = self.dtype.base
 
     def __getitem__(self, key):
         return self.data[key][self.name]
