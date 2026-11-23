@@ -13,6 +13,12 @@ from datasets.table import table_cast
 logger = datasets.utils.logging.get_logger(__name__)
 
 
+# Decoded UTF-8 byte order mark (`codecs.BOM_UTF8`). A BOM is an encoding signature rather than
+# part of the text, but it is not removed when the file is decoded, so it has to be dropped
+# explicitly. It only ever appears at the very start of a file.
+BOM_UTF8_CHAR = "\ufeff"
+
+
 @dataclass
 class TextConfig(datasets.BuilderConfig):
     """BuilderConfig for text files.
@@ -98,6 +104,9 @@ class Text(datasets.ArrowBasedBuilder):
                             batch = f.read(self.config.chunksize)
                             if not batch:
                                 break
+                            # Drop a leading BOM so that it doesn't end up in the first example
+                            if batch_idx == 0 and batch.startswith(BOM_UTF8_CHAR):
+                                batch = batch[len(BOM_UTF8_CHAR) :]
                             batch += f.readline()  # finish current line
                             # StringIO.readlines, by default splits only on "\n" (and keeps line breaks)
                             batch = StringIO(batch).readlines()
@@ -116,6 +125,9 @@ class Text(datasets.ArrowBasedBuilder):
                             new_batch = f.read(self.config.chunksize)
                             if not new_batch:
                                 break
+                            # Drop a leading BOM so that it doesn't end up in the first example
+                            if batch_idx == 0 and new_batch.startswith(BOM_UTF8_CHAR):
+                                new_batch = new_batch[len(BOM_UTF8_CHAR) :]
                             batch += new_batch
                             batch += f.readline()  # finish current line
                             batch = batch.split("\n\n")
@@ -133,5 +145,8 @@ class Text(datasets.ArrowBasedBuilder):
                             yield (shard_idx, batch_idx), self._cast_table(pa_table)
                     elif self.config.sample_by == "document":
                         text = f.read()
+                        # Drop a leading BOM so that it doesn't end up in the example
+                        if text.startswith(BOM_UTF8_CHAR):
+                            text = text[len(BOM_UTF8_CHAR) :]
                         pa_table = pa.Table.from_arrays([pa.array([text])], names=pa_table_names)
                         yield Key(shard_idx, 0), self._cast_table(pa_table)
