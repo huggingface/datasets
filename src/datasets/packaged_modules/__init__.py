@@ -13,6 +13,7 @@ from .eval import eval
 from .fasta import fasta
 from .fastq import fastq
 from .genbank import genbank
+from .harbor import harbor
 from .hdf5 import hdf5
 from .iceberg import iceberg
 from .imagefolder import imagefolder
@@ -75,6 +76,7 @@ _PACKAGED_DATASETS_MODULES = {
     "genbank": (genbank.__name__, _hash_python_lines(inspect.getsource(genbank).splitlines())),
     "fasta": (fasta.__name__, _hash_python_lines(inspect.getsource(fasta).splitlines())),
     "fastq": (fastq.__name__, _hash_python_lines(inspect.getsource(fastq).splitlines())),
+    "harbor": (harbor.__name__, _hash_python_lines(inspect.getsource(harbor).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -109,6 +111,8 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".hdf5": ("hdf5", {}),
     ".h5": ("hdf5", {}),
     ".eval": ("eval", {}),
+    ".toml": ("harbor", {}),
+    ".md": ("harbor", {}),
     ".lance": ("lance", {}),
     ".tsfile": ("tsfile", {}),
     ".vortex": ("vortex", {}),
@@ -167,6 +171,7 @@ _MODULE_TO_METADATA_FILE_NAMES["niftifolder"] = imagefolder.ImageFolder.METADATA
 _MODULE_TO_METADATA_FILE_NAMES["lance"] = lance.Lance.METADATA_FILE_NAMES
 _MODULE_TO_METADATA_FILE_NAMES["mmcif"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["pdb"] = imagefolder.ImageFolder.METADATA_FILENAMES
+_MODULE_TO_METADATA_FILE_NAMES["harbor"] = harbor.Harbor.METADATA_FILENAMES
 
 _MODULE_TO_METADATA_EXTENSIONS: Dict[str, List[str]] = {}
 for _module in _MODULE_TO_EXTENSIONS:

@@ -199,6 +199,10 @@ class Json(datasets.ArrowBasedBuilder):
                             harness, session_id, prompt, sent_at, num_user_messages, num_tool_calls = (
                                 parse_traces_info(lines)
                             )
+                            # STS headers look like pi's "session" event, so rely on teich's detection
+                            # https://huggingface.co/docs/hub/session-traces-format
+                            if training_example["metadata"]["trace_type"] == "sts":
+                                harness = "sts"
                             bonus_fields = {
                                 "harness": harness,
                                 "session_id": session_id,
@@ -284,12 +288,14 @@ class Json(datasets.ArrowBasedBuilder):
                                 batch = "\n".join(ujson_dumps(example) for example in examples).encode()
                             # Disable parallelism if block size is ~ len(batch) to avoid segfault
                             block_size = len(batch) if len(batch) // 8 > block_size else block_size
+                            pa_table = None
                             try:
                                 while True:
                                     try:
                                         pa_table = paj.read_json(
                                             io.BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
                                         )
+                                        pa_table.validate()
                                         break
                                     except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
                                         if batch.startswith(b"["):  # paj.read_json only supports json lines
@@ -299,7 +305,15 @@ class Json(datasets.ArrowBasedBuilder):
                                             and "JSON parse error: Column(" in str(e)
                                             and ") changed from" in str(e)
                                         ):
-                                            json_field_path = get_json_field_path_from_pyarrow_json_error(str(e))
+                                            json_field_path = get_json_field_path_from_pyarrow_json_error(
+                                                str(e), examples=(ujson_loads(line) for line in batch.splitlines())
+                                            )
+                                            if not json_field_path:
+                                                raise
+                                            if any(json_field_path[: len(path)] == path for path in json_field_paths):
+                                                raise ValueError(
+                                                    f"Cannot encode mixed-type JSON field {json_field_path!r} as JSON"
+                                                ) from e
                                             insert_json_field_path(json_field_paths, json_field_path)
                                             batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
                                         elif (
@@ -315,6 +329,22 @@ class Json(datasets.ArrowBasedBuilder):
                                         else:
                                             raise
                             except pa.ArrowInvalid as e:
+                                if pa_table is not None:
+                                    try:
+                                        examples = [ujson_loads(line) for line in batch.splitlines()]
+                                        pa_table = pa.concat_tables(
+                                            [pa.Table.from_pylist([example]) for example in examples],
+                                            promote_options="default",
+                                        )
+                                        pa_table.validate()
+                                    except (ValueError, pa.ArrowInvalid, pa.ArrowNotImplementedError):
+                                        raise e
+                                    yield (
+                                        Key(shard_idx, batch_idx),
+                                        self._cast_table(pa_table, json_field_paths=json_field_paths),
+                                    )
+                                    batch_idx += 1
+                                    continue
                                 if not allow_full_read:
                                     raise FullReadDisallowed()
                                 try:
@@ -386,6 +416,16 @@ AGENT_TRACES_FEATURES_MARKERS = {
             "id": lambda f: f == Value("string"),
             "version": lambda f: f == Value("int64"),
             "cwd": lambda f: f == Value("string"),
+        }
+    ),
+    # https://huggingface.co/docs/hub/session-traces-format
+    # uniform {role, content} messages (e.g. no tool calls) are inferred as a struct instead of Json
+    "sts": datasets.Features(
+        {
+            "type": lambda f: f == Value("string"),
+            "harness": lambda f: f == Value("string"),
+            "id": lambda f: f == Value("string"),
+            "message": lambda f: f == datasets.Json() or (isinstance(f, dict) and "role" in f and "content" in f),
         }
     ),
 }
@@ -502,6 +542,9 @@ def get_tool_call_count(trace_event: dict) -> int:
     message = trace_event["message"]
     if message.get("role") != "assistant":
         return 0
+    # STS assistant messages list their tool calls in "toolCalls"
+    if isinstance(message.get("toolCalls"), list):
+        return len(message["toolCalls"])
     content = message.get("content")
     if not isinstance(content, list):
         return 0
@@ -516,6 +559,17 @@ def get_trace_event_timestamp(trace_event: dict) -> Optional[str]:
     timestamp = trace_event.get("timestamp")
     if isinstance(timestamp, str):
         return timestamp
+    # STS messages carry epoch milliseconds in message.timestamp
+    message = trace_event.get("message")
+    if isinstance(message, dict) and isinstance(message.get("timestamp"), (int, float)):
+        try:
+            return (
+                datetime.fromtimestamp(message["timestamp"] / 1000, tz=timezone.utc)
+                .isoformat(timespec="milliseconds")
+                .replace("+00:00", "Z")
+            )
+        except (OverflowError, OSError, ValueError):  # out-of-range values in user-uploaded traces
+            return None
     return None
 
 

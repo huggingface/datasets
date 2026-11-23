@@ -130,6 +130,9 @@ class DatasetInfo:
             The combined size in bytes of the Arrow tables for all splits.
         size_in_bytes (`int`, *optional*):
             The combined size in bytes of all files associated with the dataset (downloaded files + Arrow files).
+        column_metadata (`dict[str, dict[str, str]]`, *optional*):
+            The metadata of the columns, as a mapping from column name to string keys and values, like the metadata of
+            Arrow fields. It's written in the Arrow field metadata of the Parquet files.
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the [`BuilderConfig`] and used in the [`DatasetBuilder`].
     """
@@ -155,6 +158,8 @@ class DatasetInfo:
     post_processing_size: Optional[int] = None
     dataset_size: Optional[int] = None
     size_in_bytes: Optional[int] = None
+    # Set by the user with `Dataset.with_column_metadata`
+    column_metadata: Optional[dict[str, dict[str, str]]] = None
 
     _INCLUDED_INFO_IN_YAML: ClassVar[list[str]] = [
         "config_name",
@@ -234,6 +239,16 @@ class DatasetInfo:
         license = "\n\n".join(unique_values(info.license for info in dataset_infos)).strip()
         features = None
         supervised_keys = None
+        # keep the metadata of a column unless the datasets have different metadata for it
+        column_metadata = {}
+        conflicting_columns = set()
+        for info in dataset_infos:
+            for column, metadata in (info.column_metadata or {}).items():
+                if column_metadata.setdefault(column, metadata) != metadata:
+                    conflicting_columns.add(column)
+        column_metadata = {
+            column: metadata for column, metadata in column_metadata.items() if column not in conflicting_columns
+        }
 
         return cls(
             description=description,
@@ -242,6 +257,7 @@ class DatasetInfo:
             license=license,
             features=features,
             supervised_keys=supervised_keys,
+            column_metadata=column_metadata or None,
         )
 
     @classmethod

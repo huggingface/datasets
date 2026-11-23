@@ -212,8 +212,12 @@ def test_filesystem_filename_limit(tmp_path, use_soft_filelock, monkeypatch):
         assert len(os.path.basename(lock.lock_file)) <= 100
         statvfs.assert_called_once_with(str(tmp_path))
     else:
-        assert os.path.basename(lock.lock_file) == filename
         statvfs.assert_not_called()
+        if os.name == "nt":
+            # Windows also limits the total path length to MAX_PATH
+            assert len(lock.lock_file) <= 259
+        else:
+            assert os.path.basename(lock.lock_file) == filename
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="POSIX file permissions")
@@ -346,3 +350,16 @@ def test_switch_is_read_per_construction(tmp_path, monkeypatch):
     assert isinstance(soft_lock, filelock.SoftFileLock)
     monkeypatch.setattr(config, "HF_DATASETS_USE_SOFT_FILELOCK", False)
     assert isinstance(FileLock(tmp_path / "hard-again.lock"), filelock.FileLock)
+
+
+def test_long_dirname_windows(tmpdir):
+    # The lock filename may duplicate the whole parent path (e.g. the builder lock),
+    # so on Windows the total path must also stay within MAX_PATH (260), not just
+    # the 255-character filename limit. See https://github.com/huggingface/datasets/issues/8702.
+    dirname = str(tmpdir / ("d" * 100))
+    os.makedirs(dirname, exist_ok=True)
+    filename = dirname.replace(os.sep, "_").replace(":", "_") + ".lock"
+    lock = FileLock(os.path.join(dirname, filename))
+    assert lock.lock_file.endswith(".lock")
+    if os.name == "nt":
+        assert len(lock.lock_file) <= 259

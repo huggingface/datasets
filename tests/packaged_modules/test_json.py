@@ -1,13 +1,14 @@
 import json
 import textwrap
+from unittest.mock import Mock, patch
 
 import pyarrow as pa
 import pytest
 
-from datasets import Features, Value, load_dataset
+from datasets import Dataset, Features, Value, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
-from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig
+from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig, paj
 
 from ..utils import require_teich
 
@@ -516,6 +517,29 @@ DROID_SESSION = [
 ]
 
 
+# https://huggingface.co/docs/hub/session-traces-format
+STS_SESSION = [
+    {"type": "session", "harness": "chat-ui", "id": "sts-session", "name": "What time is it"},
+    {"type": "message", "message": {"role": "user", "content": "what time is it?", "timestamp": 1782918000000}},
+    {
+        "type": "message",
+        "message": {
+            "role": "assistant",
+            "content": "",
+            "toolCalls": [
+                {"id": "t1", "function": {"name": "get_time", "arguments": '{"tz": "UTC"}'}},
+                {"id": "t2", "function": {"name": "get_date", "arguments": "{}"}},
+            ],
+        },
+    },
+    {"type": "message", "message": {"role": "tool", "toolCallId": "t1", "content": "15:00"}},
+    {"type": "message", "message": {"role": "tool", "toolCallId": "t2", "content": "2026-07-01"}},
+    {"type": "message", "message": {"role": "assistant", "content": "it is 15:00 UTC"}},
+    {"type": "message", "message": {"role": "user", "content": "thanks"}},
+]
+STS_EXPECTED_AGENT_TRACE_FIELDS = ("sts", "sts-session", "what time is it?", "2026-07-01T15:00:00.000Z", 2, 2)
+
+
 def test_config_raises_when_invalid_name() -> None:
     with pytest.raises(InvalidConfigName, match="Bad characters"):
         _ = JsonConfig(name="name-with-*-invalid-character")
@@ -561,6 +585,47 @@ def test_json_generate_tables(file_fixture, config_kwargs, expected, request):
     pa_table = pa.concat_tables([table for _, table in generator])
     out = Features.from_arrow_schema(pa_table.schema).decode_batch(pa_table.to_pydict())
     assert out == expected
+
+
+@pytest.fixture
+def bounded_json_parser(monkeypatch):
+    read_json = paj.read_json
+    attempts = 0
+
+    def bounded_read_json(*args, **kwargs):
+        nonlocal attempts
+        attempts += 1
+        assert attempts <= 5, "JSON parser retried without resolving the mixed-type field"
+        return read_json(*args, **kwargs)
+
+    monkeypatch.setattr(paj, "read_json", bounded_read_json)
+
+
+@pytest.mark.parametrize(
+    "rows",
+    [
+        [{"a/b": 1}, {"a/b": "two"}],
+        [{"outer": {"a/b": 1}}, {"outer": {"a/b": "two"}}],
+        [{"outer": [{"a/b": 1}]}, {"outer": [{"a/b": "two"}]}],
+        [{"/a/": 1}, {"/a/": "two"}],
+        [{"[]": 1}, {"[]": "two"}],
+        [{"": 1}, {"": "two"}],
+    ],
+)
+def test_json_mixed_type_literal_field_names(tmp_path, bounded_json_parser, rows):
+    path = tmp_path / "mixed.jsonl"
+    path.write_text("\n".join(map(json.dumps, rows)), encoding="utf-8")
+
+    assert Dataset.from_json(str(path), cache_dir=str(tmp_path / "cache")).to_list() == rows
+
+
+def test_json_mixed_type_ambiguous_field_path(tmp_path, bounded_json_parser):
+    path = tmp_path / "ambiguous.jsonl"
+    rows = [{"a/b": 1, "a": {"b": 3}}, {"a/b": "two", "a": {"b": 4}}]
+    path.write_text("\n".join(map(json.dumps, rows)), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="Cannot resolve mixed-type JSON field .*ambiguous field path"):
+        Dataset.from_json(str(path), cache_dir=str(tmp_path / "cache"))
 
 
 @pytest.mark.parametrize(
@@ -614,6 +679,40 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
     )
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.column_names == ["ID", "Language", "Topic"]
+
+
+def test_json_generate_tables_recovers_from_invalid_arrow_offsets(jsonl_file):
+    malformed_table = Mock()
+    malformed_table.validate.side_effect = [pa.ArrowInvalid("invalid nested offsets")]
+    json_builder = Json(chunksize=1 << 20)
+    base_files = [jsonl_file]
+
+    with patch.object(paj, "read_json", return_value=malformed_table):
+        generator = json_builder._generate_tables(
+            base_files=base_files,
+            files_iterables=[[jsonl_file]],
+            original_files=base_files,
+        )
+        _, table = next(generator)
+
+    table.validate(full=True)
+    dataset = Dataset(table)
+    mapped_dataset = dataset.map(lambda example: example)
+    assert mapped_dataset.num_rows == 3
+    assert mapped_dataset.to_dict() == {"col_1": [-1, 1, 10], "col_2": [None, 2, 20]}
+
+
+def test_json_leading_null_in_list_recovery_real_data(tmp_path):
+    jsonl_file = tmp_path / "leading_null.jsonl"
+    jsonl_file.write_bytes(b'{"a": [null, 1]}\n{"a": [2]}\n')
+
+    dataset = Dataset.from_json(str(jsonl_file), chunksize=1 << 20, cache_dir=str(tmp_path / "cache"))
+
+    assert dataset.data.validate(full=True) is None
+    assert len(dataset) == 2
+    assert dataset[0]["a"] == [None, 1]
+    mapped_dataset = dataset.map(lambda example: example)
+    assert mapped_dataset.to_dict() == {"a": [[None, 1], [2]]}
 
 
 @pytest.mark.parametrize(
@@ -727,6 +826,20 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
             ("droid", "droid-session", "Inspect the project", "2026-06-02T18:55:30.274Z", 1, 1),
             id="droid",
         ),
+        pytest.param("sts.jsonl", STS_SESSION, STS_EXPECTED_AGENT_TRACE_FIELDS, id="sts"),
+        pytest.param(
+            "pi_with_harness.jsonl",
+            [
+                {"type": "session", "id": "pi-session", "harness": "my-agent"},
+                {
+                    "timestamp": "2026-04-03T10:01:00.000Z",
+                    "type": "message",
+                    "message": {"role": "user", "content": [{"type": "text", "text": "pi prompt"}]},
+                },
+            ],
+            ("pi", "pi-session", "pi prompt", "2026-04-03T10:01:00.000Z", 1, 0),
+            id="pi-with-harness",
+        ),
         pytest.param(
             "missing_prompt.jsonl",
             [
@@ -761,6 +874,27 @@ def test_json_generate_tables_with_agent_trace_metadata(tmp_path, filename, rows
             ("droid", "droid-session", "Inspect the project", "2026-06-02T18:55:30.274Z", 1, 1),
             id="droid",
         ),
+        pytest.param("sts.jsonl", STS_SESSION, STS_EXPECTED_AGENT_TRACE_FIELDS, id="sts"),
+        pytest.param(
+            "sts_without_tools.jsonl",
+            [
+                {"type": "session", "harness": "trackio", "id": "sts-session"},
+                {"type": "message", "message": {"role": "user", "content": "reproduce the paper"}},
+                {"type": "message", "message": {"role": "assistant", "content": "done"}},
+            ],
+            ("sts", "sts-session", "reproduce the paper", None, 1, 0),
+            id="sts-without-tools",
+        ),
+        pytest.param(
+            "sts_float_timestamp.jsonl",
+            [
+                STS_SESSION[0],
+                {"type": "message", "message": {**STS_SESSION[1]["message"], "timestamp": 1782918000000.0}},
+            ]
+            + STS_SESSION[2:],
+            STS_EXPECTED_AGENT_TRACE_FIELDS,
+            id="sts-float-timestamp",
+        ),
     ],
 )
 def test_json_load_dataset_with_agent_trace_metadata(tmp_path, filename, rows, expected):
@@ -787,6 +921,9 @@ def test_json_load_dataset_with_agent_trace_metadata(tmp_path, filename, rows, e
     if filename == "droid.jsonl":
         assert row["metadata"]["trace_type"] == "droid"
         assert json.loads(row["trace"].splitlines()[0])["type"] == "session_start"
+    if filename == "sts.jsonl":
+        assert row["metadata"]["harness"] == "chat-ui"
+        assert [len(message.get("tool_calls") or []) for message in row["messages"]] == [0, 2, 0, 0, 0, 0]
 
 
 def test_json_load_dataset_without_droid_marker_stays_ordinary_json(tmp_path):

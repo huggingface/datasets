@@ -78,6 +78,15 @@ To work with mesh datasets, you need to install the [`Mesh`] feature as an extra
 pip install datasets[mesh]
 ```
 
+## Harbor
+
+Harbor task configurations are TOML files: they are read with `tomllib` from the standard library on Python
+3.11 and later. On Python 3.10, install the TOML parser as an extra dependency `tomlli` (without a 'b'):
+
+```bash
+pip install "tomlli"
+```
+
 ## source
 
 Building 🤗 Datasets from source lets you make changes to the code base. To install from the source, clone the repository and install with the following commands:

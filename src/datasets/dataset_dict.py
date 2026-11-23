@@ -29,6 +29,7 @@ from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 from . import __version__, config
 from .arrow_dataset import (
     Dataset,
+    _append_to_repo,
     _get_updated_dataset_card,
 )
 from .features import Features
@@ -495,6 +496,29 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         """
         self._check_values_type()
         return DatasetDict({k: dataset.select_columns(column_names=column_names) for k, dataset in self.items()})
+
+    def with_column_metadata(self, column_metadata: dict[str, dict[str, str]]) -> "DatasetDict":
+        """
+        Return a dataset dict with the given metadata for some columns of every split.
+        See [`~datasets.Dataset.with_column_metadata`] for more details.
+
+        Args:
+            column_metadata (`dict[str, dict[str, str]]`):
+                Mapping from column name to its new metadata, a dict of strings like the metadata of Arrow fields.
+                It replaces the current metadata of these columns, and an empty dict removes it.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
+        >>> ds = ds.with_column_metadata({"text": {"language": "en"}})
+        >>> ds["train"].info.column_metadata
+        {'text': {'language': 'en'}}
+        ```
+        """
+        self._check_values_type()
+        return DatasetDict({k: dataset.with_column_metadata(column_metadata) for k, dataset in self.items()})
 
     def class_encode_column(self, column: str, include_nulls: bool = False) -> "DatasetDict":
         """Casts the given column as [`~datasets.features.ClassLabel`] and updates the tables.
@@ -1636,6 +1660,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         num_shards: Optional[dict[str, int]] = None,
         embed_external_files: bool = True,
         num_proc: Optional[int] = None,
+        append: bool = False,
     ) -> Optional[CommitInfo]:
         """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
         The [`DatasetDict`] is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -1675,7 +1700,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 organization's default is private. This value is ignored if the repo already exists.
             token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
-                to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
+                to the token saved locally when logging in with `hf auth login`. Will raise an error
                 if no token is passed and the user is not logged-in.
             revision (`str`, *optional*):
                 Branch to push the uploaded files to. Defaults to the `"main"` branch.
@@ -1705,6 +1730,15 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 Multiprocessing is disabled by default.
 
                 <Added version="4.0.0"/>
+
+            append (`bool`, defaults to `False`):
+                Append rows to existing splits, preserving their features and rows. Only the last Parquet
+                shard in the card's mapping order, across all listed directories, is downloaded and
+                extended. If it would exceed `max_shard_size`, it is kept and
+                the new rows are written to new shards. With `num_shards`, specify the total number
+                of shards in the split after appending; it cannot be smaller than the existing count.
+                New or renumbered shards use `data_dir`. Other splits and configurations are preserved.
+                Supported for dataset repositories only.
 
         Return:
             huggingface_hub.CommitInfo
@@ -1753,6 +1787,8 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
+        if append and repo_id.startswith("buckets/"):
+            raise ValueError("append=True is only supported for dataset repositories, not buckets.")
         if repo_id.startswith("buckets/"):
             _, _namespace, _bucket_name, *_path_segments = repo_id.split("/")
             try:
@@ -1804,6 +1840,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 num_shards=num_shards,
                 embed_external_files=embed_external_files,
                 num_proc=num_proc,
+                append=append,
             )
 
 
@@ -2379,7 +2416,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 organization's default is private. This value is ignored if the repo already exists.
             token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
-                to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
+                to the token saved locally when logging in with `hf auth login`. Will raise an error
                 if no token is passed and the user is not logged-in.
             revision (`str`, *optional*):
                 Branch to push the uploaded files to. Defaults to the `"main"` branch.
@@ -2527,7 +2564,25 @@ def _push_to_repo(
     num_shards: Optional[dict[str, Optional[int]]] = None,
     embed_external_files: bool = True,
     num_proc: Optional[int] = None,
+    append: bool = False,
 ) -> CommitInfo:
+    if append:
+        return _append_to_repo(
+            dset_dict,
+            repo_id=repo_id,
+            config_name=config_name,
+            set_default=set_default,
+            data_dir=data_dir,
+            commit_message=commit_message,
+            commit_description=commit_description,
+            token=token,
+            revision=revision,
+            create_pr=create_pr,
+            max_shard_size=max_shard_size,
+            num_shards=num_shards,
+            embed_external_files=embed_external_files,
+            num_proc=num_proc,
+        )
     api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
     resolved_output_path = HfFileSystemResolvedRepositoryPath(
         repo_id=repo_id, repo_type="dataset", revision=revision or "main", path_in_repo=""
