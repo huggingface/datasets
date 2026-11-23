@@ -518,7 +518,7 @@ Asynchronous functions run in parallel, which accelerates the process a lot. The
 
 Note the presence of a `Semaphore`: it sets the maximum number of queries that can run in parallel. It is recommended to use a `Semaphore` when calling APIs to avoid rate limit errors.
 
-Let's use it to call the [microsoft/Phi-3-mini-4k-instruct](https://huggingface.co/microsoft/Phi-3-mini-4k-instruct) model and ask it to return the main topic of each math problem in the [Maxwell-Jia/AIME_2024](https://huggingface.co/Maxwell-Jia/AIME_2024) dataset:
+Let's use it to call the [microsoft/Phi-3-mini-4k-instruct](https://huggingface.co/microsoft/Phi-3-mini-4k-instruct) model and ask it to return the main topic of each math problem in the [Maxwell-Jia/AIME_2024](https://huggingface.co/datasets/Maxwell-Jia/AIME_2024) dataset:
 
 ````python
 >>> from datasets import load_dataset
