@@ -99,6 +99,10 @@ class Video:
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
     _type: str = field(default="Video", init=False, repr=False)
 
+    def __post_init__(self):
+        if self.device is not None:
+            self.device = str(self.device)
+
     def __call__(self):
         return self.pa_type
 
