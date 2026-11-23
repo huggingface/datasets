@@ -1111,9 +1111,10 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     ) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
         """Keep only the requested shard"""
         if not contiguous:
-            # Shard each source with its own shard_data_sources(), so that skip() and take() split `n`
-            # the same way as without concatenation. The shard `j` of a source that starts at `offset`
-            # in the concatenation goes to `index` if `(offset + j) % num_shards == index`.
+            # Shard each source with its own shard_data_sources(), so that each source is sharded the same way
+            # as without concatenation. This matters for sources that keep a state over their shards, like
+            # skip(), take(), batched map() or interleave_datasets(). The shard `j` of a source that starts at
+            # `offset` in the concatenation goes to `index` if `(offset + j) % num_shards == index`.
             ex_iterables = []
             offset = 0
             for ex_iterable in self.ex_iterables:

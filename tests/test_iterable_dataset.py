@@ -2488,17 +2488,25 @@ def test_skip_and_take_torch_dataloader_with_more_workers_than_shards(method, n,
 
 
 @require_torch
-@pytest.mark.parametrize("method", ["skip", "take"])
+@pytest.mark.parametrize("method", ["skip", "take", "map_with_drop_last_batch", "interleave"])
 @pytest.mark.parametrize("num_workers", [1, 2])
-def test_concatenate_datasets_skip_or_take_torch_dataloader(method, num_workers):
+def test_concatenate_datasets_torch_dataloader_yields_same_rows_as_source(method, num_workers):
     from torch.utils.data import DataLoader
 
     dataset = Dataset.from_dict({"id": list(range(12))}).to_iterable_dataset(num_shards=4)
-    dataset = dataset.skip(8) if method == "skip" else dataset.take(4)
-    expected = sorted(int(x["id"]) for x in DataLoader(dataset, batch_size=None, num_workers=num_workers))
+    if method == "skip":
+        dataset = dataset.skip(8)
+    elif method == "take":
+        dataset = dataset.take(4)
+    elif method == "map_with_drop_last_batch":
+        dataset = dataset.map(batched=True, batch_size=2, drop_last_batch=True)
+    else:
+        other = Dataset.from_dict({"id": list(range(100, 106))}).to_iterable_dataset(num_shards=2)
+        dataset = interleave_datasets([dataset, other])
+    expected = [int(x["id"]) for x in DataLoader(dataset, batch_size=None, num_workers=num_workers)]
     concatenated_dataset = concatenate_datasets([dataset])
     dataloader = DataLoader(concatenated_dataset, batch_size=None, num_workers=num_workers)
-    assert sorted(int(x["id"]) for x in dataloader) == expected
+    assert [int(x["id"]) for x in dataloader] == expected
 
 
 @require_torch
