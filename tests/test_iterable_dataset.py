@@ -1504,6 +1504,190 @@ def test_map_async():
     assert next(iter(out))["y"] == 1
 
 
+@pytest.fixture
+def async_map_event_loops(monkeypatch):
+    loops = []
+    new_event_loop = asyncio.new_event_loop
+
+    def tracked_new_event_loop():
+        loop = new_event_loop()
+        loops.append(loop)
+        return loop
+
+    monkeypatch.setattr(asyncio, "new_event_loop", tracked_new_event_loop)
+    yield loops
+    for loop in loops:
+        if not loop.is_closed():
+            tasks = asyncio.all_tasks(loop)
+            for task in tasks:
+                task.cancel()
+            if tasks:
+                loop.run_until_complete(asyncio.gather(*tasks, return_exceptions=True))
+            loop.close()
+
+
+@pytest.mark.parametrize("batched", [False, True])
+def test_map_async_closes_event_loop_after_each_iteration(batched, async_map_event_loops):
+    async def identity(example):
+        return example
+
+    dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": 6})).map(
+        identity, batched=batched, batch_size=2
+    )
+    for _ in range(3):
+        assert list(dataset) == [{"id": i} for i in range(6)]
+        assert async_map_event_loops
+        assert all(loop.is_closed() for loop in async_map_event_loops)
+
+
+@pytest.mark.parametrize("batched", [False, True])
+@pytest.mark.parametrize("exit_mode", ["close", "error", "cancel"])
+def test_map_async_settles_tasks_on_exit(batched, exit_mode, async_map_event_loops, monkeypatch):
+    monkeypatch.setattr(config, "MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL", 2)
+    sibling_started = asyncio.Event()
+    cleaned_up = []
+    tasks = []
+
+    async def callback(example, index):
+        index = index[0] if batched else index
+        tasks.append(asyncio.current_task())
+        if index == 0:
+            await sibling_started.wait()
+            if exit_mode == "error":
+                raise ValueError("callback failed")
+            if exit_mode == "cancel":
+                raise asyncio.CancelledError("callback cancelled")
+            return example
+        try:
+            sibling_started.set()
+            await asyncio.Future()
+        finally:
+            # Cleanup itself may need another turn of the event loop.
+            await asyncio.sleep(0)
+            cleaned_up.append(index)
+
+    dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": 6})).map(
+        callback, with_indices=True, batched=batched, batch_size=2
+    )
+    iterator = iter(dataset)
+    try:
+        if exit_mode == "close":
+            assert next(iterator) == {"id": 0}
+            iterator.close()
+        else:
+            error = ValueError if exit_mode == "error" else asyncio.CancelledError
+            with pytest.raises(error, match="callback"):
+                next(iterator)
+        assert cleaned_up == [2 if batched else 1]
+        assert all(task.done() for task in tasks)
+        assert all(loop.is_closed() for loop in async_map_event_loops)
+    finally:
+        iterator.close()
+
+
+@pytest.mark.parametrize("batched", [False, True])
+def test_map_async_closing_one_iterator_preserves_another(batched, async_map_event_loops, monkeypatch):
+    monkeypatch.setattr(config, "MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL", 2)
+    pending = {}
+
+    async def callback(example, index):
+        index = index[0] if batched else index
+        if index == (2 if batched else 1):
+            future = asyncio.get_running_loop().create_future()
+            pending[asyncio.get_running_loop()] = future
+            await future
+        return example
+
+    dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": 6})).map(
+        callback, with_indices=True, batched=batched, batch_size=2
+    )
+    first, second = iter(dataset), iter(dataset)
+    try:
+        assert next(first) == next(second) == {"id": 0}
+        first_loop, second_loop = async_map_event_loops
+        first.close()
+        assert first_loop.is_closed()
+        assert not second_loop.is_closed()
+        assert not pending[second_loop].done()
+        pending[second_loop].set_result(None)
+        assert list(second) == [{"id": i} for i in range(1, 6)]
+        assert second_loop.is_closed()
+    finally:
+        first.close()
+        second.close()
+
+
+@pytest.mark.parametrize("batched", [False, True])
+@pytest.mark.parametrize("exit_mode", ["close", "error"])
+@pytest.mark.parametrize("cleanup_error", [False, True])
+def test_map_async_closes_chained_iterators(batched, exit_mode, cleanup_error, async_map_event_loops, monkeypatch):
+    cleaned_up = []
+    outer_started = asyncio.Event()
+
+    async def inner(example, index):
+        index = index[0] if batched else index
+        if index < (4 if batched else 2):
+            await asyncio.sleep(0)
+            return example
+        try:
+            await asyncio.Future()
+        finally:
+            await asyncio.sleep(0)
+            cleaned_up.append("inner")
+            if cleanup_error:
+                raise RuntimeError("inner cleanup failed")
+
+    async def outer(example, index):
+        index = index[0] if batched else index
+        if index == 0:
+            await outer_started.wait()
+            if exit_mode == "error":
+                raise ValueError("primary callback failed")
+            return example
+        try:
+            outer_started.set()
+            await asyncio.Future()
+        finally:
+            await asyncio.sleep(0)
+            cleaned_up.append("outer")
+            if cleanup_error:
+                raise RuntimeError("outer cleanup failed")
+
+    # Leave an inner callback pending while two completed inner outputs feed the outer map.
+    monkeypatch.setattr(config, "MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL", 3)
+    dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": 6})).map(
+        inner, with_indices=True, batched=batched, batch_size=2
+    )
+    monkeypatch.setattr(config, "MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL", 2)
+    dataset = dataset.map(outer, with_indices=True, batched=batched, batch_size=2)
+    iterator = iter(dataset)
+    try:
+        if exit_mode == "close":
+            assert next(iterator) == {"id": 0}
+            iterator.close()
+        else:
+            with pytest.raises(ValueError, match="primary callback failed"):
+                next(iterator)
+        assert sorted(cleaned_up) == ["inner", "outer"]
+        assert len(async_map_event_loops) == 2
+        assert all(loop.is_closed() for loop in async_map_event_loops)
+    finally:
+        iterator.close()
+
+
+def test_map_async_preserves_borrowed_event_loop(async_map_event_loops, monkeypatch):
+    loop = asyncio.new_event_loop()
+    monkeypatch.setattr(asyncio, "get_running_loop", lambda: loop)
+
+    async def identity(example):
+        return example
+
+    dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": 2})).map(identity)
+    assert list(dataset) == [{"id": 0}, {"id": 1}]
+    assert not loop.is_closed()
+    assert not asyncio.all_tasks(loop)
+
+
 @pytest.mark.parametrize("batched", [False, True])
 @pytest.mark.parametrize("use_arrow", [False, True])
 @pytest.mark.parametrize("max_concurrency", [2, 1000])
