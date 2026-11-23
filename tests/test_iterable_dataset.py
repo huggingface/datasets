@@ -4515,3 +4515,121 @@ def test_iterable_dataset_push_to_hub_more_shards_with_unpicklable_source(offlin
 def _gen_lines_from_handle(fh):
     for line in fh:
         yield {"id": int(line)}
+
+
+def _generate_examples_for_save_to_disk(shards, num_examples_per_shard=10):
+    for shard in shards:
+        for i in range(num_examples_per_shard):
+            yield {"id": shard * num_examples_per_shard + i, "label": i % 2}
+
+
+_SAVE_TO_DISK_FEATURES = Features({"id": Value("int64"), "label": ClassLabel(names=["neg", "pos"])})
+
+
+@pytest.mark.parametrize("num_proc", [None, 2])
+def test_iterable_dataset_save_to_disk(tmp_path, num_proc):
+    from datasets import load_from_disk
+
+    dataset = IterableDataset.from_generator(
+        _generate_examples_for_save_to_disk, features=_SAVE_TO_DISK_FEATURES, gen_kwargs={"shards": list(range(4))}
+    )
+    dataset.save_to_disk(str(tmp_path / "ds"), num_proc=num_proc)
+    reloaded = load_from_disk(str(tmp_path / "ds"))
+    assert isinstance(reloaded, Dataset)
+    assert reloaded.features == _SAVE_TO_DISK_FEATURES
+    assert reloaded.to_list() == list(dataset)
+
+
+@pytest.mark.parametrize("num_proc", [None, 2])
+def test_iterable_dataset_save_to_disk_starts_a_new_shard_at_max_shard_size(tmp_path, num_proc):
+    from datasets import load_from_disk
+
+    # several batches of config.DEFAULT_MAX_BATCH_SIZE examples per shard, and each batch is bigger than max_shard_size
+    num_examples_per_shard = 2 * config.DEFAULT_MAX_BATCH_SIZE + 1
+    dataset = IterableDataset.from_generator(
+        _generate_examples_for_save_to_disk,
+        features=_SAVE_TO_DISK_FEATURES,
+        gen_kwargs={"shards": list(range(4)), "num_examples_per_shard": num_examples_per_shard},
+    )
+    dataset.save_to_disk(str(tmp_path / "ds"), max_shard_size=50, num_proc=num_proc)
+    filenames = sorted(path.name for path in (tmp_path / "ds").glob("*.arrow"))
+    num_shards = len(filenames)
+    assert num_shards > 2
+    assert filenames == [f"data-{i:05d}-of-{num_shards:05d}.arrow" for i in range(num_shards)]
+    reloaded = load_from_disk(str(tmp_path / "ds"))
+    assert [cache_file["filename"] for cache_file in reloaded.cache_files] == [
+        str(tmp_path / "ds" / filename) for filename in filenames
+    ]
+    assert reloaded.to_list() == list(dataset)
+
+
+def test_iterable_dataset_save_to_disk_resolves_unknown_features(tmp_path):
+    from datasets import load_from_disk
+
+    dataset = IterableDataset.from_generator(_generate_examples_for_save_to_disk, gen_kwargs={"shards": [0]})
+    assert dataset.features is None
+    dataset.save_to_disk(str(tmp_path / "ds"))
+    reloaded = load_from_disk(str(tmp_path / "ds"))
+    assert reloaded.features == Features({"id": Value("int64"), "label": Value("int64")})
+    assert reloaded.to_list() == list(dataset)
+
+
+def test_iterable_dataset_save_to_disk_keeps_split_and_format(tmp_path):
+    from datasets import load_from_disk
+
+    dataset = IterableDataset.from_generator(
+        _generate_examples_for_save_to_disk,
+        features=_SAVE_TO_DISK_FEATURES,
+        gen_kwargs={"shards": [0]},
+        split="validation",
+    ).with_format("numpy")
+    dataset.save_to_disk(str(tmp_path / "ds"))
+    reloaded = load_from_disk(str(tmp_path / "ds"))
+    assert reloaded.split == "validation"
+    assert reloaded.format["type"] == "numpy"
+    assert isinstance(reloaded[0]["id"], np.int64)
+
+
+def test_iterable_dataset_save_to_disk_embeds_local_images(tmp_path):
+    from PIL import Image as PILImage
+
+    from datasets import load_from_disk
+
+    image_path = str(tmp_path / "image.png")
+    PILImage.new("RGB", (4, 3)).save(image_path)
+    dataset = Dataset.from_dict({"image": [image_path]}, features=Features({"image": Image()})).to_iterable_dataset()
+    dataset.save_to_disk(str(tmp_path / "ds"))
+    os.remove(image_path)
+    reloaded = load_from_disk(str(tmp_path / "ds"))
+    assert reloaded[0]["image"].size == (4, 3)
+
+
+def test_iterable_dataset_save_to_disk_empty(tmp_path):
+    from datasets import load_from_disk
+
+    dataset = IterableDataset.from_generator(
+        _generate_examples_for_save_to_disk, features=_SAVE_TO_DISK_FEATURES, gen_kwargs={"shards": []}
+    )
+    dataset.save_to_disk(str(tmp_path / "ds"))
+    reloaded = load_from_disk(str(tmp_path / "ds"))
+    assert len(reloaded) == 0
+    assert reloaded.features == _SAVE_TO_DISK_FEATURES
+
+
+def test_iterable_dataset_dict_save_to_disk(tmp_path):
+    from datasets import DatasetDict, load_from_disk
+
+    dataset_dict = IterableDatasetDict(
+        {
+            split: IterableDataset.from_generator(
+                _generate_examples_for_save_to_disk, features=_SAVE_TO_DISK_FEATURES, gen_kwargs={"shards": shards}
+            )
+            for split, shards in [("train", [0, 1]), ("test", [2])]
+        }
+    )
+    dataset_dict.save_to_disk(str(tmp_path / "ds"))
+    reloaded = load_from_disk(str(tmp_path / "ds"))
+    assert isinstance(reloaded, DatasetDict)
+    assert list(reloaded) == ["train", "test"]
+    for split in dataset_dict:
+        assert reloaded[split].to_list() == list(dataset_dict[split])
