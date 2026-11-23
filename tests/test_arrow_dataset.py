@@ -5413,3 +5413,31 @@ def test_dataset_push_to_hub_uploads_every_row_with_num_proc(offline_parquet_upl
     if num_shards == 1:
         # a single shard is written without starting a pool of processes
         assert not mp.get_context.return_value.Pool.called
+
+
+def test_select_contiguous_numpy_integer_indices():
+    dataset = Dataset.from_dict({"a": list(range(5))})
+    selected = dataset.select(np.array([1, 2], dtype=np.uint64))
+    assert selected["a"] == [1, 2]
+    selected = dataset.select(np.array([0, 1, 2], dtype=np.int32))
+    assert selected["a"] == [0, 1, 2]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("dtype", [np.uint64, np.int32])
+@pytest.mark.parametrize("indexed", [False, True], ids=["direct", "indexed"])
+def test_select_contiguous_numpy_indices_across_batches_round_trip(tmp_path, dtype, indexed):
+    dataset = concatenate_datasets([Dataset.from_dict({"a": values}) for values in ([0, 1], [2, 3, 4], [5, 6, 7, 8])])
+    if indexed:
+        dataset = dataset.select([8, 0, 7, 1, 6, 2, 5, 3, 4])
+    expected = list(dataset["a"])[1:6]
+
+    selected = dataset.select(np.arange(1, 6, dtype=dtype))
+    assert list(selected["a"]) == expected
+    assert selected.features == dataset.features
+
+    path = tmp_path / "selected"
+    selected.save_to_disk(path)
+    restored = load_from_disk(path)
+    assert list(restored["a"]) == expected
+    assert restored.features == dataset.features
