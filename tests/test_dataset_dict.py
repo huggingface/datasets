@@ -313,6 +313,17 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(list(dset_split.column_names), ["col_1"])
             self.assertListEqual(dset_split._format_columns, ["col_1"])
 
+    def test_map_without_function_with_split(self):
+        # `function` is optional and defaults to an identity transform, so passing `with_split=True`
+        # without it has to return the datasets unchanged instead of raising from `bind(None, ...)`.
+        dataset_dict = DatasetDict(
+            {"train": Dataset.from_dict({"value": [1]}), "test": Dataset.from_dict({"value": [2]})}
+        )
+        mapped = dataset_dict.map(with_split=True)
+        self.assertListEqual(list(mapped.keys()), ["train", "test"])
+        self.assertEqual(mapped["train"][0], {"value": 1})
+        self.assertEqual(mapped["test"][0], {"value": 2})
+
     def test_map(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dsets = self._create_dummy_dataset_dict()
