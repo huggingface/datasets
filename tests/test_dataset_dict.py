@@ -1,5 +1,6 @@
 import os
 import tempfile
+from pathlib import Path
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import patch
@@ -632,6 +633,24 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(dsets["train"].column_names, ["filename"])
             self.assertEqual(len(dsets["test"]), 30)
             self.assertListEqual(dsets["test"].column_names, ["filename"])
+            del dsets
+
+    def test_save_to_disk_and_load_from_disk_pathlib_path(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            dsets = self._create_dummy_dataset_dict()
+            dsets.save_to_disk(tmp_path)
+            # Test DatasetDict.load_from_disk with Path
+            reloaded_dsets = DatasetDict.load_from_disk(tmp_path)
+            self.assertListEqual(sorted(reloaded_dsets), ["test", "train"])
+            self.assertEqual(len(reloaded_dsets["train"]), 30)
+            del reloaded_dsets
+
+            # Test datasets.load_from_disk with Path
+            reloaded_dsets_top = load_from_disk(tmp_path)
+            self.assertListEqual(sorted(reloaded_dsets_top), ["test", "train"])
+            self.assertEqual(len(reloaded_dsets_top["train"]), 30)
+            del reloaded_dsets_top
             del dsets
 
     def test_align_labels_with_mapping(self):
