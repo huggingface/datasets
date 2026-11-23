@@ -1112,9 +1112,9 @@ class DatasetBuilder:
 
     def as_streaming_dataset(
         self,
-        split: Optional[str] = None,
+        split: Optional[Union[str, Split, list[str], list[Split]]] = None,
         base_path: Optional[str] = None,
-    ) -> Union[dict[str, IterableDataset], IterableDataset]:
+    ) -> Union[IterableDatasetDict, IterableDataset]:
         if is_remote_filesystem(self._fs):
             raise NotImplementedError(
                 f"Loading a streaming dataset cached in a {type(self._fs).__name__} is not supported yet."
@@ -1129,9 +1129,30 @@ class DatasetBuilder:
         splits_generators = {sg.name: sg for sg in self._split_generators(dl_manager)}
         # By default, return all splits
         if split is None:
-            splits_generator = splits_generators
-        elif str(split) in splits_generators:
-            splits_generator = splits_generators[str(split)]
+            split = {s: s for s in splits_generators}
+
+        # Create a dataset for each of the given splits
+        datasets = map_nested(
+            partial(
+                self._build_single_streaming_dataset,
+                splits_generators=splits_generators,
+            ),
+            split,
+            map_tuple=True,
+            disable_tqdm=True,
+        )
+        if isinstance(datasets, dict):
+            datasets = IterableDatasetDict(datasets)
+        return datasets
+
+    def _build_single_streaming_dataset(
+        self,
+        split: Union[str, ReadInstruction, Split],
+        splits_generators: dict,
+    ) -> IterableDataset:
+        """as_streaming_dataset for a single split."""
+        if str(split) in splits_generators:
+            return self._as_streaming_dataset_single(splits_generators[str(split)])
         elif hasattr(split, "get_read_instruction"):
             split_dict = SplitDict({name: sg.split_info for name, sg in splits_generators.items()})
             split_instruction = split.get_read_instruction(split_dict)
@@ -1163,16 +1184,6 @@ class DatasetBuilder:
             )
         else:
             raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
-
-        # Create a dataset for each of the given splits
-        datasets = map_nested(
-            self._as_streaming_dataset_single,
-            splits_generator,
-            map_tuple=True,
-        )
-        if isinstance(datasets, dict):
-            datasets = IterableDatasetDict(datasets)
-        return datasets
 
     def _as_streaming_dataset_single(
         self, splits_generator, decode_num_threads: Optional[int] = None
