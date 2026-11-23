@@ -45,6 +45,26 @@ def json_encode_field(example: Any, json_field_path: list[str]) -> Any:
             return example
 
 
+def string_encode_field(example: Any, string_field_path: list[str]) -> Any:
+    """Replace the values at `string_field_path` that are not strings by their JSON text, and keep the strings.
+
+    This is used for the fields declared as strings in the features, so that a field with mixed types can be loaded
+    as a string column, without quoting its string values like for a `Json()` field.
+    """
+    if string_field_path:
+        field, *string_field_path = string_field_path
+        if example is None:
+            return None
+        elif field == 0:
+            return [string_encode_field(x, string_field_path) for x in example]
+        else:
+            return {**example, field: string_encode_field(example.get(field), string_field_path)}
+    elif example is None or isinstance(example, str):
+        return example
+    else:
+        return ujson_dumps(example)
+
+
 def json_decode_field(example: Any, json_field_path: str) -> Any:
     if json_field_path:
         field, *json_field_path = json_field_path
@@ -139,6 +159,27 @@ def json_encode_fields_in_json_lines(original_batch: bytes, json_field_paths: li
         examples = [json_encode_field(example, json_field_path) for example in examples]
     batch = "\n".join([ujson_dumps(example) for example in examples]).encode()
     return batch
+
+
+def string_encode_fields_in_json_lines(original_batch: bytes, string_field_paths: list[list[str]]) -> bytes:
+    examples = [ujson_loads(line) for line in original_batch.splitlines()]
+    for string_field_path in string_field_paths:
+        examples = [string_encode_field(example, string_field_path) for example in examples]
+    return "\n".join([ujson_dumps(example) for example in examples]).encode()
+
+
+def get_string_field_paths_from_feature(feature: "FeatureType") -> list[list[str]]:
+    from datasets.features.features import Value, _visit_with_path
+
+    string_field_paths = []
+
+    def get_string_type_path(_feature, feature_path):
+        if isinstance(_feature, Value) and _feature.dtype in ("string", "large_string"):
+            string_field_paths.append(feature_path)
+        return _feature
+
+    _visit_with_path(feature, get_string_type_path)
+    return string_field_paths
 
 
 def get_json_field_paths_from_feature(feature: "FeatureType") -> list[list[str]]:

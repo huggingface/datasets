@@ -20,10 +20,12 @@ from datasets.utils.json import (
     find_mixed_struct_types_field_paths,
     get_json_field_path_from_pyarrow_json_error,
     get_json_field_paths_from_feature,
+    get_string_field_paths_from_feature,
     insert_json_field_path,
     json_encode_field,
     json_encode_fields_in_json_lines,
     set_json_types_in_feature,
+    string_encode_fields_in_json_lines,
     ujson_dumps,
     ujson_loads,
 )
@@ -142,6 +144,12 @@ class Json(datasets.ArrowBasedBuilder):
     def _generate_tables(self, base_files, files_iterables, original_files, allow_full_read=True):
         json_field_paths = []
         is_agent_traces = False
+        # fields declared as strings by the user: if they have mixed types, the values that are not strings are
+        # loaded as their JSON text, and the strings are kept as is
+        string_field_paths = (
+            get_string_field_paths_from_feature(self.config.features) if self.config.features is not None else []
+        )
+        encoded_string_field_paths = []
 
         if self.info.features is not None:
             if self.info.features == AGENT_TRACES_FEATURES:
@@ -286,6 +294,8 @@ class Json(datasets.ArrowBasedBuilder):
                                 for json_field_path in json_field_paths:
                                     examples = [json_encode_field(example, json_field_path) for example in examples]
                                 batch = "\n".join(ujson_dumps(example) for example in examples).encode()
+                            if encoded_string_field_paths:
+                                batch = string_encode_fields_in_json_lines(batch, encoded_string_field_paths)
                             # Disable parallelism if block size is ~ len(batch) to avoid segfault
                             block_size = len(batch) if len(batch) // 8 > block_size else block_size
                             pa_table = None
@@ -300,8 +310,9 @@ class Json(datasets.ArrowBasedBuilder):
                                     except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
                                         if batch.startswith(b"["):  # paj.read_json only supports json lines
                                             raise
-                                        elif self.config.on_mixed_types == "use_json" and (
-                                            isinstance(e, pa.ArrowInvalid)
+                                        elif (
+                                            (self.config.on_mixed_types == "use_json" or string_field_paths)
+                                            and isinstance(e, pa.ArrowInvalid)
                                             and "JSON parse error: Column(" in str(e)
                                             and ") changed from" in str(e)
                                         ):
@@ -310,12 +321,25 @@ class Json(datasets.ArrowBasedBuilder):
                                             )
                                             if not json_field_path:
                                                 raise
-                                            if any(json_field_path[: len(path)] == path for path in json_field_paths):
-                                                raise ValueError(
-                                                    f"Cannot encode mixed-type JSON field {json_field_path!r} as JSON"
-                                                ) from e
-                                            insert_json_field_path(json_field_paths, json_field_path)
+                                            if json_field_path in string_field_paths:
+                                                if json_field_path in encoded_string_field_paths:
+                                                    raise
+                                                encoded_string_field_paths.append(json_field_path)
+                                            elif self.config.on_mixed_types == "use_json":
+                                                if any(
+                                                    json_field_path[: len(path)] == path for path in json_field_paths
+                                                ):
+                                                    raise ValueError(
+                                                        f"Cannot encode mixed-type JSON field {json_field_path!r} as JSON"
+                                                    ) from e
+                                                insert_json_field_path(json_field_paths, json_field_path)
+                                            else:
+                                                raise
                                             batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
+                                            if encoded_string_field_paths:
+                                                batch = string_encode_fields_in_json_lines(
+                                                    batch, encoded_string_field_paths
+                                                )
                                         elif (
                                             "straddling" in str(e) or "JSON conversion to" in str(e)
                                         ) and block_size < len(batch):
