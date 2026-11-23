@@ -1,9 +1,32 @@
+import wave
+from io import BytesIO
+
 import lance
 import numpy as np
 import pyarrow as pa
 import pytest
 
-from datasets import load_dataset
+from datasets import Audio, Value, Video, load_dataset
+
+
+@pytest.mark.parametrize("form,feature_type", [(b"WAVE", Audio), (b"AVI ", Video), (b"XXXX", Value)])
+def test_load_lance_riff_media_type(tmp_path, form, feature_type):
+    if form == b"WAVE":
+        stream = BytesIO()
+        with wave.open(stream, "wb") as writer:
+            writer.setnchannels(1)
+            writer.setsampwidth(2)
+            writer.setframerate(8000)
+            writer.writeframes(b"\x00\x00" * 80)
+        data = stream.getvalue()
+    else:
+        # Inference reads only the RIFF header; no video decoding is requested.
+        data = b"RIFF" + (8).to_bytes(4, "little") + form + b"data"
+    dataset_path = tmp_path / "riff.lance"
+    lance.write_dataset(pa.table({"media": [data]}), dataset_path)
+    dataset = load_dataset(str(dataset_path), split="train")
+    assert isinstance(dataset.features["media"], feature_type)
+    assert len(dataset) == 1
 
 
 @pytest.fixture
