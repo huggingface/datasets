@@ -6,6 +6,7 @@ import json
 import os
 import pickle
 import re
+import signal
 import sys
 import tempfile
 import time
@@ -4009,6 +4010,60 @@ def test_interleave_datasets_probabilities_zero_probability_all_exhausted_raises
     d_other = Dataset.from_dict({"a": other})
     with pytest.raises(ValueError):
         interleave_datasets([d_full, d_other], probabilities=[1.0, 0.0], seed=7, stopping_strategy="all_exhausted")
+
+
+@pytest.fixture
+def fail_fast_on_timeout():
+    """Bound a test's runtime so a reintroduced infinite loop fails instead of hanging."""
+    if not hasattr(signal, "SIGALRM"):
+        pytest.skip("SIGALRM is required to bound the test runtime")
+
+    def _raise_timeout(signum, frame):
+        raise TimeoutError("test exceeded its time budget (possible infinite loop)")
+
+    previous_handler = signal.signal(signal.SIGALRM, _raise_timeout)
+    signal.alarm(5)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, previous_handler)
+
+
+@pytest.mark.parametrize("probabilities, unreachable", [([1.0, 0.0], 1), ([0.0, 1.0], 0)])
+def test_interleave_datasets_without_replacement_zero_probability_raises(
+    fail_fast_on_timeout, probabilities, unreachable
+):
+    # "all_exhausted_without_replacement" stops only when every source is
+    # exhausted. A source with probability 0 is never drawn, so it stays
+    # unexhausted and the per-example loop spins forever. It must raise instead
+    # of hanging -- the timeout fixture turns any regression into a failure.
+    d_full = Dataset.from_dict({"a": [0, 1, 2]})
+    d_other = Dataset.from_dict({"a": [10, 11, 12, 13, 14]})
+    try:
+        with pytest.raises(ValueError, match="probability 0") as excinfo:
+            interleave_datasets(
+                [d_full, d_other],
+                probabilities=probabilities,
+                seed=7,
+                stopping_strategy="all_exhausted_without_replacement",
+            )
+    except TimeoutError:
+        raise AssertionError("interleave_datasets hung on a zero-probability source") from None
+    assert f"indices [{unreachable}]" in str(excinfo.value)
+
+    # Control: valid probabilities still build a dataset, with every sample
+    # from every source used exactly once (the strategy's contract).
+    d_small = Dataset.from_dict({"a": [10, 11]})
+    interleaved = interleave_datasets(
+        [d_full, d_small],
+        probabilities=[0.5, 0.5],
+        seed=7,
+        stopping_strategy="all_exhausted_without_replacement",
+    )
+    assert isinstance(interleaved, Dataset)
+    assert len(interleaved) == len(d_full) + len(d_small)
+    assert sorted(interleaved["a"]) == sorted(list(d_full["a"]) + list(d_small["a"]))
 
 
 @pytest.mark.parametrize("batch_size", [4, 5])
