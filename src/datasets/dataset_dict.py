@@ -1329,6 +1329,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         num_shards: Optional[dict[str, int]] = None,
         num_proc: Optional[int] = None,
         storage_options: Optional[dict] = None,
+        flatten_indices: bool = True,
     ):
         """
         Saves a dataset dict to a filesystem using `fsspec.spec.AbstractFileSystem`.
@@ -1394,6 +1395,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 max_shard_size=max_shard_size,
                 num_proc=num_proc,
                 storage_options=storage_options,
+                flatten_indices=flatten_indices,
             )
 
     @staticmethod
