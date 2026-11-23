@@ -991,6 +991,29 @@ def test_json_mixed_types_in_fields_declared_as_strings(
     assert dataset.to_list() == expected
 
 
+def test_json_mixed_types_in_field_declared_as_string_keeps_all_the_digits(tmp_path, bounded_json_parser):
+    # JSON Lines only: JSON files are first parsed and re-encoded by ujson, which rounds floats and doesn't support
+    # integers this big
+    rows = [{"a": 0.1 + 0.2, "b": 0.1 + 0.2}, {"a": 2**70, "b": 1.5}, {"a": "x", "b": 2.0}]
+    path = tmp_path / "mixed.jsonl"
+    path.write_text("\n".join(map(json.dumps, rows)), encoding="utf-8")
+
+    dataset = load_dataset(
+        "json",
+        data_files=str(path),
+        features=Features({"a": Value("string"), "b": Value("float64")}),
+        split="train",
+        cache_dir=str(tmp_path / "cache"),
+    )
+
+    # the other columns of the rows are not changed either
+    assert dataset.to_list() == [
+        {"a": "0.30000000000000004", "b": 0.1 + 0.2},
+        {"a": str(2**70), "b": 1.5},
+        {"a": "x", "b": 2.0},
+    ]
+
+
 def test_json_mixed_types_in_field_declared_as_string_next_to_a_json_field(tmp_path, bounded_json_parser):
     from datasets import Json as JsonFeature
 

@@ -335,7 +335,11 @@ class Json(datasets.ArrowBasedBuilder):
                                                 insert_json_field_path(json_field_paths, json_field_path)
                                             else:
                                                 raise
-                                            batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
+                                            batch = (
+                                                json_encode_fields_in_json_lines(original_batch, json_field_paths)
+                                                if json_field_paths
+                                                else original_batch
+                                            )
                                             if encoded_string_field_paths:
                                                 batch = string_encode_fields_in_json_lines(
                                                     batch, encoded_string_field_paths

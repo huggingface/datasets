@@ -1,3 +1,4 @@
+import json
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any
 
@@ -62,7 +63,8 @@ def string_encode_field(example: Any, string_field_path: list[str]) -> Any:
     elif example is None or isinstance(example, str):
         return example
     else:
-        return ujson_dumps(example)
+        # the standard json module keeps all the digits of floats and big integers, unlike ujson
+        return json.dumps(example, separators=(",", ":"))
 
 
 def json_decode_field(example: Any, json_field_path: str) -> Any:
@@ -162,10 +164,11 @@ def json_encode_fields_in_json_lines(original_batch: bytes, json_field_paths: li
 
 
 def string_encode_fields_in_json_lines(original_batch: bytes, string_field_paths: list[list[str]]) -> bytes:
-    examples = [ujson_loads(line) for line in original_batch.splitlines()]
+    # use the standard json module to keep all the digits of floats and big integers, unlike ujson
+    examples = [json.loads(line) for line in original_batch.splitlines() if line.strip()]
     for string_field_path in string_field_paths:
         examples = [string_encode_field(example, string_field_path) for example in examples]
-    return "\n".join([ujson_dumps(example) for example in examples]).encode()
+    return "\n".join([json.dumps(example, separators=(",", ":")) for example in examples]).encode()
 
 
 def get_string_field_paths_from_feature(feature: "FeatureType") -> list[list[str]]:
