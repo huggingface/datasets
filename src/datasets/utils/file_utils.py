@@ -1086,6 +1086,10 @@ def xwalk(urlpath, download_config: Optional[DownloadConfig] = None, **kwargs):
 class xPath(type(Path())):
     """Extension of `pathlib.Path` to support both local paths and remote URLs."""
 
+    def __init__(self, *args, download_config: Optional[DownloadConfig] = None):
+        super().__init__(*args)
+        self.download_config = download_config
+
     def __str__(self):
         path_str = super().__str__()
         main_hop, *rest_hops = path_str.split("::")
@@ -1155,7 +1159,9 @@ class xPath(type(Path())):
             fs, *_ = url_to_fs(xjoin(posix_path, pattern), **(storage_options or {}))
             globbed_paths = fs.glob(xjoin(main_hop, pattern))
             for globbed_path in globbed_paths:
-                yield type(self)("::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops))
+                yield type(self)(
+                    "::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops, download_config=self.download_config)
+                )
 
     def rglob(self, pattern, **kwargs):
         """Rglob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
@@ -1175,7 +1181,7 @@ class xPath(type(Path())):
         Returns:
             [`xPath`]
         """
-        return type(self)(xdirname(self.as_posix()))
+        return type(self)(xdirname(self.as_posix()), download_config=self.download_config)
 
     @property
     def name(self) -> str:
@@ -1214,7 +1220,7 @@ class xPath(type(Path())):
         Returns:
             `io.FileIO`: File-like object.
         """
-        return xopen(str(self), *args, **kwargs)
+        return xopen(str(self), *args, download_config=self.download_config, **kwargs)
 
     def joinpath(self, *p: tuple[str, ...]) -> "xPath":
         """Extend :func:`xjoin` to support argument of type :obj:`~pathlib.Path`.
@@ -1225,7 +1231,7 @@ class xPath(type(Path())):
         Returns:
             [`xPath`]
         """
-        return type(self)(xjoin(self.as_posix(), *p))
+        return type(self)(xjoin(self.as_posix(), *p), download_config=self.download_config)
 
     def __truediv__(self, p: str) -> "xPath":
         return self.joinpath(p)
@@ -1233,8 +1239,18 @@ class xPath(type(Path())):
     def with_suffix(self, suffix):
         main_hop, *rest_hops = str(self).split("::")
         if is_local_path(main_hop):
-            return type(self)(str(super().with_suffix(suffix)))
-        return type(self)("::".join([type(self)(PurePosixPath(main_hop).with_suffix(suffix)).as_posix()] + rest_hops))
+            return type(self)(str(super().with_suffix(suffix)), download_config=self.download_config)
+        return type(self)(
+            "::".join(
+                [
+                    type(self)(
+                        PurePosixPath(main_hop).with_suffix(suffix), download_config=self.download_config
+                    ).as_posix()
+                ]
+                + rest_hops
+            ),
+            download_config=self.download_config,
+        )
 
 
 def _as_str(path: Union[str, Path, xPath]):

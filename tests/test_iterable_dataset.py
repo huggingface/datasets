@@ -2746,6 +2746,122 @@ def test_iterable_dataset_set_epoch_resuming(dataset: IterableDataset):
     assert len(list(dataset)) == 0
 
 
+def _generate_ids_by_shard(shards):
+    for shard in shards:
+        for i in range(4):
+            yield {"id": shard * 100 + i}
+
+
+@pytest.mark.parametrize("source_kind", ["python", "arrow"])
+@pytest.mark.parametrize("sibling_action", ["create", "iterate"])
+@pytest.mark.parametrize("resume_first", [False, True])
+def test_iterable_dataset_state_dict_not_frozen_by_sibling_dataset(source_kind, sibling_action, resume_first):
+    # `ds.skip()` and `ds.take()` share the ex_iterables of `ds`. Creating or iterating the take
+    # dataset must not freeze the state_dict of the skip dataset while it is being iterated,
+    # including when that iteration resumed from a checkpoint ("resume, then evaluate").
+    def make_source():
+        if source_kind == "python":
+            return IterableDataset.from_generator(_generate_ids_by_shard, gen_kwargs={"shards": list(range(4))})
+        ids = [shard * 100 + i for shard in range(4) for i in range(4)]
+        return Dataset.from_dict({"id": ids}).to_iterable_dataset(num_shards=4)
+
+    expected = [example["id"] for example in make_source().skip(2)]
+    ds = make_source()
+    train_ds = ds.skip(2)
+    seen = []
+    if resume_first:
+        before_restart = make_source().skip(2)
+        before_restart_iter = iter(before_restart)
+        seen = [next(before_restart_iter)["id"] for _ in range(2)]
+        train_ds.load_state_dict(before_restart.state_dict())
+    train_iter = iter(train_ds)
+    seen += [next(train_iter)["id"] for _ in range(2)]
+    eval_ds = ds.take(2)
+    if sibling_action == "iterate":
+        list(eval_ds)
+    seen += [next(train_iter)["id"] for _ in range(12 - len(seen))]  # crosses several shards
+
+    resumed = make_source().skip(2)
+    resumed.load_state_dict(train_ds.state_dict())
+    assert seen + [example["id"] for example in resumed] == expected
+
+
+def test_iterable_dataset_load_state_dict_resumes_only_once():
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"file{i}.txt" for i in range(4)]})
+    all_examples = list(IterableDataset(ex_iterable))
+
+    dataset = IterableDataset(ex_iterable)
+    it = iter(dataset)
+    consumed = [next(it) for _ in range(3)]
+    state_dict = dataset.state_dict()
+
+    resumed = IterableDataset(ex_iterable)
+    resumed.load_state_dict(state_dict)
+    assert consumed + list(resumed) == all_examples
+    # later passes in the same epoch read the whole dataset again
+    assert list(resumed) == all_examples
+    assert list(resumed) == all_examples
+
+
+def test_iterable_dataset_load_state_dict_restores_epoch():
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"file{i}.txt" for i in range(4)]})
+    all_examples = list(IterableDataset(ex_iterable))
+
+    dataset = IterableDataset(ex_iterable)
+    dataset.set_epoch(1)
+    it = iter(dataset)
+    consumed = [next(it) for _ in range(3)]
+    state_dict = dataset.state_dict()
+
+    resumed = IterableDataset(ex_iterable)
+    resumed.load_state_dict(state_dict)
+    assert resumed.epoch == 1
+    # resumes right away, without calling set_epoch(1) first
+    assert consumed + list(resumed) == all_examples
+
+
+def test_iterable_dataset_set_epoch_after_load_state_dict():
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"file{i}.txt" for i in range(4)]})
+    all_examples = list(IterableDataset(ex_iterable))
+
+    dataset = IterableDataset(ex_iterable)
+    it = iter(dataset)
+    consumed = [next(it) for _ in range(3)]
+    state_dict = dataset.state_dict()
+
+    # setting the same epoch keeps the loaded state
+    resumed = IterableDataset(ex_iterable)
+    resumed.load_state_dict(state_dict)
+    resumed.set_epoch(0)
+    assert consumed + list(resumed) == all_examples
+
+    # moving to another epoch drops it, even when coming back to the checkpoint's epoch
+    resumed = IterableDataset(ex_iterable)
+    resumed.load_state_dict(state_dict)
+    resumed.set_epoch(1)
+    resumed.set_epoch(0)
+    assert list(resumed) == all_examples
+
+
+@pytest.mark.parametrize("drop_last_batch", [False, True])
+def test_iterable_dataset_batched_iter_resumes_only_once(drop_last_batch):
+    def gen():
+        yield from ({"id": i} for i in range(5))
+
+    dataset = IterableDataset.from_generator(gen)
+    it = iter(dataset)
+    for _ in range(4):
+        next(it)
+    resumed = IterableDataset.from_generator(gen)
+    resumed.load_state_dict(dataset.state_dict())
+    # the resumed pass has no full batch left, but it still uses up the loaded state
+    assert list(resumed.iter(batch_size=2, drop_last_batch=drop_last_batch)) == (
+        [] if drop_last_batch else [{"id": [4]}]
+    )
+    expected = [{"id": [0, 1]}, {"id": [2, 3]}] + ([] if drop_last_batch else [{"id": [4]}])
+    assert list(resumed.iter(batch_size=2, drop_last_batch=drop_last_batch)) == expected
+
+
 @pytest.mark.parametrize("method", ["skip", "take"])
 @pytest.mark.parametrize("source_kind", ["python", "arrow"])
 @pytest.mark.parametrize("shuffle_before", [False, True])
@@ -3199,6 +3315,19 @@ def test_iterable_dataset_rename_columns(dataset_with_several_columns: IterableD
     assert new_dataset.column_names is not None
     assert all(c not in new_dataset.column_names for c in ["id", "filepath"])
     assert all(c in new_dataset.column_names for c in ["new_id", "filename"])
+
+
+@pytest.mark.parametrize("format_type", ["arrow", "pandas"])
+def test_iterable_dataset_rename_columns_with_table_format(format_type):
+    ds = IterableDataset.from_dict({"a": [1, 2, 3], "b": ["x", "y", "z"]})
+    new_dataset = ds.with_format(format_type).rename_columns({"a": "c"})
+    assert new_dataset.column_names == ["c", "b"]
+    outputs = list(new_dataset)
+    assert len(outputs) == 3
+    assert all(isinstance(output, pa.Table if format_type == "arrow" else pd.DataFrame) for output in outputs)
+    assert list(new_dataset.with_format(None)) == [{"c": 1, "b": "x"}, {"c": 2, "b": "y"}, {"c": 3, "b": "z"}]
+    with pytest.raises(ValueError):
+        list(ds.with_format(format_type).rename_columns({"missing": "c"}))
 
 
 def test_iterable_dataset_remove_columns(dataset_with_several_columns: IterableDataset):
@@ -3719,6 +3848,34 @@ def test_resume_dataloader_twice(num_workers):
     dl.load_state_dict(state_2)
     remainder = list(dl)
     assert consumed + remainder == all_examples
+
+
+@require_torchdata_stateful_dataloader
+@pytest.mark.parametrize("num_workers", [0, 1])
+def test_resume_dataloader_then_more_epochs(num_workers):
+    from torchdata.stateful_dataloader import StatefulDataLoader
+
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"file{i}.txt" for i in range(4)]})
+
+    def make_dataloader():
+        return StatefulDataLoader(
+            IterableDataset(ex_iterable), batch_size=None, num_workers=num_workers, persistent_workers=num_workers > 0
+        )
+
+    all_examples = list(make_dataloader())
+
+    dl = make_dataloader()
+    it = iter(dl)
+    consumed = [next(it) for _ in range(2)]
+    state_dict = dl.state_dict()
+    del it
+
+    dl = make_dataloader()
+    dl.load_state_dict(state_dict)
+    assert consumed + list(dl) == all_examples
+    # the epochs after the resumed one start from the beginning
+    assert list(dl) == all_examples
+    assert list(dl) == all_examples
 
 
 @pytest.mark.parametrize("consume", [1, 500, 1500])

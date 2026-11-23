@@ -1625,3 +1625,26 @@ def test_tensor_cast_rejects_a_null_inside_a_row_on_the_fast_path_too(shape, sli
     with pytest.raises(ValueError) as slow:
         dataset.cast_column("x", Tensor(shape, "float32"))
     assert str(fast.value) == str(slow.value)
+
+
+@pytest.mark.parametrize("shape", [(2, 3), (None, 3)])
+def test_tensor_parquet_round_trip_keeps_column_metadata(shape, tmp_path):
+    from datasets import load_dataset
+
+    features = Features({"x": Tensor(shape, "int64"), "y": Value("int64")})
+    dataset = Dataset.from_dict({"x": [np.ones((2, 3), dtype=np.int64), None], "y": [1, 2]}, features=features)
+    column_metadata = {"x": {"unit": "cm"}, "y": {"source": "manual"}}
+    dataset = dataset.with_column_metadata(column_metadata)
+    path = str(tmp_path / "tensor.parquet")
+    dataset.to_parquet(path)
+    import pyarrow.parquet as pq
+
+    schema = pq.read_schema(path)
+    assert b"huggingface:tensor_schema" in schema.metadata  # the tensor column is written as storage
+    assert schema.field("x").metadata == {b"unit": b"cm"}
+    restored = Dataset.from_parquet(path, cache_dir=str(tmp_path / "cache"))
+    assert restored.features == features
+    assert restored.info.column_metadata == column_metadata
+    np.testing.assert_array_equal(restored["x"][0], np.ones((2, 3), dtype=np.int64))
+    streamed = load_dataset("parquet", data_files=path, split="train", streaming=True)
+    assert streamed.info.column_metadata == column_metadata
