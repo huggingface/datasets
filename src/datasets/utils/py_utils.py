@@ -79,7 +79,7 @@ def size_str(size_in_bytes):
         size_in_bytes: `int` or `None`, the size, in bytes, that we want to
             format as a human-readable size string.
     """
-    if not size_in_bytes:
+    if size_in_bytes is None:
         return "Unknown size"
 
     _NAME_LIST = [("PiB", 2**50), ("TiB", 2**40), ("GiB", 2**30), ("MiB", 2**20), ("KiB", 2**10)]
