@@ -266,6 +266,9 @@ ARCHIVES_MAX_NUMBER_FOR_MODULE_INFERENCE = 10
 # Async map functions
 MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL = 1000
 
+# Map functions of IterableDataset.map(..., num_proc=...): number of inputs sent in advance to each process
+MAX_NUM_RUNNING_MAP_FUNCTIONS_PER_PROCESS = 2
+
 # Progress bars
 PBAR_REFRESH_TIME_INTERVAL = 0.05  # 20 progress updates per sec
 

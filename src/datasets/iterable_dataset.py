@@ -72,6 +72,7 @@ from .utils import tqdm as hf_tqdm
 from .utils.logging import get_logger
 from .utils.py_utils import (
     Literal,
+    _get_pool_pid,
     convert_file_size_to_int,
     iflatmap_unordered,
 )
@@ -95,6 +96,37 @@ Key = Union[int, str, tuple[int, int], "BuilderKey"]
 
 def identity_func(x):
     return x
+
+
+# Function and keyword arguments of `IterableDataset.map(..., num_proc=...)`, set once in each subprocess of the pool
+_map_function_in_subprocess: Optional[Callable] = None
+_map_fn_kwargs_in_subprocess: dict = {}
+
+
+def _init_map_subprocess(function: Callable, fn_kwargs: dict) -> None:
+    global _map_function_in_subprocess, _map_fn_kwargs_in_subprocess
+    _map_function_in_subprocess, _map_fn_kwargs_in_subprocess = function, fn_kwargs
+
+
+def _apply_map_function_in_subprocess(fn_args: list) -> tuple[Any, bool]:
+    processed_inputs = _map_function_in_subprocess(*fn_args, **_map_fn_kwargs_in_subprocess)
+    # the identity of the returned object is lost when it is sent back to the main process
+    return processed_inputs, bool(fn_args) and processed_inputs is fn_args[0]
+
+
+def _get_map_result_from_subprocess(
+    pool: "mp.pool.Pool", async_result: "mp.pool.AsyncResult", initial_pool_pid: set[int]
+) -> Any:
+    while True:
+        try:
+            return async_result.get(timeout=0.05)
+        except mp.TimeoutError:
+            if _get_pool_pid(pool) != initial_pool_pid:
+                # One of the subprocesses has died and its result will never come back.
+                raise RuntimeError(
+                    "One of the subprocesses has abruptly died during map operation. "
+                    "To debug the error, disable multiprocessing."
+                )
 
 
 def _rename_columns_fn(example: Union[dict, pa.Table], column_mapping: dict[str, str]):
@@ -1409,6 +1441,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         features: Optional[Features] = None,
         max_num_running_async_map_functions_in_parallel: Optional[int] = None,
         is_batch_accumulate_arrow_table_function: bool = False,
+        num_proc: Optional[int] = None,
     ):
         super().__init__()
         self.ex_iterable = ex_iterable
@@ -1426,6 +1459,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             max_num_running_async_map_functions_in_parallel or config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL
         )
         self.is_batch_accumulate_arrow_table_function = is_batch_accumulate_arrow_table_function
+        self.num_proc = num_proc
         # Set by IterableDataset.decode when it enables threaded decoding: since examples must be decoded exactly
         # once, a later `.decode()` call reconfigures decoding from `decoding_dataset` (the dataset `.decode()` was
         # called on) rather than stacking a second decoding step on top of this one.
@@ -1559,14 +1593,14 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             inputs = dict(example)
             return inputs, fn_args, additional_args, self.fn_kwargs
 
-        def prepare_outputs(key_example, inputs, processed_inputs):
+        def prepare_outputs(inputs, processed_inputs, returned_example):
             validate_function_output(processed_inputs)
             # this logic mimics the one in Dataset.map
             if self.remove_columns:
                 for c in self.remove_columns:
                     if c in inputs:
                         del inputs[c]
-                    if processed_inputs is key_example[1] and c in processed_inputs:
+                    if returned_example and c in processed_inputs:
                         del processed_inputs[c]
             # A batched function may change the number of rows. When it does, every retained input
             # column must match the new length, otherwise merging them below would zip mismatched
@@ -1594,15 +1628,16 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             """Utility to apply the function on a selection of columns."""
             inputs, fn_args, additional_args, fn_kwargs = prepare_inputs(key_example, indices)
             processed_inputs = self.function(*fn_args, *additional_args, **fn_kwargs)
-            return prepare_outputs(key_example, inputs, processed_inputs)
+            return prepare_outputs(inputs, processed_inputs, processed_inputs is key_example[1])
 
         async def async_apply_function(key_example, indices):
             """Utility to apply the function on a selection of columns. Same code but async"""
             inputs, fn_args, additional_args, fn_kwargs = prepare_inputs(key_example, indices)
             processed_inputs = await self.function(*fn_args, *additional_args, **fn_kwargs)
-            return prepare_outputs(key_example, inputs, processed_inputs)
+            return prepare_outputs(inputs, processed_inputs, processed_inputs is key_example[1])
 
-        tasks: list[asyncio.Task] = []
+        tasks: list = []
+        pool: Optional[mp.pool.Pool] = None
         if inspect.iscoroutinefunction(self.function):
             try:
                 loop = asyncio.get_running_loop()
@@ -1612,45 +1647,85 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         else:
             loop = None
 
-        def iter_outputs():
-            nonlocal tasks, loop
-            inputs_iterator = iter_batched_inputs() if self.batched else iter_inputs()
-            if inspect.iscoroutinefunction(self.function):
-                if self._state_dict:
+        def iter_outputs_in_order(inputs_iterator, submit, is_done, wait, get_output, max_num_running):
+            """Run the function on up to `max_num_running` inputs at the same time and yield the outputs in order.
+
+            The state of the examples iterable is saved after submitting an input, and it becomes the state to resume
+            from once the output of this input is yielded.
+            """
+            if self._state_dict:
+                previous_state = self.ex_iterable.state_dict()
+                self._state_dict["previous_state"] = previous_state
+                # Replayed outputs are counted again below, including those skipped on resume.
+                self._state_dict["num_examples_since_previous_state"] = 0
+                previous_state_task = None
+                previous_state_example_idx = self._state_dict["previous_state_example_idx"]
+            indices: Union[list[int], list[list[int]]] = []
+            for i, key_example in inputs_iterator:
+                indices.append(i)
+                tasks.append(submit(key_example, i))
+                # keep the total active tasks under a certain number, waiting for the oldest task to complete.
+                # Polling the whole task list with asyncio.wait can't be used for that: it returns as soon as any
+                # task in the list is done, so as soon as one example is slower than the examples created after it
+                # (e.g. a large remote file), every wait returns instantly and this spins at 100% CPU, taking the
+                # GIL away from the worker threads that were doing the actual work.
+                if len(tasks) >= max_num_running:
+                    wait(tasks[0])
+                # yield finished tasks
+                while tasks and is_done(tasks[0]):
+                    i, task = indices.pop(0), tasks.pop(0)
+                    yield i, get_output(task)
+                    if self._state_dict and task is previous_state_task:
+                        self._state_dict["previous_state"] = previous_state
+                        self._state_dict["num_examples_since_previous_state"] = 0
+                        self._state_dict["previous_state_example_idx"] = previous_state_example_idx
+                        previous_state, previous_state_task = None, None
+                # checkpoint
+                if self._state_dict and previous_state_task is None and tasks:
                     previous_state = self.ex_iterable.state_dict()
-                    self._state_dict["previous_state"] = previous_state
-                    # Replayed outputs are counted again below, including those skipped on resume.
-                    self._state_dict["num_examples_since_previous_state"] = 0
-                    previous_state_task = None
-                    previous_state_example_idx = self._state_dict["previous_state_example_idx"]
-                indices: Union[list[int], list[list[int]]] = []
-                for i, key_example in inputs_iterator:
-                    indices.append(i)
-                    tasks.append(loop.create_task(async_apply_function(key_example, i)))
-                    # keep the total active tasks under a certain number, waiting for the oldest task to complete.
-                    # Polling the whole task list with asyncio.wait can't be used for that: it returns as soon as any
-                    # task in the list is done, so as soon as one example is slower than the examples created after it
-                    # (e.g. a large remote file), every wait returns instantly and this spins at 100% CPU, taking the
-                    # GIL away from the worker threads that were doing the actual work.
-                    if len(tasks) >= self.max_num_running_async_map_functions_in_parallel:
-                        loop.run_until_complete(tasks[0])
-                    # yield finished tasks
-                    while tasks and tasks[0].done():
-                        i, task = indices.pop(0), tasks.pop(0)
-                        yield i, task.result()
-                        if self._state_dict and task is previous_state_task:
-                            self._state_dict["previous_state"] = previous_state
-                            self._state_dict["num_examples_since_previous_state"] = 0
-                            self._state_dict["previous_state_example_idx"] = previous_state_example_idx
-                            previous_state, previous_state_task = None, None
-                    # checkpoint
-                    if self._state_dict and previous_state_task is None and tasks:
-                        previous_state = self.ex_iterable.state_dict()
-                        previous_state_task = tasks[-1]
-                        previous_state_example_idx = current_idx
-                while tasks:
-                    yield indices[0], loop.run_until_complete(tasks[0])
-                    indices.pop(0), tasks.pop(0)
+                    previous_state_task = tasks[-1]
+                    previous_state_example_idx = current_idx
+            while tasks:
+                yield indices[0], get_output(tasks[0])
+                indices.pop(0), tasks.pop(0)
+
+        def iter_outputs():
+            inputs_iterator = iter_batched_inputs() if self.batched else iter_inputs()
+            if loop is not None:
+                yield from iter_outputs_in_order(
+                    inputs_iterator,
+                    submit=lambda key_example, i: loop.create_task(async_apply_function(key_example, i)),
+                    is_done=lambda task: task.done(),
+                    wait=loop.run_until_complete,
+                    get_output=lambda task: task.result() if task.done() else loop.run_until_complete(task),
+                    max_num_running=self.max_num_running_async_map_functions_in_parallel,
+                )
+            elif pool is not None:
+                initial_pool_pid = _get_pool_pid(pool)
+
+                def submit(key_example, indices):
+                    inputs, fn_args, additional_args, _ = prepare_inputs(key_example, indices)
+                    async_result = pool.apply_async(_apply_map_function_in_subprocess, ([*fn_args, *additional_args],))
+                    return inputs, async_result
+
+                def wait(task):
+                    return _get_map_result_from_subprocess(pool, task[1], initial_pool_pid)
+
+                def get_output(task):
+                    processed_inputs, returned_first_argument = wait(task)
+                    # the first argument is the example itself only if input_columns is None
+                    return prepare_outputs(
+                        task[0], processed_inputs, returned_first_argument and self.input_columns is None
+                    )
+
+                yield from iter_outputs_in_order(
+                    inputs_iterator,
+                    submit=submit,
+                    is_done=lambda task: task[1].ready(),
+                    wait=wait,
+                    get_output=get_output,
+                    max_num_running=self.num_proc * config.MAX_NUM_RUNNING_MAP_FUNCTIONS_PER_PROCESS,
+                )
             else:
                 if self._state_dict:
                     if self.batched:
@@ -1669,6 +1744,11 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                             self._state_dict["previous_state_example_idx"] = current_idx
 
         try:
+            if loop is None and self.num_proc is not None and self.num_proc >= 1:
+                # spawn instead of fork, since the main process may be running threads to stream the data
+                pool = mp.get_context("spawn").Pool(
+                    self.num_proc, initializer=_init_map_subprocess, initargs=(self.function, self.fn_kwargs)
+                )
             outputs = iter_outputs()
             if self.batched:
                 outputs = (
@@ -1693,6 +1773,11 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 except (asyncio.CancelledError, ValueError):
                     logger.debug("Tasks canceled.")
             raise
+        finally:
+            if pool is not None:
+                # stops the functions still running, e.g. if the iteration stopped early
+                pool.terminate()
+                pool.join()
 
     def _iter_arrow(self, max_chunksize: Optional[int] = None) -> Iterator[tuple[Key, pa.Table]]:
         formatter: TableFormatter = get_formatter(self.formatting.format_type) if self.formatting else ArrowFormatter()
@@ -1796,6 +1881,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             features=self.features,
             max_num_running_async_map_functions_in_parallel=self.max_num_running_async_map_functions_in_parallel,
             is_batch_accumulate_arrow_table_function=self.is_batch_accumulate_arrow_table_function,
+            num_proc=self.num_proc,
         )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "MappedExamplesIterable":
@@ -1814,6 +1900,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             features=self.features,
             max_num_running_async_map_functions_in_parallel=self.max_num_running_async_map_functions_in_parallel,
             is_batch_accumulate_arrow_table_function=self.is_batch_accumulate_arrow_table_function,
+            num_proc=self.num_proc,
         )
 
     def reshard_data_sources(self) -> "MappedExamplesIterable":
@@ -1831,6 +1918,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             features=self.features,
             max_num_running_async_map_functions_in_parallel=self.max_num_running_async_map_functions_in_parallel,
             is_batch_accumulate_arrow_table_function=self.is_batch_accumulate_arrow_table_function,
+            num_proc=self.num_proc,
         )
 
     @property
@@ -3712,6 +3800,7 @@ class IterableDataset(DatasetInfoMixin):
         remove_columns: Optional[Union[str, list[str]]] = None,
         features: Optional[Features] = None,
         fn_kwargs: Optional[dict] = None,
+        num_proc: Optional[int] = None,
     ) -> "IterableDataset":
         """
         Apply a function to all the examples in the iterable dataset (individually or in batches) and update them.
@@ -3766,6 +3855,14 @@ class IterableDataset(DatasetInfoMixin):
                 Feature types of the resulting dataset.
             fn_kwargs (`Dict`, *optional*, default `None`):
                 Keyword arguments to be passed to `function`.
+            num_proc (`int`, *optional*, defaults to `None`):
+                Number of processes to run `function` in while iterating, if `function` is not asynchronous.
+                The examples are still read in the main process and the outputs keep the order of the examples.
+                The processes are started each time you iterate over the dataset, and each call of `function`
+                sends its inputs and outputs between processes, so this is most useful when `function` is slow
+                and `batched=True`. Not supported for datasets formatted as tables (e.g. "arrow" or "pandas").
+                The processes are started with "spawn", so in a script the iteration must run under
+                `if __name__ == "__main__":`.
 
         Example:
 
@@ -3794,6 +3891,7 @@ class IterableDataset(DatasetInfoMixin):
             remove_columns=remove_columns,
             features=features,
             fn_kwargs=fn_kwargs,
+            num_proc=num_proc,
         )
 
     def _map(
@@ -3808,6 +3906,7 @@ class IterableDataset(DatasetInfoMixin):
         features: Optional[Features] = None,
         fn_kwargs: Optional[dict] = None,
         is_batch_accumulate_arrow_table_function: bool = False,
+        num_proc: Optional[int] = None,
     ) -> "IterableDataset":
         if isinstance(input_columns, str):
             input_columns = [input_columns]
@@ -3817,6 +3916,20 @@ class IterableDataset(DatasetInfoMixin):
             function = identity_func
         if fn_kwargs is None:
             fn_kwargs = {}
+        if num_proc == 0:
+            num_proc = None
+        elif num_proc is not None and num_proc < 0:
+            raise ValueError("num_proc must be >= 0 or None.")
+        if num_proc is not None:
+            if inspect.iscoroutinefunction(function):
+                raise ValueError(
+                    "num_proc is not supported for asynchronous functions, since map already runs them in parallel."
+                )
+            if self._formatting and self._formatting.is_table:
+                raise ValueError(
+                    f"num_proc is not supported for datasets formatted as {self._formatting.format_type!r}. "
+                    "Use num_proc=None, or map the dataset before setting its format."
+                )
         if features is not None:
             features = _fix_for_backward_compatible_features(features)
 
@@ -3871,6 +3984,7 @@ class IterableDataset(DatasetInfoMixin):
             formatting=self._formatting,
             features=features,
             is_batch_accumulate_arrow_table_function=is_batch_accumulate_arrow_table_function,
+            num_proc=num_proc,
         )
         info = self.info.copy()
         info.features = features

@@ -1956,6 +1956,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, list[str]]] = None,
         fn_kwargs: Optional[dict] = None,
+        num_proc: Optional[int] = None,
     ) -> "IterableDatasetDict":
         """
         Apply a function to all the examples in the iterable dataset (individually or in batches) and update them.
@@ -2008,6 +2009,9 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 columns with names in `remove_columns`, these columns will be kept.
             fn_kwargs (`Dict`, *optional*, defaults to `None`):
                 Keyword arguments to be passed to `function`
+            num_proc (`int`, *optional*, defaults to `None`):
+                Number of processes to run `function` in while iterating, if `function` is not asynchronous.
+                See [`IterableDataset.map`] for more details.
 
         Example:
 
@@ -2038,6 +2042,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 drop_last_batch=drop_last_batch,
                 remove_columns=remove_columns,
                 fn_kwargs=fn_kwargs,
+                num_proc=num_proc,
             )
 
             if with_split:
