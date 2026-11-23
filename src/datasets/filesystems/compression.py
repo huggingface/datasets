@@ -4,6 +4,7 @@ from typing import Optional
 
 import fsspec
 from fsspec.archive import AbstractArchiveFileSystem
+from fsspec.utils import get_protocol
 
 
 class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
@@ -34,6 +35,13 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
         """
         super().__init__(self, **kwargs)
         self.fo = fo.__fspath__() if hasattr(fo, "__fspath__") else fo
+        target_options = (target_options or {}).copy()
+        if (target_protocol or get_protocol(self.fo)) in {"http", "https"}:
+            target_options["client_kwargs"] = {
+                "requote_redirect_url": False,  # see https://github.com/huggingface/datasets/pull/5459
+                "trust_env": True,  # Enable reading proxy env variables.
+                **(target_options.get("client_kwargs") or {}),
+            }
         # always open as "rb" since fsspec can then use the TextIOWrapper to make it work for "r" mode
         self._open_with_fsspec = partial(
             fsspec.open,
@@ -41,12 +49,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
             mode="rb",
             protocol=target_protocol,
             compression=self.compression,
-            client_kwargs={
-                "requote_redirect_url": False,  # see https://github.com/huggingface/datasets/pull/5459
-                "trust_env": True,  # Enable reading proxy env variables.
-                **(target_options or {}).pop("client_kwargs", {}),  # To avoid issues if it was already passed.
-            },
-            **(target_options or {}),
+            **target_options,
         )
         self.compressed_name = os.path.basename(self.fo.split("::")[0])
         self.uncompressed_name = (
