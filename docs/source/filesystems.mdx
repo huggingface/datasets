@@ -117,7 +117,7 @@ Otherwise you can use your own file parsing function:
 >>> def parse_data_files(data_files):
 ...     ...
 ...     return {"col_1": [...], "col_2": [...]}
->>> ds = ds.map(parse_data_files, batched=True, input_column=["data_file"])
+>>> ds = ds.map(parse_data_files, batched=True, input_columns=["data_file"], remove_columns=["data_file"])
 >>> ds.push_to_hub("username/my-dataset", num_proc=4)
 >>> # and later
 >>> ds = load_dataset("username/my-dataset")
