@@ -17,7 +17,7 @@ from huggingface_hub import CommitOperationAdd, CommitOperationCopy, CommitOpera
 
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
 from datasets.data_files import sanitize_patterns
-from datasets.info import DatasetInfosDict
+from datasets.info import DatasetInfo, DatasetInfosDict
 from datasets.utils.metadata import MetadataConfigs
 
 
@@ -199,6 +199,27 @@ def test_hub_fixture_blocks_the_network_but_not_loopback(hub):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             with pytest.raises(AssertionError, match="must not access the network"):
                 sock.connect(address)
+
+
+@pytest.mark.parametrize("description", ["", "Examples for training.\n\nEach row has one label."])
+@pytest.mark.parametrize(("append", "config_name"), [(False, "default"), (True, "new-config")])
+def test_push_to_hub_preserves_dataset_description(hub, tmp_path, description, append, config_name):
+    dataset = Dataset.from_dict({"text": ["hello"]}, info=DatasetInfo(description=description))
+    dataset.push_to_hub(hub.repo_id, append=append, config_name=config_name)
+
+    dataset_info = hub.card().data["dataset_info"]
+    assert ("description" in dataset_info) == bool(description)
+    assert load_local_hub(hub, tmp_path, config_name)["train"].info.description == description
+
+
+def test_append_to_existing_config_preserves_description(hub):
+    original = Dataset.from_dict({"text": ["before"]}, info=DatasetInfo(description="Original description"))
+    original.push_to_hub(hub.repo_id)
+    extra = Dataset.from_dict({"text": ["after"]}, info=DatasetInfo(description="Additional rows"))
+    extra.push_to_hub(hub.repo_id, append=True)
+
+    assert hub.card().data["dataset_info"]["description"] == "Original description"
+    assert rows(hub.files()) == [{"text": "before"}, {"text": "after"}]
 
 
 @pytest.mark.parametrize("num_shards", [None, 2])

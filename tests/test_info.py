@@ -127,7 +127,7 @@ def test_dataset_infos_dict_dump_and_reload(tmp_path, dataset_infos_dict: Datase
     # the config_name of the dataset_infos_dict take over the attribute
     for config_name, dataset_info in dataset_infos_dict.items():
         dataset_info.config_name = config_name
-        # the yaml representation doesn't include fields like description or citation
+        # the yaml representation doesn't include fields like citation
         # so we just test that we can recover what we can from the yaml
         dataset_infos_dict[config_name] = DatasetInfo._from_yaml_dict(dataset_info._to_yaml_dict())
     assert dataset_infos_dict == reloaded

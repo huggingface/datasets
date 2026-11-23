@@ -163,6 +163,7 @@ class DatasetInfo:
 
     _INCLUDED_INFO_IN_YAML: ClassVar[list[str]] = [
         "config_name",
+        "description",
         "download_size",
         "dataset_size",
         "features",
@@ -315,6 +316,8 @@ class DatasetInfo:
     def _to_yaml_dict(self) -> dict:
         yaml_dict = {}
         dataset_info_dict = asdict(self)
+        if not self.description:
+            dataset_info_dict.pop("description", None)
         for key in dataset_info_dict:
             if key in self._INCLUDED_INFO_IN_YAML:
                 value = getattr(self, key)

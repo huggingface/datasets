@@ -6910,6 +6910,7 @@ def _append_to_repo(
     num_shards: Optional[dict[str, Optional[int]]],
     embed_external_files: bool,
     num_proc: Optional[int],
+    description: Optional[str] = None,
 ) -> CommitInfo:
     """Append against a single snapshot so a concurrent push cannot silently discard rows."""
     data_dir = posixpath.normpath(data_dir).lstrip("/") or "."
@@ -7061,6 +7062,7 @@ def _append_to_repo(
             new_parquet_paths=final_parquet_paths,
             split_parquet_paths=split_parquet_paths,
             renamed_parquet_paths=renamed_parquet_paths,
+            description=description,
         )
         # New-split additions have already been preuploaded by the normal writer.
         if additions:
@@ -7123,6 +7125,7 @@ def _push_to_repo(
             num_shards={split: num_shards},
             embed_external_files=embed_external_files,
             num_proc=num_proc,
+            description=dset.info.description,
         )
     api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
     resolved_output_path = HfFileSystemResolvedRepositoryPath(
@@ -7225,6 +7228,7 @@ def _push_to_repo(
             uploaded_sizes=[uploaded_size],
             deleted_sizes=[deleted_size],
             remove_other_splits=False,
+            description=dset.info.description,
         )
         dataset_card_additions = [
             CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(new_dataset_card).encode())
@@ -7514,6 +7518,7 @@ def _get_updated_dataset_card(
     new_parquet_paths: Optional[list[str]] = None,
     split_parquet_paths: Optional[dict[str, list[str]]] = None,
     renamed_parquet_paths: Optional[dict[str, dict[str, str]]] = None,
+    description: Optional[str] = None,
 ) -> tuple[DatasetCard, Optional[dict]]:
     """Update a dataset card in push_to_hub"""
     if append:
@@ -7611,6 +7616,8 @@ def _get_updated_dataset_card(
             info_to_dump.download_size += uploaded_size
             info_to_dump.dataset_size += split_info.num_bytes
         info_to_dump.size_in_bytes = info_to_dump.download_size + info_to_dump.dataset_size
+    if description and (not append or not info_to_dump.description):
+        info_to_dump.description = description
     # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
     repo_splits: list[str] = []
     pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
