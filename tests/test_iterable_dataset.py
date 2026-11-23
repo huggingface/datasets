@@ -1835,6 +1835,39 @@ def test_vertically_concatenated_examples_iterable_shuffle_data_sources():
     assert_load_state_dict_resumes_iteration(shuffled_ex_iterable)
 
 
+@pytest.mark.parametrize("ex_iterable_cls", [SkipExamplesIterable, TakeExamplesIterable])
+@pytest.mark.parametrize("split_when_sharding", [True, False])
+@pytest.mark.parametrize("num_shards", [1, 2, 3, 5])
+@pytest.mark.parametrize("with_other_source", [False, True])
+def test_vertically_concatenated_examples_iterable_shard_data_sources_with_skip_or_take(
+    ex_iterable_cls, split_when_sharding, num_shards, with_other_source
+):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}.txt" for i in range(4)], "n": 3})
+    selected_ex_iterable = ex_iterable_cls(base_ex_iterable, n=4, split_when_sharding=split_when_sharding)
+    ex_iterables = [selected_ex_iterable]
+    if with_other_source:
+        # shifts the shard indices of the selected source in the concatenation
+        ex_iterables.insert(0, ExamplesIterable(generate_examples_fn, {"filepaths": ["other.txt"], "n": 2}))
+    concatenated_ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
+
+    def examples_per_shard(ex_iterable):
+        # like DataLoader workers, a shard index without any data source is not iterated
+        return [
+            [x for _, x in ex_iterable.shard_data_sources(num_shards, index, contiguous=False)]
+            for index in range(num_shards)
+            if ex_iterable.split_shard_indices_by_worker(num_shards, index, contiguous=False)
+        ]
+
+    key = lambda x: f"{x['filepath']}_{x['id']}"  # noqa: E731
+    # concatenating must not change which examples skip() or take() select in each source
+    expected = sorted(
+        (x for ex_iterable in ex_iterables for xs in examples_per_shard(ex_iterable) for x in xs), key=key
+    )
+    assert sorted((x for xs in examples_per_shard(concatenated_ex_iterable) for x in xs), key=key) == expected
+    if not with_other_source:
+        assert examples_per_shard(concatenated_ex_iterable) == examples_per_shard(selected_ex_iterable)
+
+
 def test_horizontally_concatenated_examples_iterable():
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label1": 10})
     ex_iterable2 = ExamplesIterable(generate_examples_fn, {"label2": 5})
@@ -2452,6 +2485,20 @@ def test_skip_and_take_torch_dataloader_with_more_workers_than_shards(method, n,
     assert dataset.num_shards == 1
     dataloader = DataLoader(dataset, batch_size=None, num_workers=2)
     assert len(list(dataloader)) == expected
+
+
+@require_torch
+@pytest.mark.parametrize("method", ["skip", "take"])
+@pytest.mark.parametrize("num_workers", [1, 2])
+def test_concatenate_datasets_skip_or_take_torch_dataloader(method, num_workers):
+    from torch.utils.data import DataLoader
+
+    dataset = Dataset.from_dict({"id": list(range(12))}).to_iterable_dataset(num_shards=4)
+    dataset = dataset.skip(8) if method == "skip" else dataset.take(4)
+    expected = sorted(int(x["id"]) for x in DataLoader(dataset, batch_size=None, num_workers=num_workers))
+    concatenated_dataset = concatenate_datasets([dataset])
+    dataloader = DataLoader(concatenated_dataset, batch_size=None, num_workers=num_workers)
+    assert sorted(int(x["id"]) for x in dataloader) == expected
 
 
 @require_torch
