@@ -80,7 +80,18 @@ class PolarsFeaturesDecoder:
             else {}
         )
         if decode:
-            row[list(decode.keys())] = row.map_rows(decode)
+            import polars as pl
+
+            # decode is a per-column mapping, not a callable accepting a whole
+            # row. Apply each decoder to its column. return_dtype=Object keeps
+            # decoded values such as PIL images intact instead of letting
+            # Polars infer an incompatible dtype.
+            row = row.with_columns(
+                [
+                    pl.col(column_name).map_elements(decoder, return_dtype=pl.Object)
+                    for column_name, decoder in decode.items()
+                ]
+            )
         return row
 
     def decode_column(self, column: "pl.Series", column_name: str) -> "pl.Series":
