@@ -3621,6 +3621,16 @@ def test_interleave_datasets_with_oversampling():
     assert values == expected_values
 
 
+@pytest.mark.parametrize("stopping_strategy", ["all_exhausted", "all_exhausted_without_replacement"])
+def test_interleave_datasets_zero_probability_cannot_be_exhausted(stopping_strategy):
+    d1 = IterableDataset(ExamplesIterable((lambda: (yield from [(i, {"a": i}) for i in [0, 1, 2]])), {}))
+    d2 = IterableDataset(ExamplesIterable((lambda: (yield from [(i, {"a": i}) for i in [10, 11]])), {}))
+    with pytest.raises(ValueError, match=r"indices \[1\] have probability 0"):
+        interleave_datasets([d1, d2], probabilities=[1.0, 0.0], seed=42, stopping_strategy=stopping_strategy)
+    # a source that is never sampled is fine as long as the stream stops before the others are exhausted
+    assert [x["a"] for x in interleave_datasets([d1, d2], probabilities=[1.0, 0.0], seed=42)] == [0, 1, 2]
+
+
 @require_torch
 def test_with_format_torch(dataset_with_several_columns: IterableDataset):
     import torch

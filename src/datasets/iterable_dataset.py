@@ -5702,6 +5702,13 @@ def _interleave_iterable_datasets(
             raise ValueError(
                 f"Datasets should be identically split_by_node before interleaving, but got {datasets[0]._distributed}!={dset._distributed} at index 0 and {i}"
             )
+    if probabilities is not None and stopping_strategy in ("all_exhausted", "all_exhausted_without_replacement"):
+        never_sampled = [i for i, p in enumerate(probabilities) if p == 0]
+        if never_sampled:
+            raise ValueError(
+                f'interleave_datasets with stopping_strategy="{stopping_strategy}" cannot exhaust a dataset '
+                f"that is never sampled; datasets at indices {never_sampled} have probability 0."
+            )
 
     # TODO: improve this to account for a mix of ClassLabel and Value for example
     # right now it would keep the type of the first dataset in the list
