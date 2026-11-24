@@ -2293,6 +2293,31 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         """
         return IterableDatasetDict({k: dataset.select_columns(column_names) for k, dataset in self.items()})
 
+    def flatten(self, max_depth: int = 16) -> "IterableDatasetDict":
+        """Flatten each split of the dataset dict (nested struct features are flattened).
+        Each column with a struct type is flattened into one column per struct field.
+        Other columns are left unchanged.
+
+        Args:
+            max_depth (`int`, defaults to `16`):
+                Maximum depth to flatten nested struct columns.
+
+        Returns:
+            [`IterableDatasetDict`]: A copy of the dataset dict with flattened columns.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rajpurkar/squad", streaming=True)
+        >>> ds = ds.flatten()
+        >>> ds["train"].column_names
+        ['id', 'title', 'context', 'question', 'answers.text', 'answers.answer_start']
+        ```
+        """
+        self._check_values_type()
+        return IterableDatasetDict({k: dataset.flatten(max_depth=max_depth) for k, dataset in self.items()})
+
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDatasetDict":
         """Cast column to feature for decoding.
         The type casting is applied to all the datasets of the dataset dictionary.
