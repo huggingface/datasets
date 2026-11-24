@@ -2293,6 +2293,29 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         """
         return IterableDatasetDict({k: dataset.select_columns(column_names) for k, dataset in self.items()})
 
+    def with_column_metadata(self, column_metadata: dict[str, dict[str, str]]) -> "IterableDatasetDict":
+        """
+        Return a dataset dict with the given metadata for some columns of every split.
+        See [`~datasets.IterableDataset.with_column_metadata`] for more details.
+
+        Args:
+            column_metadata (`dict[str, dict[str, str]]`):
+                Mapping from column name to its new metadata, a dict of strings like the metadata of Arrow fields.
+                It replaces the current metadata of these columns, and an empty dict removes it.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", streaming=True)
+        >>> ds = ds.with_column_metadata({"text": {"language": "en"}})
+        >>> ds["train"].info.column_metadata
+        {'text': {'language': 'en'}}
+        ```
+        """
+        self._check_values_type()
+        return IterableDatasetDict({k: dataset.with_column_metadata(column_metadata) for k, dataset in self.items()})
+
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDatasetDict":
         """Cast column to feature for decoding.
         The type casting is applied to all the datasets of the dataset dictionary.
