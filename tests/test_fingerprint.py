@@ -2,6 +2,7 @@ import json
 import os
 import pickle
 import subprocess
+import sys
 from functools import partial
 from pathlib import Path
 from tempfile import gettempdir
@@ -158,6 +159,36 @@ class RecurseHashTest(TestCase):
 
         hash2 = Hasher.hash(func)
         self.assertEqual(hash1, hash2)
+
+    def test_hash_ignores_column_definition_of_function(self):
+        def func(x):
+            return x + 1
+
+        hash1 = Hasher.hash(func)
+        if True:
+
+            def func(x):
+                return x + 1
+
+        hash2 = Hasher.hash(func)
+        self.assertEqual(hash1, hash2)
+        # two identical lambdas at different positions in the same line
+        hash1, hash2 = Hasher.hash(lambda x: x + 1), Hasher.hash(lambda x: x + 1)
+        self.assertEqual(hash1, hash2)
+
+    @pytest.mark.skipif(sys.version_info < (3, 11), reason="co_linetable has no column offsets before python 3.11")
+    def test_linetable_without_columns_keeps_line_numbers(self):
+        from datasets.utils._dill import _get_linetable_without_columns
+
+        def func(x):
+            y = [i * 2 for i in range(x)]
+
+            return sum(y) if y else None
+
+        code = func.__code__
+        code_without_columns = code.replace(co_linetable=_get_linetable_without_columns(code))
+        self.assertEqual(list(code_without_columns.co_lines()), list(code.co_lines()))
+        self.assertTrue(all(col is None for _, _, col, _ in code_without_columns.co_positions()))
 
     def test_recurse_hash_for_class(self):
         hash1 = Hasher.hash(Foo([0]))
