@@ -77,10 +77,12 @@ from .packaged_modules import (
 from .splits import Split
 from .utils import _dataset_viewer
 from .utils.file_utils import (
+    _prepare_path_and_storage_options,
     _raise_if_offline_mode_is_enabled,
     cached_path,
     get_datasets_user_agent,
     is_relative_path,
+    is_remote_url,
     relative_to_absolute_path,
 )
 from .utils.hub import hf_dataset_url
@@ -954,6 +956,114 @@ class HubBucketDatasetModuleFactory(_DatasetModuleFactory):
         )
 
 
+class FsspecDatasetModuleFactory(_DatasetModuleFactory):
+    """
+    Get the module of a dataset loaded from the data files of a directory of a remote filesystem,
+    given as a fsspec URL like `s3://bucket/dataset`.
+    The dataset builder module to use is inferred from the data files extensions.
+    """
+
+    def __init__(
+        self,
+        path: str,
+        data_dir: Optional[str] = None,
+        data_files: Optional[Union[str, list, dict]] = None,
+        download_config: Optional[DownloadConfig] = None,
+        download_mode: Optional[Union[DownloadMode, str]] = None,
+    ):
+        self.path = path.rstrip("/")
+        self.data_files = data_files
+        self.data_dir = data_dir
+        self.download_config = download_config
+        self.download_mode = download_mode
+
+    def get_module(self) -> DatasetModule:
+        urlpath, storage_options = _prepare_path_and_storage_options(self.path, download_config=self.download_config)
+        fs, fs_path = url_to_fs(urlpath, **storage_options)
+        if not fs.isdir(fs_path):
+            raise FileNotFoundError(f"Couldn't find a directory at {self.path}.")
+
+        def read_yaml_or_card(filename: str) -> Optional[str]:
+            try:
+                return fs.read_text(posixpath.join(fs_path, filename), encoding="utf-8")
+            except FileNotFoundError:
+                return None
+
+        dataset_card = read_yaml_or_card(config.REPOCARD_FILENAME)
+        dataset_card_data = DatasetCard(dataset_card).data if dataset_card is not None else DatasetCardData()
+        standalone_yaml = read_yaml_or_card(config.REPOYAML_FILENAME)
+        standalone_yaml_data = yaml.safe_load(standalone_yaml) if standalone_yaml is not None else None
+        if standalone_yaml_data:
+            _dataset_card_data_dict = dataset_card_data.to_dict()
+            _dataset_card_data_dict.update(standalone_yaml_data)
+            dataset_card_data = DatasetCardData(**_dataset_card_data_dict)
+        metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
+        dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
+        # we need a set of data files to find which dataset builder to use
+        # because we need to infer module name by files extensions
+        base_path = posixpath.join(self.path, self.data_dir) if self.data_dir else self.path
+        if self.data_files is not None:
+            patterns = sanitize_patterns(self.data_files)
+        elif metadata_configs and not self.data_dir and "data_files" in next(iter(metadata_configs.values())):
+            patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
+        else:
+            patterns = get_data_patterns(base_path, download_config=self.download_config)
+        data_files = DataFilesDict.from_patterns(
+            patterns,
+            base_path=base_path,
+            allowed_extensions=_ALL_ALLOWED_EXTENSIONS,
+            download_config=self.download_config,
+        )
+        module_name, default_builder_kwargs = infer_module_for_data_files(
+            data_files=data_files,
+            path=self.path,
+            download_config=self.download_config,
+        )
+        data_files = data_files.filter(
+            extensions=_MODULE_TO_EXTENSIONS[module_name] + _MODULE_TO_METADATA_EXTENSIONS[module_name],
+            file_names=_MODULE_TO_METADATA_FILE_NAMES[module_name],
+        )
+        module_path, _ = _PACKAGED_DATASETS_MODULES[module_name]
+        if metadata_configs:
+            builder_configs, default_config_name = create_builder_configs_from_metadata_configs(
+                module_path,
+                metadata_configs,
+                base_path=base_path,
+                default_builder_kwargs=default_builder_kwargs,
+                download_config=self.download_config,
+            )
+        else:
+            builder_configs: list[BuilderConfig] = [
+                import_main_class(module_path).BUILDER_CONFIG_CLASS(
+                    data_files=data_files,
+                    **default_builder_kwargs,
+                )
+            ]
+            default_config_name = None
+        protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[0]
+        builder_kwargs = {
+            "base_path": base_path,
+            "dataset_name": camelcase_to_snakecase(posixpath.basename(fs_path.rstrip("/")) or protocol),
+        }
+        if self.data_dir:
+            builder_kwargs["data_files"] = data_files
+        if default_config_name is None and len(dataset_infos) == 1:
+            default_config_name = next(iter(dataset_infos))
+
+        hash = Hasher.hash({"dataset_infos": dataset_infos, "builder_configs": builder_configs})
+        return DatasetModule(
+            module_path,
+            hash,
+            builder_kwargs,
+            dataset_infos=dataset_infos,
+            builder_configs_parameters=BuilderConfigsParameters(
+                metadata_configs=metadata_configs,
+                builder_configs=builder_configs,
+                default_config_name=default_config_name,
+            ),
+        )
+
+
 def dataset_module_factory(
     path: str,
     revision: Optional[Union[str, Version]] = None,
@@ -1061,6 +1171,14 @@ def dataset_module_factory(
     elif os.path.isdir(path) and not remote_only:
         return LocalDatasetModuleFactory(
             path, data_dir=data_dir, data_files=data_files, download_mode=download_mode
+        ).get_module()
+    elif is_remote_url(path) and not remote_only:
+        return FsspecDatasetModuleFactory(
+            path,
+            data_dir=data_dir,
+            data_files=data_files,
+            download_config=download_config,
+            download_mode=download_mode,
         ).get_module()
     # Try remotely
     elif path.startswith("buckets/"):
@@ -1225,6 +1343,10 @@ def load_dataset_builder(
             - if `path` is a local directory
               -> load the dataset builder from supported files in the directory (csv, json, parquet, etc.)
               e.g. `'./path/to/directory/with/my/csv/data'`.
+
+            - if `path` is a directory in a cloud storage, as a `fsspec` URL
+              -> load the dataset builder from supported files in the directory (csv, json, parquet, etc.)
+              e.g. `'s3://my-bucket/path/to/directory'`. Use `storage_options` to pass the credentials to the filesystem.
 
             - if `path` is the name of a dataset builder and `data_files` or `data_dir` is specified
               (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder", "meshfolder")
@@ -1510,6 +1632,10 @@ def load_dataset(
             - if `path` is a local directory
               -> load the dataset from supported files in the directory (csv, json, parquet, etc.)
               e.g. `'./path/to/directory/with/my/csv/data'`.
+
+            - if `path` is a directory in a cloud storage, as a `fsspec` URL
+              -> load the dataset builder from supported files in the directory (csv, json, parquet, etc.)
+              e.g. `'s3://my-bucket/path/to/directory'`. Use `storage_options` to pass the credentials to the filesystem.
 
             - if `path` is the name of a dataset builder and `data_files` or `data_dir` is specified
               (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder", "meshfolder")
