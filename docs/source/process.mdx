@@ -7,6 +7,7 @@ This guide will show you how to:
 - Reorder rows and split the dataset.
 - Rename and remove columns, and other common column operations.
 - Apply processing functions to each example in a dataset.
+- Group rows and apply a function to each group.
 - Concatenate datasets.
 - Apply a custom formatting transform.
 - Save and export processed datasets.
@@ -609,6 +610,26 @@ The `batch()` method accepts the following parameters:
 - `num_proc` (`int`, optional, defaults to `None`): The number of processes to use for multiprocessing. If None, no multiprocessing is used. This can significantly speed up batching for large datasets.
 
 Note that `Dataset.batch()` returns a new [`Dataset`] where each item is a batch of multiple samples from the original dataset. If you want to process data in batches, you should use a batched [`~Dataset.map`] directly, which applies a function to batches but the output dataset is unbatched.
+
+## Group by
+
+Use [`~Dataset.group_by`] to group the rows that share the same values in one or several columns, and apply a function to each group. The function receives a batch with all the rows of a group, and returns a batch of one or more rows:
+
+```py
+>>> from datasets import Dataset
+>>> dataset = Dataset.from_dict({
+...     "document": ["b", "a", "b", "a"],
+...     "sentence": ["B1.", "A1.", "B2.", "A2."],
+... })
+>>> def join(batch):
+...     return {"document": batch["document"][:1], "text": [" ".join(batch["sentence"])]}
+>>> dataset.group_by("document", join)[:]
+{'document': ['b', 'a'], 'text': ['B1. B2.', 'A1. A2.']}
+```
+
+Groups are processed in the order in which they first appear in the dataset, and the rows of a group keep their order. The new dataset only has the columns returned by the function, so return the columns you grouped by if you want to keep them.
+
+Only the columns to group by are loaded in memory to find the groups. For aggregations that don't need a Python function, such as counts or means, you can also use [`~Dataset.to_polars`] or [`~Dataset.to_pandas`] and the group by operations of these libraries.
 
 ## Concatenate
 
