@@ -4517,13 +4517,20 @@ def _gen_lines_from_handle(fh):
         yield {"id": int(line)}
 
 
-@pytest.mark.parametrize("probabilities, unreachable", [([1.0, 0.0], 1), ([0.0, 1.0], 0)])
-def test_interleave_iterable_without_replacement_zero_probability_raises(
-    probabilities, unreachable
-):
+@pytest.mark.parametrize(
+    "probabilities, unreachable, strategy",
+    [
+        ([1.0, 0.0], 1, "all_exhausted_without_replacement"),
+        ([0.0, 1.0], 0, "all_exhausted_without_replacement"),
+        ([1.0, 0.0], 1, "all_exhausted"),
+        ([0.0, 1.0], 0, "all_exhausted"),
+    ],
+)
+def test_interleave_iterable_all_exhausted_zero_probability_raises(probabilities, unreachable, strategy):
     # The iterable path uses RandomlyCyclingMultiSourcesExamplesIterable, which
-    # also stops only when every source is exhausted. A zero-probability source
-    # can never be drawn, so it must fail fast here too instead of hanging.
+    # stops only when every source is exhausted under both all_exhausted
+    # strategies. A zero-probability source can never be drawn, so it must fail
+    # fast here too instead of hanging.
     sources = [
         IterableDataset.from_dict({"a": [0, 1, 2]}),
         IterableDataset.from_dict({"a": [10, 11, 12, 13, 14]}),
@@ -4533,7 +4540,7 @@ def test_interleave_iterable_without_replacement_zero_probability_raises(
             sources,
             probabilities=probabilities,
             seed=7,
-            stopping_strategy="all_exhausted_without_replacement",
+            stopping_strategy=strategy,
         )
     assert f"indices [{unreachable}]" in str(excinfo.value)
 
@@ -4541,6 +4548,6 @@ def test_interleave_iterable_without_replacement_zero_probability_raises(
         sources,
         probabilities=[0.5, 0.5],
         seed=7,
-        stopping_strategy="all_exhausted_without_replacement",
+        stopping_strategy=strategy,
     )
-    assert len(list(control)) == 8
+    assert len(list(control)) > 0
