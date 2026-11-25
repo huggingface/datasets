@@ -180,7 +180,7 @@ with collation and batching, so one can pass it directly to Keras methods like `
 
 ## Vision
 
-Image datasets are loaded just like text datasets. However, instead of a tokenizer, you'll need a [feature extractor](https://huggingface.co/docs/transformers/main_classes/feature_extractor#feature-extractor) to preprocess the dataset. Applying data augmentation to an image is common in computer vision to make the model more robust against overfitting. You're free to use any data augmentation library you want, and then you can apply the augmentations with 🤗 Datasets. In this quickstart, you'll load the [Beans](https://huggingface.co/datasets/beans) dataset and get it ready for the model to train on and identify disease from the leaf images.
+Image datasets are loaded just like text datasets. However, instead of a tokenizer, you'll need a [feature extractor](https://huggingface.co/docs/transformers/main_classes/feature_extractor#feature-extractor) to preprocess the dataset. Applying data augmentation to an image is common in computer vision to make the model more robust against overfitting. You're free to use any data augmentation library you want, and then you can apply the augmentations with 🤗 Datasets. In this quickstart, you'll load the [Beans](https://huggingface.co/datasets/AI-Lab-Makerere/beans) dataset and get it ready for the model to train on and identify disease from the leaf images.
 
 **1**. Load the Beans dataset by providing the [`load_dataset`] function with the dataset name and a dataset split:
 
