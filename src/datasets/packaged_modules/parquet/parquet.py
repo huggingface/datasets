@@ -2,6 +2,7 @@ import gc
 from dataclasses import dataclass
 from typing import Literal, Optional, Union
 
+import huggingface_hub
 import pyarrow as pa
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
@@ -10,7 +11,9 @@ from packaging import version
 import datasets
 import datasets.config
 from datasets.builder import Key
+from datasets.download.download_config import DownloadConfig
 from datasets.table import table_cast
+from datasets.utils.file_utils import is_remote_url, xopen
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -33,6 +36,22 @@ def _get_column_metadata(schema: pa.Schema) -> Optional[dict[str, dict[str, str]
     return column_metadata or None
 
 
+def _get_cached_file(file: str, download_config: DownloadConfig) -> Optional[str]:
+    """Return the path of the local copy of a file of a Hugging Face repository, if it is in the cache."""
+    if not file.startswith("hf://") or file.startswith("hf://buckets/"):
+        return None
+    resolved_path = huggingface_hub.HfFileSystem(
+        endpoint=datasets.config.HF_ENDPOINT, token=download_config.token
+    ).resolve_path(file)
+    cached_file = huggingface_hub.try_to_load_from_cache(
+        resolved_path.repo_id,
+        resolved_path.path_in_repo,
+        revision=resolved_path.revision,
+        repo_type=resolved_path.repo_type,
+    )
+    return cached_file if isinstance(cached_file, str) else None
+
+
 @dataclass
 class ParquetConfig(datasets.BuilderConfig):
     """
@@ -45,6 +64,8 @@ class ParquetConfig(datasets.BuilderConfig):
         columns (`list[str]`, *optional*)
             List of columns to load, the other ones are ignored.
             All columns are loaded by default.
+            If set, remote files that are not in the cache are not downloaded:
+            only the requested columns are read from them.
         features: (`Features`, *optional*):
             Cast the data to `features`.
         filters (`Union[pyarrow.dataset.Expression, list[tuple], list[list[tuple]]]`, *optional*):
@@ -133,7 +154,19 @@ class Parquet(datasets.ArrowBasedBuilder):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         dl_manager.download_config.extract_on_the_fly = True
-        data_files = dl_manager.download(self.config.data_files)
+        if self.config.columns is not None and not dl_manager.is_streaming and not datasets.config.HF_HUB_OFFLINE:
+            # Only the requested columns are read from the remote files, instead of downloading the files in full
+            data_files = {
+                split_name: [
+                    (_get_cached_file(file, dl_manager.download_config) or file)
+                    if is_remote_url(file)
+                    else dl_manager.download(file)
+                    for file in files
+                ]
+                for split_name, files in self.config.data_files.items()
+            }
+        else:
+            data_files = dl_manager.download(self.config.data_files)
         splits = []
         schema_read = False
         for split_name, files in data_files.items():
@@ -141,7 +174,7 @@ class Parquet(datasets.ArrowBasedBuilder):
             if self.info.features is None or not schema_read:
                 for file in files:
                     try:
-                        with open(file, "rb") as f:
+                        with self._open(file) as f:
                             schema = pq.read_schema(f)
                         if self.info.features is None:
                             self.info.features = datasets.Features.from_arrow_schema(schema)
@@ -176,6 +209,11 @@ class Parquet(datasets.ArrowBasedBuilder):
             } or None
         return splits
 
+    def _open(self, file: str):
+        # like `open` in streaming mode: local files are opened as usual and remote files are read with range requests
+        download_config = DownloadConfig(storage_options=self.storage_options, token=self.token)
+        return xopen(file, "rb", download_config=download_config)
+
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.info.features is not None:
             # more expensive cast to support nested features with keys in a different order
@@ -197,7 +235,7 @@ class Parquet(datasets.ArrowBasedBuilder):
         if not row_groups_list or any(row_group is None for row_group in row_groups_list):
             parquet_file_format = ds.ParquetFileFormat(default_fragment_scan_options=self.config.fragment_scan_options)
             for file in files:
-                with open(file, "rb") as f:
+                with self._open(file) as f:
                     parquet_fragment = parquet_file_format.make_fragment(f)
                     yield {
                         "files": [file] * parquet_fragment.num_row_groups,
@@ -223,7 +261,7 @@ class Parquet(datasets.ArrowBasedBuilder):
         parquet_file_format = ds.ParquetFileFormat(default_fragment_scan_options=self.config.fragment_scan_options)
         for file_idx, (file, row_groups) in enumerate(zip(files, row_groups_list)):
             try:
-                with open(file, "rb") as f:
+                with self._open(file) as f:
                     parquet_fragment = parquet_file_format.make_fragment(f)
                     fragment_is_closed = False
                     try:
