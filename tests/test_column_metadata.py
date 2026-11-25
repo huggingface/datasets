@@ -246,3 +246,37 @@ def test_iterable_dataset_dict_with_column_metadata():
         "train": {"a": {"unit": "cm"}},
         "test": {"a": {"unit": "cm"}},
     }
+
+
+@pytest.mark.parametrize("known_features", [False, True])
+@pytest.mark.parametrize("operation", ["rename", "select", "remove", "map_remove"])
+def test_streaming_column_metadata_transform_parquet(tmp_path, known_features, operation):
+    rows = [{"distance": 1, "label": "x"}, {"distance": 2, "label": "y"}]
+    features = Dataset.from_list(rows).features if known_features else None
+    source = IterableDataset.from_generator(lambda: iter(rows), features=features).with_column_metadata(
+        {"distance": {"unit": "cm"}, "label": {"source": "manual"}}
+    )
+    if operation == "rename":
+        transformed = source.rename_column("distance", "position")
+        expected = {"position": {"unit": "cm"}, "label": {"source": "manual"}}
+    elif operation == "select":
+        transformed = source.select_columns("distance")
+        expected = {"distance": {"unit": "cm"}}
+    elif operation == "remove":
+        transformed = source.remove_columns("label")
+        expected = {"distance": {"unit": "cm"}}
+    else:
+        transformed = source.map(lambda row: {"position": row["distance"]}, remove_columns="distance")
+        expected = {"label": {"source": "manual"}}
+    assert transformed.info.column_metadata == expected
+    path = tmp_path / "transformed.parquet"
+    transformed.to_parquet(path)
+    schema = pq.read_schema(path)
+    actual = {
+        field.name: {key.decode(): value.decode() for key, value in field.metadata.items()}
+        for field in schema
+        if field.metadata
+    }
+    assert actual == expected
+    assert source.info.column_metadata == {"distance": {"unit": "cm"}, "label": {"source": "manual"}}
+    assert list(source) == rows
