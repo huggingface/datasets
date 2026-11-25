@@ -4,7 +4,7 @@ Combining the utility of [`Dataset.map`] with batch mode is very powerful. It al
 
 ## Need for speed
 
-The primary objective of batch mapping is to speed up processing. Often times, it is faster to work with batches of data instead of single examples. Naturally, batch mapping lends itself to tokenization. For example, the 🤗 [Tokenizers](https://huggingface.co/docs/tokenizers/python/latest/) library works faster with batches because it parallelizes the tokenization of all the examples in a batch.
+The primary objective of batch mapping is to speed up processing. Often times, it is faster to work with batches of data instead of single examples. Naturally, batch mapping lends itself to tokenization. For example, the 🤗 [Tokenizers](https://huggingface.co/docs/tokenizers/index) library works faster with batches because it parallelizes the tokenization of all the examples in a batch.
 
 ## Input size != output size
 
