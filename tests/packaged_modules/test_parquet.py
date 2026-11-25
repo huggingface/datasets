@@ -1,3 +1,6 @@
+import subprocess
+import sys
+
 import pytest
 
 from datasets import load_dataset
@@ -39,3 +42,39 @@ def test_parquet_columns(parquet_path):
     )
     assert len(ds.features) == 1
     assert len(next(iter(ds))) == 1
+
+
+def test_parquet_streaming_without_threads_exits_cleanly(multi_row_groups_parquet_path, tmp_path):
+    # code holds the script passed to python -c so we can check for crashes at interpreter shutdown.
+    # Background reads can outlive the stream and access Python while the interpreter is finalizing.
+    code = """\
+import io
+import sys
+import time
+
+import pyarrow.dataset as ds
+import datasets
+from datasets.packaged_modules.parquet import parquet
+
+class SlowFile(io.BufferedReader):
+    finished = False
+
+    def read(self, size=-1):
+        SlowFile.finished = False
+        time.sleep(0.5)
+        result = super().read(size)
+        SlowFile.finished = True
+        return result
+
+dataset = datasets.load_dataset(
+    "parquet", data_files=sys.argv[1], split="train", streaming=True,
+    cache_dir=sys.argv[2], use_threads=False,
+    fragment_scan_options=ds.ParquetFragmentScanOptions(pre_buffer=False),
+)
+parquet.open = lambda path, mode="rb": SlowFile(io.FileIO(path, mode))
+datasets.config.SLEEP_TIME_ON_THREADS_SHUTDOWN = 0
+assert len(list(dataset.shuffle(seed=42, buffer_size=1).take(1))) == 1
+assert SlowFile.finished, "Read still running after iterator cleanup"
+"""
+    command = [sys.executable, "-c", code, multi_row_groups_parquet_path, str(tmp_path)]
+    subprocess.run(command, check=True, timeout=30)

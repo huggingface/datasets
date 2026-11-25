@@ -52,6 +52,8 @@ class ParquetConfig(datasets.BuilderConfig):
             If possible the predicate will be pushed down to exploit the partition information
             or internal metadata found in the data source, e.g. Parquet statistics.
             Otherwise filters the loaded RecordBatches before yielding them.
+        use_threads (`bool`, *optional*, defaults to `True`):
+            Whether to scan using threads.
         fragment_scan_options (`pyarrow.dataset.ParquetFragmentScanOptions`, *optional*)
             Scan-specific options for Parquet fragments.
             This is especially useful to configure buffering and caching.
@@ -100,6 +102,7 @@ class ParquetConfig(datasets.BuilderConfig):
     columns: Optional[list[str]] = None
     features: Optional[datasets.Features] = None
     filters: Optional[Union[ds.Expression, list[tuple], list[list[tuple]]]] = None
+    use_threads: bool = True
     fragment_scan_options: Optional[ds.ParquetFragmentScanOptions] = None
     on_bad_files: Literal["error", "warn", "skip"] = "error"
 
@@ -238,6 +241,7 @@ class Parquet(datasets.ArrowBasedBuilder):
                                     filter=filter_expr,
                                     batch_readahead=0,
                                     fragment_readahead=0,
+                                    use_threads=self.config.use_threads,
                                 )
                             ):
                                 pa_table = pa.Table.from_batches([record_batch])
