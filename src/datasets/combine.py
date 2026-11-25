@@ -150,6 +150,18 @@ def interleave_datasets(
             )
     if stopping_strategy not in ["first_exhausted", "all_exhausted", "all_exhausted_without_replacement"]:
         raise ValueError(f"{stopping_strategy} is not supported. Please enter a valid stopping_strategy.")
+    # Without replacement the loop ends only when every source is exhausted. A
+    # source with probability 0 is never drawn, so it can never reach that
+    # state and the iterator hangs. Check once here so both map-style and
+    # iterable sources get the same fail-fast error.
+    if probabilities is not None and stopping_strategy == "all_exhausted_without_replacement":
+        unreachable = [i for i, probability in enumerate(probabilities) if probability <= 0]
+        if unreachable:
+            raise ValueError(
+                'interleave_datasets with stopping_strategy="all_exhausted_without_replacement" '
+                "cannot exhaust a dataset that is never sampled; datasets at indices "
+                f"{unreachable} have probability 0."
+            )
     if dataset_type is Dataset:
         return _interleave_map_style_datasets(
             datasets, probabilities, seed, info=info, split=split, stopping_strategy=stopping_strategy
