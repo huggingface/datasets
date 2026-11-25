@@ -67,6 +67,7 @@ from .table import (
     embed_table_storage,
     read_schema_from_file,
     table_cast,
+    table_flatten,
 )
 from .utils import tqdm as hf_tqdm
 from .utils.logging import get_logger
@@ -748,7 +749,10 @@ def _flatten_arrow_table(pa_table: pa.Table, max_depth: int = 16) -> pa.Table:
     """Zero-copy flatten struct columns of an Arrow table up to `max_depth`."""
     for _ in range(1, max_depth):
         if any(isinstance(field.type, pa.StructType) for field in pa_table.schema):
-            pa_table = pa_table.flatten()
+            flattened = table_flatten(pa_table)
+            if flattened.column_names == pa_table.column_names:
+                break
+            pa_table = flattened
         else:
             break
     return pa_table

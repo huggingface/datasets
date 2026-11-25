@@ -2,7 +2,8 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Dataset, Features, IterableDataset, IterableDatasetDict, Json, List, Value
+from datasets import Dataset, Features, Image, IterableDataset, IterableDatasetDict, Json, List, Value
+from datasets.table import InMemoryTable
 
 
 def _nested_data():
@@ -225,3 +226,21 @@ def test_iterable_dataset_dict_flatten():
         assert flattened[split].column_names == expected.column_names
         assert flattened[split].features == expected.features
         assert list(flattened[split]) == list(expected)
+
+
+@pytest.mark.parametrize("decode", [True, False])
+@pytest.mark.parametrize("nested", [True, False])
+def test_flatten_image_feature_arrow_parity(decode, nested):
+    image = {"path": "unused.png", "bytes": None}
+    feature = Image(decode=decode)
+    features = Features({"item": {"image": feature} if nested else feature})
+    table = pa.Table.from_pydict(
+        {"item": [{"image": image} if nested else image]},
+        schema=features.arrow_schema,
+    )
+    ds = Dataset(InMemoryTable(table))
+    expected = ds.flatten()
+    streamed = ds.to_iterable_dataset().flatten().with_format("arrow")
+    actual = pa.concat_tables(list(streamed))
+    assert streamed.features == expected.features
+    assert actual.equals(expected.data.table)
