@@ -7716,6 +7716,10 @@ def _get_updated_dataset_card(
     else:
         new_legacy_dataset_infos = None
     # push to README
+    if "HF_JOB_ID" in os.environ:  # set inside Hugging Face Jobs
+        tags = dataset_card_data.get("tags") or []
+        if "hf_jobs" not in tags:
+            dataset_card_data["tags"] = tags + ["hf_jobs"]
     DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
     MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
     new_dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card

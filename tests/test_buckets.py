@@ -172,6 +172,33 @@ def test_get_updated_dataset_card_drops_removed_splits_when_replacing_split_set(
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize("on_jobs", [True, False])
+def test_get_updated_dataset_card_adds_hf_jobs_tag_inside_a_job(monkeypatch, on_jobs):
+    if on_jobs:
+        monkeypatch.setenv("HF_JOB_ID", "job-123")
+    else:
+        monkeypatch.delenv("HF_JOB_ID", raising=False)
+    mem = MemoryFileSystem(skip_instance_cache=True)
+    fs = DirFileSystem("/jobs", fs=mem)
+    with fs.open(config.REPOCARD_FILENAME, "w") as f:
+        f.write("---\ntags:\n- ocr\n---\n")
+
+    dataset_card, _ = _get_updated_dataset_card(
+        fs=fs,
+        config_name="default",
+        splits_info=[SplitInfo(name="train", num_bytes=40, num_examples=5)],
+        features=Features({"x": Value("int64")}),
+        data_dir="data",
+        set_default=None,
+        uploaded_sizes=[40],
+        deleted_sizes=[],
+        remove_other_splits=False,
+    )
+
+    assert dataset_card.data.get("tags") == (["ocr", "hf_jobs"] if on_jobs else ["ocr"])
+
+
+@pytest.mark.unit
 def test_get_updated_dataset_card_keeps_existing_splits_when_appending():
     mem = MemoryFileSystem(skip_instance_cache=True)
     fs = DirFileSystem("/append", fs=mem)
