@@ -876,7 +876,6 @@ def test_iterable_dataset_vs_dataset_map(batched, batch_size, input_columns, rem
         )
         for ds2 in [ds1, ds1.to_iterable_dataset()]
     ]
-    r[1] = [x for x in r[1] if len(x) > 0]
     assert len(r[0]) == len(r[1])
     assert all(x == y for x, y in zip(*r))
 
