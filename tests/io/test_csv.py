@@ -204,3 +204,60 @@ def test_dataset_to_csv_preserves_nullable_int(dtype, big, tmp_path):
     with open(output_csv, newline="") as f:
         rows = list(csv.DictReader(f))
     assert [row["a"] for row in rows] == [str(big), "", "5"]
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("num_proc", [None, 2])
+@pytest.mark.parametrize("mode", ["a", "ab", "at"])
+def test_dataset_to_csv_append(streaming, num_proc, mode, tmp_path):
+    dataset = Dataset.from_dict({"value": ["new", "next"]})
+    if streaming:
+        dataset = dataset.to_iterable_dataset()
+    path = tmp_path / "out.csv"
+    path.write_text("value\nold\n")
+
+    written = dataset.to_csv(path, mode=mode, header=False, batch_size=1, num_proc=num_proc)
+
+    assert path.read_text() == "value\nold\nnew\nnext\n"
+    assert written == len(b"new\nnext\n")
+
+
+@pytest.mark.parametrize("mode", ["x", "xb", "xt"])
+@pytest.mark.parametrize("exists", [False, True])
+def test_dataset_to_csv_exclusive(mode, exists, tmp_path):
+    dataset = Dataset.from_dict({"value": ["new", "next"]})
+    path = tmp_path / "out.csv"
+    if exists:
+        path.write_text("value\nold\n")
+        with pytest.raises(FileExistsError):
+            dataset.to_csv(path, mode=mode, batch_size=1)
+        assert path.read_text() == "value\nold\n"
+    else:
+        written = dataset.to_csv(path, mode=mode, batch_size=1)
+        assert path.read_text() == "value\nnew\nnext\n"
+        assert written == len(path.read_bytes())
+
+
+@pytest.mark.parametrize("mode", [None, "w", "wb", "wt"])
+def test_dataset_to_csv_overwrite(mode, tmp_path):
+    dataset = Dataset.from_dict({"value": ["new", "next"]})
+    path = tmp_path / "out.csv"
+    path.write_text("old content\n")
+
+    written = dataset.to_csv(str(path), batch_size=1, **({"mode": mode} if mode is not None else {}))
+
+    assert path.read_text() == "value\nnew\nnext\n"
+    assert written == len(path.read_bytes())
+
+
+def test_dataset_to_csv_append_fsspec(mockfs):
+    dataset = Dataset.from_dict({"value": ["new", "next"]})
+    path = "mock://append.csv"
+    with fsspec.open(path, "wb", **mockfs.storage_options) as buffer:
+        buffer.write(b"value\nold\n")
+
+    written = dataset.to_csv(path, mode="a", header=False, batch_size=1, storage_options=mockfs.storage_options)
+
+    with fsspec.open(path, "rb", **mockfs.storage_options) as buffer:
+        assert buffer.read() == b"value\nold\nnew\nnext\n"
+    assert written == len(b"new\nnext\n")

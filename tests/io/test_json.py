@@ -205,6 +205,76 @@ def load_json_lines(buffer):
 
 
 class TestJsonDatasetWriter:
+    @pytest.mark.parametrize(
+        "options",
+        [
+            {"mode": "x"},
+            {"mode": "a", "lines": False},
+            {"mode": "a", "orient": "columns"},
+        ],
+    )
+    def test_dataset_to_json_invalid_mode_preserves_file(self, options, tmp_path):
+        dataset = Dataset.from_dict({"value": ["new"]})
+        path = tmp_path / "out.jsonl.gz"
+        with fsspec.open(path, "wb", compression="infer") as buffer:
+            buffer.write(b'{"value":"old"}\n')
+        original = path.read_bytes()
+
+        with pytest.raises(ValueError):
+            dataset.to_json(path, **options)
+
+        assert path.read_bytes() == original
+
+    @pytest.mark.parametrize("streaming", [False, True])
+    @pytest.mark.parametrize("num_proc", [None, 2])
+    def test_dataset_to_json_append(self, streaming, num_proc, tmp_path):
+        dataset = Dataset.from_dict({"value": ["new", "next"]})
+        if streaming:
+            dataset = dataset.to_iterable_dataset()
+        path = tmp_path / "out.jsonl"
+        path.write_text('{"value":"old"}\n')
+
+        written = dataset.to_json(path, mode="a", batch_size=1, num_proc=num_proc)
+
+        assert path.read_text() == '{"value":"old"}\n{"value":"new"}\n{"value":"next"}\n'
+        assert written == len(b'{"value":"new"}\n{"value":"next"}\n')
+
+    @pytest.mark.parametrize("compression", ["gzip", "bz2", "xz"])
+    def test_dataset_to_json_append_compressed(self, compression, tmp_path):
+        dataset = Dataset.from_dict({"value": ["new", "next"]})
+        path = tmp_path / "out.jsonl"
+        with fsspec.open(path, "wb", compression=compression) as buffer:
+            buffer.write(b'{"value":"old"}\n')
+
+        written = dataset.to_json(path, mode="a", compression=compression, batch_size=1, num_proc=2)
+
+        with fsspec.open(path, "rb", compression=compression) as buffer:
+            assert buffer.read() == b'{"value":"old"}\n{"value":"new"}\n{"value":"next"}\n'
+        assert written == len(b'{"value":"new"}\n{"value":"next"}\n')
+
+    @pytest.mark.parametrize("mode", [None, "w"])
+    def test_dataset_to_json_overwrite(self, mode, tmp_path):
+        dataset = Dataset.from_dict({"value": ["new", "next"]})
+        path = tmp_path / "out.jsonl"
+        path.write_text("old content\n")
+
+        written = dataset.to_json(str(path), batch_size=1, **({"mode": mode} if mode is not None else {}))
+
+        assert path.read_text() == '{"value":"new"}\n{"value":"next"}\n'
+        assert written == len(path.read_bytes())
+
+    def test_dataset_to_json_append_fsspec(self, mockfs):
+        dataset = Dataset.from_dict({"value": ["new", "next"]})
+        path = "mock://append.jsonl"
+        with fsspec.open(path, "wb", **mockfs.storage_options) as buffer:
+            buffer.write(b'{"value":"old"}\n')
+
+        written = dataset.to_json(path, mode="a", batch_size=1, storage_options=mockfs.storage_options)
+
+        with fsspec.open(path, "rb", **mockfs.storage_options) as buffer:
+            assert buffer.read() == b'{"value":"old"}\n{"value":"new"}\n{"value":"next"}\n'
+        assert written == len(b'{"value":"new"}\n{"value":"next"}\n')
+
     @pytest.mark.parametrize("num_proc", [None, 2])
     @pytest.mark.parametrize("orient", ["records", "split", "index", "columns", "values", "table"])
     def test_dataset_to_json_empty(self, num_proc, orient):
