@@ -176,21 +176,24 @@ class IndexedTableMixin:
         self._offsets: np.ndarray = np.cumsum([0] + [len(b) for b in self._batches], dtype=np.int64)
 
     def fast_gather(self, indices: Union[list[int], np.ndarray]) -> pa.Table:
-        """
-        Create a pa.Table by gathering the records at the records at the specified indices. Should be faster
-        than pa.concat_tables(table.fast_slice(int(i) % table.num_rows, 1) for i in indices) since NumPy can compute
-        the binary searches in parallel, highly optimized C
-        """
+        """Gather rows in the requested order using zero-copy slices of the source record batches."""
         if not len(indices):
             raise ValueError("Indices must be non-empty")
+        indices = np.asarray(indices, dtype=np.int64)
         batch_indices = np.searchsorted(self._offsets, indices, side="right") - 1
-        return pa.Table.from_batches(
-            [
-                self._batches[batch_idx].slice(i - self._offsets[batch_idx], 1)
-                for batch_idx, i in zip(batch_indices, indices)
-            ],
-            schema=self._schema,
-        )
+        offsets = indices - self._offsets[batch_indices]
+        # Iterate over native integers without copying the index arrays to Python lists.
+        rows = zip(memoryview(batch_indices), memoryview(offsets))
+        batch, start = next(rows)
+        stop = start + 1
+        slices = []
+        for next_batch, offset in rows:
+            if next_batch != batch or offset != stop:
+                slices.append(self._batches[batch].slice(start, stop - start))
+                batch, start = next_batch, offset
+            stop = offset + 1
+        slices.append(self._batches[batch].slice(start, stop - start))
+        return pa.Table.from_batches(slices, schema=self._schema)
 
     def fast_slice(self, offset=0, length=None) -> pa.Table:
         """
