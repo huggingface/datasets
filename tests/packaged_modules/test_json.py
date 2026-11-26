@@ -702,6 +702,31 @@ def test_json_generate_tables_recovers_from_invalid_arrow_offsets(jsonl_file):
     assert mapped_dataset.to_dict() == {"col_1": [-1, 1, 10], "col_2": [None, 2, 20]}
 
 
+@pytest.mark.parametrize("list_of", ["dicts", "strings"])
+def test_json_array_is_read_in_chunks(list_of, tmp_path):
+    # a JSON array is converted to JSON Lines in one go, which must then be read in chunks like a JSON Lines file:
+    # reading it as one batch made the block size grow with the file and overflow int32 above 2 GiB (#6656)
+    texts = [f"row {i}" for i in range(5000)]
+    items = [{"text": text} for text in texts] if list_of == "dicts" else texts
+    path = tmp_path / "data.json"
+    path.write_text(json.dumps(items))
+    chunksize = 1 << 10
+    read_json = paj.read_json
+    read_sizes = []
+
+    def recording_read_json(source, *args, **kwargs):
+        read_sizes.append(source.getbuffer().nbytes)
+        return read_json(source, *args, **kwargs)
+
+    with patch.object(paj, "read_json", side_effect=recording_read_json):
+        dataset = load_dataset(
+            "json", data_files=str(path), split="train", chunksize=chunksize, cache_dir=str(tmp_path / "cache")
+        )
+    assert list(dataset["text"]) == texts
+    longest_line = max(len(json.dumps({"text": text})) for text in texts) + 1
+    assert max(read_sizes) <= chunksize + longest_line
+
+
 def test_json_leading_null_in_list_recovery_real_data(tmp_path):
     jsonl_file = tmp_path / "leading_null.jsonl"
     jsonl_file.write_bytes(b'{"a": [null, 1]}\n{"a": [2]}\n')

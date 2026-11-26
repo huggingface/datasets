@@ -257,6 +257,10 @@ class Json(datasets.ArrowBasedBuilder):
                                         batch = "\n".join(
                                             ujson_dumps({"text": x}) for x in ujson_loads(full_data)
                                         ).encode()
+                                    # read the JSON Lines in chunks like a JSON Lines file, instead of in one batch
+                                    # whose size could exceed what pyarrow can read at once (2 GiB)
+                                    f = io.BytesIO(batch)
+                                    batch = f.read(self.config.chunksize)
                             # Finish current line
                             try:
                                 batch += f.readline()
