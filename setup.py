@@ -124,7 +124,7 @@ REQUIRED_PKGS = [
     "multiprocess<0.70.20",  # to align with dill<0.3.9 (see above)
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec>=2023.1.0,<=2026.9.0",
+    "fsspec>=2023.1.0",
     # To get datasets from the Datasets Hub on huggingface.co
     # (also provides the HTTP client: `from huggingface_hub.utils import httpx`)
     # minimum 1.31.0 for the `huggingface_hub.utils.httpx` re-export
@@ -199,7 +199,7 @@ TESTS_REQUIRE = [
     "torchcodec>=0.7.0; python_version < '3.14'",  # minium version to get windows support, torchcodec doesn't have wheels for 3.14 yet
     "nibabel>=5.3.1",
     "trimesh>=4.10.0",
-    "teich==0.1.5",
+    "teich==0.3.8",
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [

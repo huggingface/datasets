@@ -92,7 +92,7 @@ def extend_module_for_streaming(module_path, download_config: Optional[DownloadC
     patch_submodule(module, "os.path.isdir", wrap_auth(xisdir)).start()
     patch_submodule(module, "os.path.isfile", wrap_auth(xisfile)).start()
     patch_submodule(module, "os.path.getsize", wrap_auth(xgetsize)).start()
-    patch_submodule(module, "pathlib.Path", xPath).start()
+    patch_submodule(module, "pathlib.Path", wrap_auth(xPath)).start()
     # file readers
     patch_submodule(module, "gzip.open", wrap_auth(xgzip_open)).start()
     patch_submodule(module, "numpy.load", wrap_auth(xnumpy_load)).start()

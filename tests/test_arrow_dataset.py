@@ -69,6 +69,20 @@ from .utils import (
 )
 
 
+def test_from_dict_array2d_numpy_roundtrip(tmp_path):
+    data = np.arange(128 * 64 * 64, dtype="float32").reshape(128, 64, 64)
+    features = Features({"a": Array2D(shape=(64, 64), dtype="float32")})
+    dataset = Dataset.from_dict({"a": data}, features=features)
+    dataset.save_to_disk(tmp_path / "array2d")
+    restored = load_from_disk(tmp_path / "array2d")
+    assert restored.features == features
+    assert restored.data.table.equals(dataset.data.table, check_metadata=True)
+    actual = restored.with_format("numpy")[:]["a"]
+    assert actual.shape == data.shape
+    assert actual.dtype == data.dtype
+    assert actual.tobytes() == data.tobytes()
+
+
 class PickableMagicMock(MagicMock):
     def __reduce__(self):
         return MagicMock, ()
@@ -999,6 +1013,39 @@ class BaseDatasetTest(TestCase):
                         )
                         self.assertNotEqual(dset._fingerprint, fingerprint)
                         assert_arrow_metadata_are_synced_with_dataset_features(dset)
+
+    def test_flatten_formatted(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict(
+                {"meta": [{"score": 1}, {"score": 2}], "label": ["a", "b"], "meta.extra": [3, 4]}
+            ) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    dset.set_format("numpy", columns=["meta"], dtype=np.int32)
+                    with dset.flatten() as flattened:
+                        batch = flattened[:]
+                        self.assertEqual(set(batch), {"meta.score"})
+                        self.assertIsInstance(batch["meta.score"], np.ndarray)
+                        self.assertEqual(batch["meta.score"].dtype, np.int32)
+                        npt.assert_array_equal(batch["meta.score"], [1, 2])
+                    self.assertEqual(set(dset[:]), {"meta"})
+
+    def test_flatten_unformatted_struct(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict({"meta": [{"score": 1}, {"score": 2}], "label": [10, 20]}) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    for output_all_columns in [False, True]:
+                        dset.set_format(
+                            "numpy", columns=["label"], dtype=np.int32, output_all_columns=output_all_columns
+                        )
+                        with self.subTest(output_all_columns=output_all_columns), dset.flatten() as flattened:
+                            batch = flattened[:]
+                            npt.assert_array_equal(batch["label"], [10, 20])
+                            self.assertEqual(batch["label"].dtype, np.int32)
+                            if output_all_columns:
+                                self.assertEqual(set(batch), {"label", "meta.score"})
+                                self.assertEqual(batch["meta.score"], [1, 2])
+                            else:
+                                self.assertEqual(set(batch), {"label"})
 
     @require_pil
     def test_flatten_complex_image(self, in_memory):
