@@ -15,6 +15,14 @@ from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
 
+def _contains_binary(pa_type: pa.DataType) -> bool:
+    if pa.types.is_binary(pa_type) or pa.types.is_large_binary(pa_type) or pa.types.is_fixed_size_binary(pa_type):
+        return True
+    if isinstance(pa_type, pa.ExtensionType):
+        return _contains_binary(pa_type.storage_type)
+    return any(_contains_binary(pa_type.field(i).type) for i in range(pa_type.num_fields))
+
+
 class JsonDatasetReader(AbstractDatasetReader):
     def __init__(
         self,
@@ -147,7 +155,19 @@ class JsonDatasetWriter:
         for json_field_path in get_json_field_paths_from_feature(self.dataset.features):
             col, *json_field_subpath = json_field_path
             batch[col] = batch[col].apply(partial(json_decode_field, json_field_path=json_field_subpath))
-        json_str = batch.to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
+        try:
+            json_str = batch.to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
+        except (OverflowError, UnicodeDecodeError) as e:
+            binary_columns = [
+                field.name for field in self.dataset.features.arrow_schema if _contains_binary(field.type)
+            ]
+            if not binary_columns:
+                raise
+            raise ValueError(
+                f"Can't write binary data from column(s) {binary_columns} to JSON (e.g. Image, Audio or "
+                "Value('binary') bytes that aren't valid UTF-8). Use `Dataset.to_parquet()` instead, "
+                "or cast/encode these columns first."
+            ) from e
         if not json_str.endswith("\n"):
             json_str += "\n"
         return json_str.encode(self.encoding)
