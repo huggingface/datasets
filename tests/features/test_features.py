@@ -1,4 +1,5 @@
 import datetime
+from dataclasses import dataclass
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -464,6 +465,42 @@ def test_decode_nested_example_with_list_types(schema, monkeypatch):
     _ = decode_nested_example(schema, [audio_example])
     assert mock_decode_example.called
     assert mock_decode_example.call_args.args[0] == audio_example
+
+
+@dataclass
+class TokenProbeFeature:
+    """Probe feature that returns the token it receives during decoding."""
+
+    decode: bool = True
+
+    def decode_example(self, value, token_per_repo_id=None):
+        return token_per_repo_id
+
+
+_TOKEN_PER_REPO_ID = {"org/private-repo": "hf_secrettoken"}
+
+
+@pytest.mark.parametrize(
+    "schema, obj, expected",
+    [
+        (TokenProbeFeature(), "payload", _TOKEN_PER_REPO_ID),
+        ({"a": {"b": TokenProbeFeature()}}, {"a": {"b": "payload"}}, {"a": {"b": _TOKEN_PER_REPO_ID}}),
+        ([TokenProbeFeature()], ["payload"], [_TOKEN_PER_REPO_ID]),
+        (List({"b": TokenProbeFeature()}), [{"b": "payload"}], [{"b": _TOKEN_PER_REPO_ID}]),
+        (List(TokenProbeFeature()), ["payload"], [_TOKEN_PER_REPO_ID]),
+        (LargeList(TokenProbeFeature()), ["payload"], [_TOKEN_PER_REPO_ID]),
+    ],
+    ids=[
+        "top_level",
+        "nested_dict",
+        "raw_list",
+        "list_dict_child",
+        "list_scalar_child",
+        "largelist_scalar_child",
+    ],
+)
+def test_decode_nested_example_forwards_token_per_repo_id(schema, obj, expected):
+    assert decode_nested_example(schema, obj, token_per_repo_id=_TOKEN_PER_REPO_ID) == expected
 
 
 @pytest.mark.parametrize(

@@ -1561,7 +1561,10 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Uni
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
         return (
-            {k: decode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in zip_dict(schema, obj)}
+            {
+                k: decode_nested_example(sub_schema, sub_obj, token_per_repo_id=token_per_repo_id)
+                for k, (sub_schema, sub_obj) in zip_dict(schema, obj)
+            }
             if obj is not None
             else None
         )
@@ -1574,8 +1577,8 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Uni
                 for first_elmt in obj:
                     if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
                         break
-                if decode_nested_example(sub_schema, first_elmt) != first_elmt:
-                    return [decode_nested_example(sub_schema, o) for o in obj]
+                if decode_nested_example(sub_schema, first_elmt, token_per_repo_id=token_per_repo_id) != first_elmt:
+                    return [decode_nested_example(sub_schema, o, token_per_repo_id=token_per_repo_id) for o in obj]
             return list(obj)
     elif isinstance(schema, (LargeList, List)):
         if obj is None:
@@ -1583,13 +1586,13 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Uni
         else:
             sub_schema = schema.feature
             if isinstance(sub_schema, dict):
-                return [decode_nested_example(sub_schema, o) for o in obj]
+                return [decode_nested_example(sub_schema, o, token_per_repo_id=token_per_repo_id) for o in obj]
             if len(obj) > 0:
                 for first_elmt in obj:
                     if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
                         break
-                if decode_nested_example(sub_schema, first_elmt) != first_elmt:
-                    return [decode_nested_example(sub_schema, o) for o in obj]
+                if decode_nested_example(sub_schema, first_elmt, token_per_repo_id=token_per_repo_id) != first_elmt:
+                    return [decode_nested_example(sub_schema, o, token_per_repo_id=token_per_repo_id) for o in obj]
             return list(obj)
     # Object with special decoding:
     elif hasattr(schema, "decode_example") and getattr(schema, "decode", True):
