@@ -241,4 +241,3 @@ def test_extract_does_not_write_through_an_output_path_that_is_a_symlink(tmp_pat
     assert not output_path.is_symlink()
     assert (output_path / os.path.basename(text_file)).is_file()
     assert list(victim.iterdir()) == []
-
