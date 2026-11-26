@@ -134,6 +134,34 @@ def test_numpy_to_pyarrow_listarray_owns_values(layout):
     assert actual.to_pylist() == expected
 
 
+def split_object_arrays(array):
+    """Wrap pa.array to return object arrays as a ChunkedArray, like pyarrow does for strings over 2 GiB."""
+
+    def wrapper(obj, *args, **kwargs):
+        out = array(obj, *args, **kwargs)
+        if isinstance(obj, np.ndarray) and obj.dtype == object and len(out) > 1:
+            return pa.chunked_array([out[:1], out[1:]])
+        return out
+
+    return wrapper
+
+
+def test_numpy_to_pyarrow_listarray_with_chunked_values():
+    data = np.array([["a"], ["b"], ["c"], ["d"]], dtype=object)
+    with patch("pyarrow.array", side_effect=split_object_arrays(pa.array)):
+        actual = numpy_to_pyarrow_listarray(data)
+    assert isinstance(actual, pa.ChunkedArray)
+    assert actual.type == pa.list_(pa.string())
+    assert actual.to_pylist() == data.tolist()
+
+
+def test_numpy_to_pyarrow_listarray_with_chunked_values_in_one_row():
+    data = np.array([["a", "b"]], dtype=object)
+    with patch("pyarrow.array", side_effect=split_object_arrays(pa.array)):
+        with pytest.raises(OverflowError, match="more than 2 GiB"):
+            numpy_to_pyarrow_listarray(data)
+
+
 def generate_examples(features: dict, num_examples=100, seq_shapes=None):
     dummy_data = []
     seq_shapes = seq_shapes or {}

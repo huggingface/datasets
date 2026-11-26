@@ -1704,11 +1704,23 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
         raise ValueError(f"Cannot convert {pa_type} to a Feature type.")
 
 
-def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.ListArray:
+def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> Union[pa.ListArray, pa.ChunkedArray]:
     """Build a PyArrow ListArray from a multidimensional NumPy array"""
     arr = np.asarray(arr)
     # flatten() keeps a C-contiguous copy independent of the input's layout and ownership.
     values = pa.array(arr.flatten(), type=type)
+    if isinstance(values, pa.ChunkedArray) and arr.ndim > 1:
+        # pyarrow splits string or binary values over 2 GiB in chunks, which can't be the values of one ListArray:
+        # split the rows instead and return the chunks, like pa.array does for a list of lists
+        if len(arr) > 1:
+            halves = [numpy_to_pyarrow_listarray(half, type=type) for half in np.array_split(arr, 2)]
+            return pa.chunked_array(
+                [chunk for half in halves for chunk in (half.chunks if isinstance(half, pa.ChunkedArray) else [half])]
+            )
+        raise OverflowError(
+            f"A row of the array of shape {arr.shape} has more than 2 GiB of {values.type} data, "
+            "which is more than a list of 32-bit offsets can store in one row."
+        )
     for i in range(arr.ndim - 1):
         n_offsets = reduce(mul, arr.shape[: arr.ndim - i - 1], 1)
         step_offsets = arr.shape[arr.ndim - i - 1]

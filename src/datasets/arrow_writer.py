@@ -193,6 +193,16 @@ def get_parquet_column_options(features: Features, schema: pa.Schema) -> dict:
     return {"compression": compression, "use_dictionary": use_dictionary, "column_encoding": column_encoding}
 
 
+def _combine_chunks_if_possible(column: pa.ChunkedArray) -> pa.ChunkedArray:
+    """Combine the chunks of a column, unless they overflow the 32-bit offsets of its type."""
+    try:
+        return pa.chunked_array([column.combine_chunks()], type=column.type)
+    except pa.ArrowInvalid as e:
+        if "offset overflow" not in str(e):
+            raise
+        return column
+
+
 class SchemaInferenceError(ValueError):
     pass
 
@@ -815,7 +825,15 @@ class ArrowWriter:
             writer_batch_size = self.writer_batch_size
         if self.pa_writer is None:
             self._build_writer(inferred_schema=pa_table.schema)
-        pa_table = pa_table.combine_chunks()
+        try:
+            pa_table = pa_table.combine_chunks()
+        except pa.ArrowInvalid as e:
+            if "offset overflow" not in str(e):
+                raise
+            # a column over the 32-bit offsets limit (e.g. more than 2 GiB of strings) can't be one chunk: keep its chunks
+            pa_table = pa.Table.from_arrays(
+                [_combine_chunks_if_possible(column) for column in pa_table.columns], schema=pa_table.schema
+            )
         for field in self._schema:
             if pa.types.is_null(field.type) and field.name in pa_table.column_names:
                 self._check_null_column(field.name, pa_table[field.name])
