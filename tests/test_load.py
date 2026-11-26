@@ -1447,6 +1447,19 @@ def test_load_dataset_from_fsspec_url_with_dataset_card(mockfs):
     assert ds["validation"].config_name == "only_test"
 
 
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_from_fsspec_url_with_standalone_yaml_over_dataset_card(mockfs, streaming):
+    _write_mockfs_csv_dataset(mockfs, "bucket/dataset")
+    with mockfs.open("bucket/dataset/README.md", "w") as f:
+        f.write("---\nconfigs:\n- config_name: card\n  data_files:\n  - split: train\n    path: train.csv\n---\n")
+    with mockfs.open("bucket/dataset/.huggingface.yaml", "w") as f:
+        f.write("configs:\n- config_name: standalone\n  data_files:\n  - split: validation\n    path: test.csv\n")
+    ds = load_dataset("mock://bucket/dataset", storage_options=mockfs.storage_options, streaming=streaming)
+    assert set(ds) == {"validation"}
+    assert ds["validation"].config_name == "standalone"
+    assert list(ds["validation"]) == [{"text": "c"}]
+
+
 def test_load_dataset_from_fsspec_url_not_found(mockfs):
     with pytest.raises(FileNotFoundError, match="mock://bucket/missing"):
         load_dataset("mock://bucket/missing", storage_options=mockfs.storage_options)
