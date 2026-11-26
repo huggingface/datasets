@@ -101,7 +101,9 @@ class PolarsFeaturesDecoder:
             else None
         )
         if decode:
-            column = column.map_elements(decode)
+            import polars as pl
+
+            column = column.map_elements(decode, return_dtype=pl.Object)
         return column
 
     def decode_batch(self, batch: "pl.DataFrame") -> "pl.DataFrame":

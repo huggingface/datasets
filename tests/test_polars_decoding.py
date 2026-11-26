@@ -28,3 +28,16 @@ def test_with_format_polars__decodable_feature__decodes(dataset_cls):
     rows = list(ds.with_format("polars"))
 
     assert [row["text"][0] for row in rows] == ["ALPHA", "BETA"]
+
+
+@pytest.mark.parametrize("format_method", ["format_batch", "format_column"])
+@pytest.mark.parametrize("data", [[None], []])
+def test_formatter__decodable_feature__empty_or_null_column(format_method, data):
+    from datasets.formatting import PolarsFormatter
+
+    pa_table = pa.table({"text": pa.array(data, type=pa.string())})
+    formatter = PolarsFormatter(features=Features({"text": UpperFeature()}))
+
+    result = getattr(formatter, format_method)(pa_table)
+
+    assert len(result) == len(data)
