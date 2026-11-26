@@ -92,6 +92,23 @@ def test_parquet_columns_reads_local_copy_of_remote_file_if_cached(remote_parque
     assert ds.to_dict() == {"text": ["cached"]}
 
 
+@pytest.mark.parametrize("columns", [None, ["text"]])
+@pytest.mark.parametrize("num_proc", [None, 2])
+def test_parquet_reads_remote_files_with_storage_options_of_download_config(
+    remote_parquet_url, mockfs, columns, num_proc, tmp_path
+):
+    ds = load_dataset(
+        "parquet",
+        data_files=remote_parquet_url,
+        columns=columns,
+        split="train",
+        download_config=DownloadConfig(storage_options=mockfs.storage_options),
+        cache_dir=str(tmp_path / "cache"),
+        num_proc=num_proc,
+    )
+    assert ds["text"] == ["a", "b", "c"]
+
+
 @pytest.mark.parametrize("columns, offline", [(None, False), (["text"], True)])
 def test_parquet_downloads_remote_files_without_columns_or_offline(
     remote_parquet_url, mockfs, monkeypatch, columns, offline, tmp_path

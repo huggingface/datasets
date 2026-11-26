@@ -154,6 +154,8 @@ class Parquet(datasets.ArrowBasedBuilder):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         dl_manager.download_config.extract_on_the_fly = True
+        # remote files are opened with the download config of the manager, which can differ from the builder's
+        self._download_config = dl_manager.download_config
         if self.config.columns is not None and not dl_manager.is_streaming and not datasets.config.HF_HUB_OFFLINE:
             # Only the requested columns are read from the remote files, instead of downloading the files in full
             data_files = {
@@ -211,8 +213,7 @@ class Parquet(datasets.ArrowBasedBuilder):
 
     def _open(self, file: str):
         # like `open` in streaming mode: local files are opened as usual and remote files are read with range requests
-        download_config = DownloadConfig(storage_options=self.storage_options, token=self.token)
-        return xopen(file, "rb", download_config=download_config)
+        return xopen(file, "rb", download_config=self._download_config)
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.info.features is not None:
