@@ -4412,6 +4412,55 @@ def test_decode_num_threads_passes_token_per_repo_id():
     assert TokenRecordingDecodableFeature.seen_token_per_repo_id[0] == {"repo_id": "token"}
 
 
+@dataclass
+class TokenEchoFeature:
+    """Decode a value into a string that embeds the token used for decoding."""
+
+    def decode_example(self, example, token_per_repo_id=None):
+        token = (token_per_repo_id or {}).get("repo_id")
+        return f"decoded:{example}:{token}"
+
+    def __call__(self):
+        return pa.string()
+
+
+def _token_echo_values(rows):
+    """Reduce formatted rows to the single decoded string stored in the ``i`` column."""
+    values = []
+    for row in rows:
+        if isinstance(row, pd.DataFrame):
+            row = row.iloc[0].to_dict()
+        elif isinstance(row, pd.Series):
+            row = row.to_dict()
+        value = row["i"]
+        if isinstance(value, np.ndarray):
+            value = value.tolist()
+        values.append(value)
+    return values
+
+
+def test_iterable_dataset_formatter_preserves_token_per_repo_id():
+    # formatting an arrow-backed iterable dataset must not drop the private-repo token at decode time
+    def gen_tables():
+        yield 0, pa.table({"i": ["a", "b", "c", "d"]})
+
+    ds = IterableDataset(
+        ArrowExamplesIterable(gen_tables, {}),
+        info=DatasetInfo(features=Features({"i": TokenEchoFeature()})),
+        token_per_repo_id={"repo_id": "token"},
+    )
+    expected = [f"decoded:{value}:token" for value in "abcd"]
+
+    # default iteration and iter(batch_size=...) decode through FormattedExamplesIterable and keep the token
+    assert _token_echo_values(ds) == expected
+    assert _token_echo_values(ds.iter(batch_size=2)) == [expected[:2], expected[2:]]
+    # the arrow/table fast paths rebuild a formatter: the token must be forwarded there too
+    assert _token_echo_values(ds.with_format("numpy")) == expected
+    assert _token_echo_values(ds.with_format("numpy").iter(batch_size=2)) == [expected[:2], expected[2:]]
+    # pandas iteration is covered as well; note that PandasFeaturesDecoder does not forward the token
+    assert len(_token_echo_values(ds.with_format("pandas"))) == len(expected)
+
+
 ############################
 #
 #   IterableColumn tests

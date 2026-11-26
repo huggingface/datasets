@@ -3072,7 +3072,9 @@ class IterableDataset(DatasetInfoMixin):
 
         ex_iterable = self._prepare_ex_iterable_for_iteration()
         if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
-            formatter = get_formatter(self._formatting.format_type, features=self.features)
+            formatter = get_formatter(
+                self._formatting.format_type, features=self.features, token_per_repo_id=self._token_per_repo_id
+            )
             for key, pa_table in ex_iterable.iter_arrow():
                 yield formatter.format_row(pa_table)
             return
@@ -3091,7 +3093,9 @@ class IterableDataset(DatasetInfoMixin):
         """
 
         if self._formatting:
-            formatter = get_formatter(self._formatting.format_type, features=self.features)
+            formatter = get_formatter(
+                self._formatting.format_type, features=self.features, token_per_repo_id=self._token_per_repo_id
+            )
             format_dict = formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else None
         else:
             format_dict = None
