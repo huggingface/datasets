@@ -3,7 +3,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 import zstandard as zstd
@@ -807,6 +807,23 @@ class TestxPath:
                 (tmp_path / file).touch()
         output_paths = sorted([str(path) for path in xPath(input_path).glob(pattern)])
         assert output_paths == expected_paths
+
+    @pytest.mark.parametrize("method", ["glob", "rglob"])
+    def test_xpath_glob_storage_options(self, method):
+        download_config = DownloadConfig(storage_options={"https": {"block_size": "omit"}})
+        expected_storage_options = {"https": {"block_size": "omit", "client_kwargs": {"trust_env": True}}}
+
+        with patch("datasets.utils.file_utils.url_to_fs") as mocked_url_to_fs:
+            mocked_url_to_fs.return_value = (MagicMock(glob=lambda _: [], protocol="zip"), "")
+            list(getattr(xPath("zip://::https://domain.org/data.zip"), method)("*", download_config=download_config))
+            xpath_storage_options = mocked_url_to_fs.call_args.kwargs
+
+        with patch("datasets.utils.file_utils.url_to_fs") as mocked_url_to_fs:
+            mocked_url_to_fs.return_value = (MagicMock(glob=lambda _: [], protocol="zip"), "")
+            xglob("zip://*::https://domain.org/data.zip", download_config=download_config)
+            xglob_storage_options = mocked_url_to_fs.call_args.kwargs
+
+        assert xpath_storage_options == xglob_storage_options == expected_storage_options
 
     @pytest.mark.parametrize(
         "input_path, pattern, expected_paths",
