@@ -45,3 +45,9 @@ class DatasetListTest(TestCase):
         dset = Dataset.from_list([])
         self.assertEqual(len(dset), 0)
         self.assertListEqual(dset.column_names, [])
+
+    def test_create_empty_dicts(self):
+        dset = Dataset.from_list([{}, {}])
+        self.assertEqual(len(dset), 2)
+        self.assertListEqual(dset.column_names, [])
+        self.assertListEqual(dset.to_list(), [{}, {}])
