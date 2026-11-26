@@ -949,6 +949,17 @@ def test_load_dataset_streaming_gz_json(jsonl_gz_path):
     assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
 
 
+def test_load_dataset_streaming_with_multiple_splits(tmp_path):
+    train_path = tmp_path / "train.jsonl"
+    train_path.write_text('{"text": "train row"}\n')
+    test_path = tmp_path / "test.jsonl"
+    test_path.write_text('{"text": "test row"}\n')
+    datasets = load_dataset(
+        "json", data_files={"train": str(train_path), "test": str(test_path)}, split=["train", "test"], streaming=True
+    )
+    assert [list(dataset) for dataset in datasets] == [[{"text": "train row"}], [{"text": "test row"}]]
+
+
 def _write_tiny_image_dir(tmp_path, num_files: int = 3):
     from PIL import Image as PILImage
 
