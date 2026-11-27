@@ -85,8 +85,15 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                     "The TAR archives of the dataset should be in WebDataset format, "
                     "but the files in the archive don't share the same prefix or the same types."
                 )
+            # Binary payload contents do not affect their inferred type. Avoid copying them
+            # into Arrow, whose binary arrays cannot hold a single value larger than 2 GB.
             pa_tables = [
-                pa.Table.from_pylist(cast_to_python_objects([example], only_1d_for_numpy=True))
+                pa.Table.from_pylist(
+                    cast_to_python_objects(
+                        [{key: b"" if isinstance(value, bytes) else value for key, value in example.items()}],
+                        only_1d_for_numpy=True,
+                    )
+                )
                 for example in first_examples
             ]
             inferred_arrow_schema = pa.concat_tables(pa_tables, promote_options="default").schema
