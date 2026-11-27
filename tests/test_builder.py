@@ -1,7 +1,9 @@
 import importlib
 import os
 import tempfile
+import threading
 import types
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import nullcontext as does_not_raise
 from multiprocessing import Process
 from pathlib import Path
@@ -22,6 +24,7 @@ from datasets.builder import (
     GeneratorBasedBuilder,
     InvalidConfigName,
     Key,
+    _cache_lock,
 )
 from datasets.data_files import DataFilesList
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
@@ -32,6 +35,7 @@ from datasets.iterable_dataset import IterableDataset
 from datasets.load import configure_builder_class
 from datasets.splits import Split, SplitDict, SplitGenerator, SplitInfo
 from datasets.streaming import xjoin
+from datasets.utils._filelock import FileLock
 from datasets.utils.file_utils import is_local_path
 from datasets.utils.logging import INFO, get_logger
 
@@ -236,6 +240,66 @@ def check_streaming(builder):
 
 
 class BuilderTest(TestCase):
+    @pytest.mark.skipif(os.name != "posix", reason="read-only flock fallback is POSIX-only")
+    def test_read_only_cache_lock_waits_for_writer(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            lock_path = os.path.join(tmp_dir, "dataset.lock")
+            info_path = os.path.join(tmp_dir, "dataset_info.json")
+            Path(info_path).touch()
+            writer = FileLock(lock_path)
+            writer.acquire()
+            Path(lock_path).chmod(0o444)
+            reader_started = threading.Event()
+            reader_acquired = threading.Event()
+
+            def read_cache():
+                reader_started.set()
+                with _cache_lock(lock_path, info_path) as read_only:
+                    self.assertTrue(read_only)
+                    reader_acquired.set()
+
+            try:
+                with ThreadPoolExecutor(max_workers=1) as pool:
+                    future = pool.submit(read_cache)
+                    try:
+                        self.assertTrue(reader_started.wait(timeout=2))
+                        self.assertFalse(reader_acquired.wait(timeout=0.1))
+                    finally:
+                        writer.release()
+                    future.result(timeout=2)
+                self.assertTrue(reader_acquired.is_set())
+                Path(info_path).unlink()
+                with self.assertRaises(PermissionError):
+                    with _cache_lock(lock_path, info_path):
+                        pass
+            finally:
+                Path(lock_path).chmod(0o644)
+
+    @pytest.mark.skipif(os.name != "posix", reason="read-only flock fallback is POSIX-only")
+    def test_reuse_prepared_dataset_with_read_only_lock_files(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            builder = DummyBuilder(cache_dir=tmp_dir)
+            builder.download_and_prepare()
+            lock_files = list(Path(tmp_dir).rglob("*.lock"))
+            directories = [Path(tmp_dir), *(path for path in Path(tmp_dir).rglob("*") if path.is_dir())]
+            self.assertGreaterEqual(len(lock_files), 2)
+            try:
+                for lock_file in lock_files:
+                    lock_file.chmod(0o444)
+                for directory in directories:
+                    directory.chmod(0o555)
+
+                reused = DummyBuilder(cache_dir=tmp_dir)
+                reused.download_and_prepare()
+                self.assertEqual(len(reused.as_dataset(split="train")), 100)
+                with self.assertRaises(PermissionError):
+                    reused.download_and_prepare(download_mode=DownloadMode.FORCE_REDOWNLOAD)
+            finally:
+                for directory in directories:
+                    directory.chmod(0o755)
+                for lock_file in lock_files:
+                    lock_file.chmod(0o644)
+
     def test_download_and_prepare(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             builder = DummyBuilder(cache_dir=tmp_dir)
