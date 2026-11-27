@@ -1304,6 +1304,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         # for simplicity and consistency wrt OptimizedTypedSequence we do not use InMemoryTable.from_pylist here
+        if mapping and not mapping[0]:
+            dataset = cls.from_dict({}, features, info, split, on_mixed_types=on_mixed_types)
+            # Rebuild after metadata handling because it drops the row count from zero-column Arrow tables.
+            pa_table = pa.Table.from_batches(
+                [pa.RecordBatch.from_struct_array(pa.array(mapping, type=pa.struct([])))], schema=dataset.data.schema
+            )
+            dataset._data = InMemoryTable(pa_table)
+            dataset._fingerprint = generate_fingerprint(dataset)
+            return dataset
         mapping = {k: [r.get(k) for r in mapping] for k in mapping[0]} if mapping else {}
         return cls.from_dict(mapping, features, info, split, on_mixed_types=on_mixed_types)
 
