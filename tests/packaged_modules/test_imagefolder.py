@@ -4,10 +4,11 @@ import textwrap
 import numpy as np
 import pytest
 
-from datasets import ClassLabel, Features, Image
+from datasets import ClassLabel, Features, Image, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesDict, DataFilesList, get_data_patterns
 from datasets.download.streaming_download_manager import StreamingDownloadManager
+from datasets.exceptions import DatasetGenerationError
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder, ImageFolderConfig
 
 from ..utils import require_pil
@@ -390,6 +391,23 @@ def test_data_files_with_wrong_metadata_file_name(cache_dir, tmp_path, image_fil
     dataset = imagefolder.as_dataset(split="train")
     # check that there are no metadata, since the metadata file name doesn't have the right name
     assert "caption" not in dataset.column_names
+
+
+@require_pil
+def test_load_dataset_raises_for_missing_file_referenced_by_metadata(cache_dir, tmp_path, image_file):
+    data_dir = tmp_path / "data_dir_with_missing_metadata_reference"
+    data_dir.mkdir()
+    shutil.copyfile(image_file, data_dir / "present.jpg")
+    metadata_filename = data_dir / "metadata.csv"
+    metadata_filename.write_text("file_name,caption\nmissing.jpg,Missing image\n", encoding="utf-8")
+
+    with pytest.raises(DatasetGenerationError) as error:
+        load_dataset("imagefolder", data_dir=str(data_dir), cache_dir=cache_dir)
+
+    expected_message = f"File 'missing.jpg' referenced in metadata file '{metadata_filename}' does not exist"
+    assert str(error.value) == f"An error occurred while generating the dataset: {expected_message}"
+    assert isinstance(error.value.__cause__, FileNotFoundError)
+    assert str(error.value.__cause__) == expected_message
 
 
 @require_pil
