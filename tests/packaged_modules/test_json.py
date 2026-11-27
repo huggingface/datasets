@@ -944,3 +944,118 @@ def test_json_load_dataset_without_droid_marker_stays_ordinary_json(tmp_path):
 
     assert dataset.column_names == ["type", "id", "version", "timestamp", "message"]
     assert dataset[0]["type"] == "session_start"
+
+
+@pytest.mark.parametrize(
+    "rows, features, expected",
+    [
+        ([{"a": 1}, {"a": "x"}], Features({"a": Value("string")}), [{"a": "1"}, {"a": "x"}]),
+        (
+            [{"a": "x"}, {"a": 1.5}, {"a": True}],
+            Features({"a": Value("string")}),
+            [{"a": "x"}, {"a": "1.5"}, {"a": "true"}],
+        ),
+        (
+            [{"a": {"b": 1}}, {"a": "x"}, {"a": None}],
+            Features({"a": Value("large_string")}),
+            [{"a": '{"b":1}'}, {"a": "x"}, {"a": None}],
+        ),
+        # a string that is valid JSON text stays a string
+        ([{"a": 1}, {"a": "123"}], Features({"a": Value("string")}), [{"a": "1"}, {"a": "123"}]),
+        ([{"a": [1, "x"]}], Features({"a": [Value("string")]}), [{"a": ["1", "x"]}]),
+        (
+            [{"a": {"b": 1}}, {"a": {"b": "x"}}],
+            Features({"a": {"b": Value("string")}}),
+            [{"a": {"b": "1"}}, {"a": {"b": "x"}}],
+        ),
+    ],
+)
+@pytest.mark.parametrize("extension", ["jsonl", "json"])
+@pytest.mark.parametrize("on_mixed_types", ["use_json", None])
+def test_json_mixed_types_in_fields_declared_as_strings(
+    tmp_path, bounded_json_parser, rows, features, expected, extension, on_mixed_types
+):
+    path = tmp_path / f"mixed.{extension}"
+    path.write_text("\n".join(map(json.dumps, rows)) if extension == "jsonl" else json.dumps(rows), encoding="utf-8")
+
+    dataset = load_dataset(
+        "json",
+        data_files=str(path),
+        features=features,
+        on_mixed_types=on_mixed_types,
+        split="train",
+        cache_dir=str(tmp_path / "cache"),
+    )
+
+    assert dataset.features == features
+    assert dataset.to_list() == expected
+
+
+def test_json_mixed_types_in_field_declared_as_string_keeps_all_the_digits(tmp_path, bounded_json_parser):
+    # JSON Lines only: JSON files are first parsed and re-encoded by ujson, which rounds floats and doesn't support
+    # integers this big
+    rows = [{"a": 0.1 + 0.2, "b": 0.1 + 0.2}, {"a": 2**70, "b": 1.5}, {"a": "x", "b": 2.0}]
+    path = tmp_path / "mixed.jsonl"
+    path.write_text("\n".join(map(json.dumps, rows)), encoding="utf-8")
+
+    dataset = load_dataset(
+        "json",
+        data_files=str(path),
+        features=Features({"a": Value("string"), "b": Value("float64")}),
+        split="train",
+        cache_dir=str(tmp_path / "cache"),
+    )
+
+    # the other columns of the rows are not changed either
+    assert dataset.to_list() == [
+        {"a": "0.30000000000000004", "b": 0.1 + 0.2},
+        {"a": str(2**70), "b": 1.5},
+        {"a": "x", "b": 2.0},
+    ]
+
+
+def test_json_mixed_types_in_field_declared_as_string_next_to_a_json_field(tmp_path, bounded_json_parser):
+    from datasets import Json as JsonFeature
+
+    rows = [{"a": 1, "c": 1}, {"a": "x", "c": "y"}]
+    path = tmp_path / "mixed.jsonl"
+    path.write_text("\n".join(map(json.dumps, rows)), encoding="utf-8")
+    features = Features({"a": Value("string"), "c": JsonFeature()})
+
+    dataset = load_dataset(
+        "json", data_files=str(path), features=features, split="train", cache_dir=str(tmp_path / "cache")
+    )
+
+    # only the field declared as a string is loaded as strings, the Json field keeps its values
+    assert dataset.to_list() == [{"a": "1", "c": 1}, {"a": "x", "c": "y"}]
+
+
+def test_json_mixed_types_in_field_declared_as_string_are_encoded_in_every_batch(tmp_path, monkeypatch):
+    read_json = paj.read_json
+    num_parse_errors = 0
+
+    def counting_read_json(*args, **kwargs):
+        nonlocal num_parse_errors
+        try:
+            return read_json(*args, **kwargs)
+        except pa.ArrowInvalid:
+            num_parse_errors += 1
+            raise
+
+    monkeypatch.setattr(paj, "read_json", counting_read_json)
+    rows = [{"a": i} if i % 2 else {"a": f"text {i}"} for i in range(2000)]
+    path = tmp_path / "mixed.jsonl"
+    path.write_text("\n".join(map(json.dumps, rows)), encoding="utf-8")
+
+    dataset = load_dataset(
+        "json",
+        data_files=str(path),
+        features=Features({"a": Value("string")}),
+        chunksize=1000,  # many batches
+        split="train",
+        cache_dir=str(tmp_path / "cache"),
+    )
+
+    assert dataset["a"] == [str(i) if i % 2 else f"text {i}" for i in range(2000)]
+    # the field is encoded in the next batches without parsing them twice
+    assert num_parse_errors == 1
