@@ -275,10 +275,9 @@ def infer_module_for_data_files_list_in_archives(
     extensions_counter = Counter(
         "." + suffix.lower() for filepath in archived_files for suffix in xbasename(filepath).split(".")[1:]
     )
-    if extensions_counter:
-        most_common = extensions_counter.most_common(1)[0][0]
-        if most_common in _EXTENSION_TO_MODULE:
-            return _EXTENSION_TO_MODULE[most_common]
+    for extension, _ in extensions_counter.most_common():
+        if extension in _EXTENSION_TO_MODULE:
+            return _EXTENSION_TO_MODULE[extension]
     return None, {}
 
 

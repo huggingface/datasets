@@ -3,6 +3,7 @@ import os
 import pickle
 import shutil
 import tempfile
+import zipfile
 from multiprocessing import Pool
 from pathlib import Path
 from types import SimpleNamespace
@@ -311,6 +312,50 @@ def test_infer_module_for_data_files_in_archives(
     data_files = [str(data_file_paths[data_file])]
     inferred_module, _ = infer_module_for_data_files_list_in_archives(data_files)
     assert inferred_module == expected_module
+
+
+@pytest.mark.parametrize(
+    "filenames, expected_module, expected_builder_kwargs",
+    [
+        (["data.train.csv"], "csv", {}),
+        (["data.train.jsonl"], "json", {}),
+        (["data.train.txt"], "text", {}),
+        (["data.train.tsv"], "csv", {"sep": "\t"}),
+        (["data.train.CSV"], "csv", {}),
+        (["data.train.csv", "notes.train.unknown", "more.train.other"], "csv", {}),
+        (["data.train.unknown"], None, {}),
+        (["a.csv", "b.jsonl", "c.jsonl"], "json", {}),
+        (["a.csv", "b.jsonl"], "csv", {}),
+    ],
+)
+def test_infer_module_for_data_files_in_archives_supported_suffix(
+    tmp_path, filenames, expected_module, expected_builder_kwargs
+):
+    archive_path = tmp_path / "data.zip"
+    with zipfile.ZipFile(archive_path, "w") as archive:
+        for filename in filenames:
+            archive.writestr(filename, "a,b\n1,2\n")
+
+    module, builder_kwargs = infer_module_for_data_files_list_in_archives([str(archive_path)])
+
+    assert module == expected_module
+    assert builder_kwargs == expected_builder_kwargs
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize(
+    "filename, content",
+    [("data.train.csv", "a,b\n1,2\n3,4\n"), ("data.train.jsonl", '{"a": 1, "b": 2}\n{"a": 3, "b": 4}\n')],
+)
+def test_load_dataset_zip_with_supported_suffix(tmp_path, streaming, filename, content):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    with zipfile.ZipFile(data_dir / "data.zip", "w") as archive:
+        archive.writestr(filename, content)
+
+    dataset = load_dataset(str(data_dir), split="train", streaming=streaming)
+
+    assert list(dataset) == [{"a": 1, "b": 2}, {"a": 3, "b": 4}]
 
 
 class ModuleFactoryTest(TestCase):
