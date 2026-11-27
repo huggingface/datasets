@@ -305,6 +305,10 @@ class DatasetBuilder:
     # Useful to make sure PyArrow threads in c++ have time to shut down before gargabe collection
     SLEEP_ON_THREADS_SHUTDOWNS = False
 
+    # Set to True if _info() adapts the info from the dataset card (in self.dataset_card_info) to the config,
+    # e.g. if some config parameters change the columns or the number of examples
+    UPDATES_DATASET_CARD_INFO = False
+
     def __init__(
         self,
         cache_dir: Optional[str] = None,
@@ -368,7 +372,8 @@ class DatasetBuilder:
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
-        if info is None:
+        self.dataset_card_info = info
+        if info is None or self.UPDATES_DATASET_CARD_INFO:
             info = self._info()
         info.builder_name = self.name
         info.dataset_name = self.dataset_name
