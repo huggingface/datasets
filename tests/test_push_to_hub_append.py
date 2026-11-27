@@ -14,6 +14,7 @@ import pyarrow.parquet as pq
 import pytest
 from fsspec.implementations.memory import MemoryFileSystem
 from huggingface_hub import CommitOperationAdd, CommitOperationCopy, CommitOperationDelete, DatasetCard
+from huggingface_hub.errors import EntryNotFoundError
 
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
 from datasets.data_files import sanitize_patterns
@@ -1147,3 +1148,27 @@ def test_append_measures_the_last_shard_from_its_parquet_footer(hub):
     assert len(files) == 1
     assert len(next(iter(files.values()))) <= max_shard_size
     assert rows(files) == [{"x": "a" * 1000}] * 800
+
+
+def test_append_handles_entry_not_found_from_list_repo_tree(hub, monkeypatch):
+    import datasets.arrow_dataset as arrow_dataset
+
+    def raise_entry_not_found(self, *args, **kwargs):
+        raise EntryNotFoundError("not found")
+
+    monkeypatch.setattr(arrow_dataset.HfApi, "list_repo_tree", raise_entry_not_found)
+    Dataset.from_dict({"x": [0, 1]}).push_to_hub(hub.repo_id, append=True)
+    assert rows(hub.files()) == [{"x": 0}, {"x": 1}]
+
+
+def test_append_handles_entry_not_found_from_glob(hub, monkeypatch):
+    original_glob = hub.fs.glob
+
+    def glob_with_missing_dir(path, *args, **kwargs):
+        if path.endswith("/custom/*.parquet"):
+            raise EntryNotFoundError("not found")
+        return original_glob(path, *args, **kwargs)
+
+    monkeypatch.setattr(hub.fs, "glob", glob_with_missing_dir)
+    Dataset.from_dict({"x": [0, 1]}).push_to_hub(hub.repo_id, data_dir="custom", append=True)
+    assert rows(hub.files("custom/*.parquet")) == [{"x": 0}, {"x": 1}]
