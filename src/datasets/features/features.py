@@ -22,7 +22,7 @@ import sys
 from collections.abc import Iterable, Mapping
 from collections.abc import Sequence as SequenceABC
 from collections.abc import Sequence as Sequence_
-from dataclasses import InitVar, dataclass, field, fields
+from dataclasses import InitVar, dataclass, field, fields, replace
 from functools import reduce, wraps
 from operator import mul
 from typing import Any, Callable, ClassVar, Literal, Optional, Union
@@ -2505,6 +2505,13 @@ def _is_null_feature(feature) -> bool:
     return False
 
 
+def _is_same_list_type(feature: FeatureType, other: FeatureType) -> bool:
+    """Check if two features are lists of the same kind (`List` with the same length, or `LargeList`)."""
+    if isinstance(feature, LargeList):
+        return isinstance(other, LargeList)
+    return isinstance(feature, List) and isinstance(other, List) and feature.length == other.length
+
+
 def _align_features(features_list: list[Features]) -> list[Features]:
     """Align dictionaries of features so that the keys that are found in multiple dictionaries share the same feature."""
     name2feature = {}
@@ -2515,6 +2522,10 @@ def _align_features(features_list: list[Features]) -> list[Features]:
                 name2feature[k] = _align_features([name2feature[k], v])[0]
             elif k not in name2feature or _is_null_feature(name2feature[k]):
                 name2feature[k] = v
+            elif _is_same_list_type(name2feature[k], v):
+                # Recursively align the items, e.g. a struct field that is null in one list of structs.
+                item = _align_features([{k: name2feature[k].feature}, {k: v.feature}])[0][k]
+                name2feature[k] = replace(name2feature[k], feature=item)
 
     return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
 
@@ -2536,6 +2547,9 @@ def _check_if_features_can_be_aligned(features_list: list[Features]):
             if isinstance(v, dict) and isinstance(name2feature[k], dict):
                 # Deep checks for structure.
                 _check_if_features_can_be_aligned([name2feature[k], v])
+            elif not _is_null_feature(v) and _is_same_list_type(name2feature[k], v):
+                # Deep checks for the items of the lists.
+                _check_if_features_can_be_aligned([{k: name2feature[k].feature}, {k: v.feature}])
             elif not _is_null_feature(v) and name2feature[k] != v:
                 raise ValueError(
                     f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
