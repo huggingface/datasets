@@ -653,6 +653,25 @@ def _check_valid_indices_value(index, size):
         raise IndexError(f"Index {index} out of range for dataset of size {size}.")
 
 
+def _group_rows(keys: pa.Table) -> tuple[np.ndarray, np.ndarray]:
+    """Find the rows of each group of equal keys.
+
+    Returns the row positions ordered so that the rows of a group are contiguous, and the offsets of the groups
+    in that order. Groups are ordered by first appearance and the rows of a group keep their relative order.
+    """
+    key_names = [str(i) for i in range(keys.num_columns)]
+    table = keys.rename_columns(key_names).append_column("row", pa.array(np.arange(keys.num_rows)))
+    groups = table.group_by(key_names, use_threads=False).aggregate([("row", "list"), ("row", "min")])
+    rows_per_group = groups["row_list"].combine_chunks()
+    first_rows = groups["row_min"].to_numpy()
+    sizes = pc.list_value_length(rows_per_group).to_numpy()
+    rows = rows_per_group.flatten().to_numpy()
+    # sort explicitly instead of relying on the order in which pyarrow outputs the groups and their rows
+    order = rows[np.lexsort((rows, np.repeat(first_rows, sizes)))]
+    offsets = np.concatenate([[0], np.cumsum(sizes[np.argsort(first_rows)])])
+    return order, offsets
+
+
 class NonExistentDatasetError(Exception):
     """Used when we expect the existence of a dataset"""
 
@@ -4927,6 +4946,121 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             writer_batch_size=writer_batch_size,
             new_fingerprint=new_fingerprint,
         )
+
+    @transmit_format
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc"])
+    def group_by(
+        self,
+        by: Union[str, Sequence_[str]],
+        function: Callable,
+        fn_kwargs: Optional[dict] = None,
+        features: Optional[Features] = None,
+        keep_in_memory: bool = False,
+        load_from_cache_file: Optional[bool] = None,
+        cache_file_name: Optional[str] = None,
+        writer_batch_size: Optional[int] = 1000,
+        new_fingerprint: Optional[str] = None,
+        desc: Optional[str] = None,
+    ) -> "Dataset":
+        """Group the rows that share the same values in one or several columns and apply a function to each group.
+
+        The function is called once per group with a batch that contains all the rows of the group, and returns
+        a batch of one or more rows. The new dataset is made of the rows returned for each group.
+        Groups are processed in the order in which their keys first appear in the dataset, and the rows of a group
+        keep their order. Rows with a `None` key are grouped together.
+
+        Only the columns to group by are loaded in memory to find the groups.
+
+        Args:
+            by (`Union[str, Sequence[str]]`):
+                Column name(s) to group by.
+            function (`Callable`):
+                Function with the signature `function(batch: dict[str, list]) -> dict[str, list]`, as for
+                [`~Dataset.map`] with `batched=True`. The batch follows the format of the dataset
+                (see [`~Dataset.set_format`]). The returned columns are the columns of the new dataset:
+                return the columns to group by to keep them.
+            fn_kwargs (`Dict`, *optional*, defaults to `None`):
+                Keyword arguments to be passed to `function`.
+            features (`Optional[datasets.Features]`, defaults to `None`):
+                Use a specific [`Features`] to store the cache file instead of the automatically generated one.
+            keep_in_memory (`bool`, defaults to `False`):
+                Keep the dataset in memory instead of writing it to a cache file.
+            load_from_cache_file (`Optional[bool]`, defaults to `True` if caching is enabled):
+                If a cache file storing the result of this computation can be identified, use it instead of
+                recomputing.
+            cache_file_name (`str`, *optional*, defaults to `None`):
+                Provide the name of a path for the cache file. It is used to store the
+                results of the computation instead of the automatically generated cache file name.
+            writer_batch_size (`int`, defaults to `1000`):
+                Number of rows per write operation for the cache file writer.
+                Higher value gives smaller cache files, lower value consume less temporary memory.
+            new_fingerprint (`str`, *optional*, defaults to `None`):
+                The new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
+            desc (`str`, *optional*, defaults to `None`):
+                Meaningful description to be displayed alongside with the progress bar while processing the groups.
+
+        Example:
+
+        ```py
+        >>> from datasets import Dataset
+        >>> ds = Dataset.from_dict({"doc": ["b", "a", "b", "a"], "sentence": ["B1.", "A1.", "B2.", "A2."]})
+        >>> def join(batch):
+        ...     return {"doc": batch["doc"][:1], "text": [" ".join(batch["sentence"])]}
+        >>> ds.group_by("doc", join)[:]
+        {'doc': ['b', 'a'], 'text': ['B1. B2.', 'A1. A2.']}
+        ```
+        """
+        by = [by] if isinstance(by, str) else list(by)
+        if not by:
+            raise ValueError("Please provide at least one column to group by.")
+        for column in by:
+            if not isinstance(column, str) or column not in self._data.column_names:
+                raise ValueError(
+                    f"Column '{column}' not found in the dataset. Please provide a column selected in: {self._data.column_names}"
+                )
+        if keep_in_memory and cache_file_name is not None:
+            raise ValueError("Please use either `keep_in_memory` or `cache_file_name` but not both.")
+
+        info = self.info.copy()
+        info.features = features
+        if len(self) == 0:
+            empty_table = InMemoryTable.from_batches([], schema=(features or Features()).arrow_schema)
+            return Dataset(empty_table, info=info, split=self.split, fingerprint=new_fingerprint)
+
+        keys = query_table(table=self._data.select(by), key=slice(0, len(self)), indices=self._indices)
+        try:
+            order, offsets = _group_rows(keys)
+        except pa.ArrowNotImplementedError as err:
+            key_types = ", ".join(f"'{column}' ({keys.schema.field(column).type})" for column in by)
+            raise TypeError(f"Grouping by {key_types} is not supported: {err}") from err
+        grouped_rows = self.select(order, keep_in_memory=True)
+
+        def apply_to_group(bounds, **kwargs):
+            return function(grouped_rows[bounds["start"][0] : bounds["stop"][0]], **kwargs)
+
+        if cache_file_name is None and not keep_in_memory and self.cache_files:
+            cache_file_name = self._get_cache_file_path(new_fingerprint)
+        # one batch per group, so that `map` takes care of writing, caching and inferring the features
+        groups = Dataset.from_dict({"start": offsets[:-1], "stop": offsets[1:]})
+        dataset = groups.map(
+            apply_to_group,
+            batched=True,
+            batch_size=1,
+            remove_columns=groups.column_names,
+            keep_in_memory=keep_in_memory,
+            load_from_cache_file=load_from_cache_file,
+            cache_file_name=cache_file_name,
+            writer_batch_size=writer_batch_size,
+            features=features,
+            fn_kwargs=fn_kwargs,
+            new_fingerprint=new_fingerprint,
+            desc=desc or "Group by",
+        )
+        info.features = dataset.features
+        dataset._info = info
+        dataset._split = self.split
+        return dataset
 
     @transmit_format
     @fingerprint_transform(

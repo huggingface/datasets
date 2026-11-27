@@ -5462,3 +5462,115 @@ def test_dataset_push_to_hub_uploads_every_row_with_num_proc(offline_parquet_upl
     if num_shards == 1:
         # a single shard is written without starting a pool of processes
         assert not mp.get_context.return_value.Pool.called
+
+
+def _collect_group(batch):
+    return {"key": [batch["key"][0]], "values": [batch["value"]]}
+
+
+def test_dataset_group_by_orders_groups_by_first_appearance():
+    dataset = Dataset.from_dict({"key": ["b", "a", "b", "c", "a", "b"], "value": [0, 1, 2, 3, 4, 5]})
+    grouped = dataset.group_by("key", _collect_group)
+    assert grouped.to_dict() == {"key": ["b", "a", "c"], "values": [[0, 2, 5], [1, 4], [3]]}
+    assert grouped.features == Features({"key": Value("string"), "values": List(Value("int64"))})
+
+
+def test_dataset_group_by_function_can_return_several_rows_per_group():
+    dataset = Dataset.from_dict({"key": [1, 0, 1, 0, 1], "value": [0, 1, 2, 3, 4]})
+
+    def first_and_last(batch):
+        return {"key": [batch["key"][0]] * 2, "value": [batch["value"][0], batch["value"][-1]]}
+
+    grouped = dataset.group_by("key", first_and_last)
+    assert grouped.to_dict() == {"key": [1, 1, 0, 0], "value": [0, 4, 1, 3]}
+
+
+def test_dataset_group_by_several_columns_and_null_keys():
+    dataset = Dataset.from_dict(
+        {"a": [1, None, 1, 1, None, 2], "b": ["x", "x", "y", "x", "x", None], "value": [0, 1, 2, 3, 4, 5]}
+    )
+
+    def collect(batch):
+        return {"a": [batch["a"][0]], "b": [batch["b"][0]], "values": [batch["value"]]}
+
+    grouped = dataset.group_by(["a", "b"], collect)
+    assert grouped.to_dict() == {
+        "a": [1, None, 1, 2],
+        "b": ["x", "x", "y", None],
+        "values": [[0, 3], [1, 4], [2], [5]],
+    }
+
+
+@pytest.mark.parametrize("in_memory", [False, True])
+def test_dataset_group_by_respects_indices_mapping(in_memory, tmp_path):
+    dataset = Dataset.from_dict({"key": [i % 3 for i in range(30)], "value": list(range(30))})
+    if not in_memory:
+        dataset.save_to_disk(tmp_path / "dataset")
+        dataset = load_from_disk(tmp_path / "dataset")
+    dataset = dataset.shuffle(seed=42).select(range(20)).filter(lambda example: example["value"] != 7)
+    assert dataset._indices is not None
+    expected = {}
+    for key, value in zip(dataset["key"], dataset["value"]):
+        expected.setdefault(key, []).append(value)
+    grouped = dataset.group_by("key", _collect_group)
+    assert grouped.to_dict() == {"key": list(expected), "values": list(expected.values())}
+
+
+def test_dataset_group_by_passes_formatted_batches_and_fn_kwargs():
+    dataset = Dataset.from_dict({"key": [0, 1, 0, 1], "value": [1.0, 2.0, 3.0, 4.0]}).with_format("numpy")
+
+    def mean(batch, scale):
+        assert isinstance(batch["value"], np.ndarray)
+        return {"key": batch["key"][:1], "mean": [batch["value"].mean() * scale]}
+
+    grouped = dataset.group_by("key", mean, fn_kwargs={"scale": 10})
+    assert grouped.format["type"] == "numpy"
+    assert grouped.with_format(None).to_dict() == {"key": [0, 1], "mean": [20.0, 30.0]}
+
+
+def test_dataset_group_by_features_and_info():
+    dataset = Dataset.from_dict(
+        {"key": [0, 1, 0], "value": [1, 2, 3]}, info=DatasetInfo(description="grouped"), split=NamedSplit("train")
+    )
+    features = Features({"key": Value("int8"), "values": List(Value("int16"))})
+    grouped = dataset.group_by("key", _collect_group, features=features)
+    assert grouped.features == features
+    assert grouped.info.description == "grouped"
+    assert grouped.split == "train"
+
+
+def test_dataset_group_by_fingerprint_and_cache(tmp_path):
+    Dataset.from_dict({"key": [0, 1, 0], "value": [1, 2, 3]}).save_to_disk(tmp_path / "dataset")
+    dataset = load_from_disk(tmp_path / "dataset")
+
+    def count(batch):
+        return {"key": batch["key"][:1], "count": [len(batch["value"])]}
+
+    grouped = dataset.group_by("key", _collect_group)
+    (cache_file,) = [cache_file["filename"] for cache_file in grouped.cache_files]
+    with patch.object(Dataset, "_map_single", side_effect=AssertionError("the cache file was not reused")):
+        regrouped = dataset.group_by("key", _collect_group)
+    assert [cache_file["filename"] for cache_file in regrouped.cache_files] == [cache_file]
+    assert regrouped._fingerprint == grouped._fingerprint
+    assert regrouped.to_dict() == grouped.to_dict()
+    assert dataset.group_by("key", count)._fingerprint != grouped._fingerprint
+    assert dataset.group_by("value", _collect_group)._fingerprint != grouped._fingerprint
+    assert not dataset.group_by("key", _collect_group, keep_in_memory=True).cache_files
+
+
+def test_dataset_group_by_empty_dataset():
+    dataset = Dataset.from_dict({"key": [], "value": []})
+    assert dataset.group_by("key", _collect_group).num_rows == 0
+    features = Features({"key": Value("string"), "values": List(Value("int64"))})
+    grouped = dataset.group_by("key", _collect_group, features=features)
+    assert grouped.num_rows == 0 and grouped.features == features
+
+
+def test_dataset_group_by_invalid_keys():
+    dataset = Dataset.from_dict({"key": [0, 1], "nested": [[0], [1]]})
+    with pytest.raises(ValueError, match="missing"):
+        dataset.group_by("missing", _collect_group)
+    with pytest.raises(ValueError, match="at least one column"):
+        dataset.group_by([], _collect_group)
+    with pytest.raises(TypeError, match="nested"):
+        dataset.group_by("nested", _collect_group)
