@@ -3350,6 +3350,15 @@ def test_iterable_dataset_remove_columns(dataset_with_several_columns: IterableD
     assert all(c not in new_dataset.column_names for c in ["id", "filepath"])
 
 
+def test_iterable_dataset_remove_columns_string_with_substring_column():
+    dataset = Dataset.from_dict({"id": [7], "user_id": [42], "text": ["hello"]}).to_iterable_dataset()
+
+    new_dataset = dataset.remove_columns("user_id")
+
+    assert set(new_dataset.features) == {"id", "text"}
+    assert list(new_dataset) == [{"id": 7, "text": "hello"}]
+
+
 def test_iterable_dataset_select_columns(dataset_with_several_columns: IterableDataset):
     new_dataset = dataset_with_several_columns.select_columns("id")
     assert list(new_dataset) == [
