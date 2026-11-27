@@ -1040,7 +1040,9 @@ class PandasArrayExtensionArray(PandasExtensionArray):
     def __eq__(self, other) -> np.ndarray:
         if not isinstance(other, PandasArrayExtensionArray):
             raise NotImplementedError(f"Invalid type to compare to: {type(other)}")
-        return (self._data == other._data).all()
+        if len(self) != len(other):
+            raise ValueError("Lengths must match to compare")
+        return np.array([np.array_equal(left, right) for left, right in zip(self._data, other._data)], dtype=bool)
 
 
 def pandas_types_mapper(dtype):
