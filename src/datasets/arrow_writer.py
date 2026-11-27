@@ -584,7 +584,16 @@ class ArrowWriter:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
+        # Leaving the block must produce a complete, readable file. `close()` only closes the
+        # stream; it is `finalize()` that flushes the examples still staged in the buffer, so
+        # `with ArrowWriter(...) as writer:` used to discard everything below `writer_batch_size`
+        # and leave a 0-byte file. Stay quiet, as before, when the block raised, when nothing was
+        # written (there is no schema to infer), or when the caller already finalized.
+        has_staged_data = bool(self.current_examples or self.current_rows) or self.pa_writer is not None
+        if exc_type is None and not getattr(self.stream, "closed", False) and has_staged_data:
+            self.finalize()
+        else:
+            self.close()
 
     def close(self):
         # Try closing if opened; if closed: pyarrow.lib.ArrowInvalid: Invalid operation on closed file
