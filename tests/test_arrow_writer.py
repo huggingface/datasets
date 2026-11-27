@@ -166,6 +166,17 @@ def test_write_batch(fields, writer_batch_size):
     _check_output(output.getvalue(), expected_num_chunks=num_examples if writer_batch_size == 1 else 1)
 
 
+def test_write_batch_with_mismatched_empty_column_raises():
+    # Regression test for https://github.com/huggingface/datasets/issues/6879
+    # A batch is only skipped when *every* column is empty. A batch that mixes an
+    # empty column with a non-empty one is length-mismatched and must raise instead
+    # of being silently dropped (which used to truncate the dataset to 0 rows).
+    output = pa.BufferOutputStream()
+    with ArrowWriter(stream=output) as writer:
+        with pytest.raises(pa.lib.ArrowInvalid):
+            writer.write_batch({"col_1": [], "col_2": [1]})
+
+
 @pytest.mark.parametrize("writer_batch_size", [None, 1, 10])
 @pytest.mark.parametrize(
     "fields", [None, {"col_1": pa.string(), "col_2": pa.int64()}, {"col_1": pa.string(), "col_2": pa.int32()}]
