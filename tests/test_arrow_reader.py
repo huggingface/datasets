@@ -158,6 +158,22 @@ def test_read_instruction_spec():
     assert ReadInstruction.from_spec(spec_train_test_pct_rounding).to_spec() == spec_train_test_pct_rounding
 
 
+@pytest.mark.parametrize(
+    "spec, expected_from, expected_to",
+    [
+        ("train[-1%:]", 30, 30),  # -1% of 30 examples rounds to 0: must match train[99%:]
+        ("train[99%:]", 30, 30),
+        ("train[:-1%]", 0, 30),  # must match train[:99%]
+        ("train[:99%]", 0, 30),
+        ("train[-5%:]", 28, 30),  # boundary that doesn't round to 0 is unaffected
+        ("train[:-5%]", 0, 28),
+    ],
+)
+def test_to_absolute_negative_pct_boundary_rounding_to_zero(spec, expected_from, expected_to):
+    abs_instr = ReadInstruction.from_spec(spec).to_absolute({"train": 30})[0]
+    assert (abs_instr.from_, abs_instr.to) == (expected_from, expected_to)
+
+
 def test_make_file_instructions_basic():
     name = "dummy"
     split_infos = [SplitInfo(name="train", num_examples=100)]
@@ -191,10 +207,14 @@ def test_make_file_instructions_basic():
         ("train", "train[:200]", 100, (0, 100)),
         ("train", "train[:-200]", 100, None),
         ("train", "train[-200:]", 100, (0, 100)),
+        ("train", "train[-1%:]", 30, None),
+        ("train", "train[:-1%]", 30, (0, 30)),
         ("train", "train[-20%:]", [10] * 10, (80, 100)),
         ("train", "train[:200]", [10] * 10, (0, 100)),
         ("train", "train[:-200]", [10] * 10, None),
         ("train", "train[-200:]", [10] * 10, (0, 100)),
+        ("train", "train[-1%:]", [10] * 3, None),
+        ("train", "train[:-1%]", [10] * 3, (0, 30)),
     ],
 )
 def test_make_file_instructions(split_name, instruction, shard_lengths, read_range):
