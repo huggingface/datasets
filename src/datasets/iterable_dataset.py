@@ -5045,8 +5045,12 @@ class IterableDataset(DatasetInfoMixin):
                 Either a path to a file (e.g. `file.parquet`), a remote URI (e.g. `hf://datasets/username/my_dataset_name/data.parquet`),
                 or a BinaryIO, where the dataset will be saved to in the specified format.
             batch_size (`int`, *optional*):
-                Size of the batch to load in memory and write at once.
-                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+                Number of rows per Parquet row group.
+                By default it aims for row groups with maximum uncompressed byte size of "100MB",
+                defined by `datasets.config.MAX_ROW_GROUP_SIZE`.
+
+                The dataset is written one row group at a time if its features are known.
+                Otherwise it is loaded in memory before writing.
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
 
@@ -5071,13 +5075,17 @@ class IterableDataset(DatasetInfoMixin):
         ```
 
         """
-        from .arrow_writer import get_arrow_writer_batch_size_from_features
+        from .io.parquet import ParquetDatasetWriter
 
-        batch_size = get_arrow_writer_batch_size_from_features(self.features) or config.DEFAULT_MAX_BATCH_SIZE
-        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=batch_size)))
-        return Dataset(table, fingerprint="unset").to_parquet(
-            path_or_buf, storage_options=storage_options, **parquet_writer_kwargs
-        )
+        dataset = self
+        if self.features is None:
+            # the Parquet schema is needed before the first row is written
+            arrow_batch_size = batch_size or config.DEFAULT_MAX_BATCH_SIZE
+            table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=arrow_batch_size)))
+            dataset = Dataset(table, fingerprint="unset")
+        return ParquetDatasetWriter(
+            dataset, path_or_buf, batch_size=batch_size, storage_options=storage_options, **parquet_writer_kwargs
+        ).write()
 
     def _write_parquet_shards(
         self,
@@ -5111,6 +5119,7 @@ class IterableDataset(DatasetInfoMixin):
                         partial(embed_table_storage, token_per_repo_id=self._token_per_repo_id),
                         batched=True,
                         batch_size=get_arrow_writer_batch_size_from_features(shard.features),
+                        features=shard.features,
                     )
                 with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as tmp_file:
                     try:
