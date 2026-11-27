@@ -324,6 +324,19 @@ class DatasetDictTest(TestCase):
         self.assertEqual(mapped["train"][0], {"value": 1})
         self.assertEqual(mapped["test"][0], {"value": 2})
 
+        # The iterable path has its own guards in `IterableDatasetDict.map`, so cover it here too;
+        # otherwise the variant can regress without either test noticing.
+        iterable_dict = IterableDatasetDict(
+            {
+                "train": Dataset.from_dict({"value": [1]}).to_iterable_dataset(),
+                "test": Dataset.from_dict({"value": [2]}).to_iterable_dataset(),
+            }
+        )
+        mapped_iterable = iterable_dict.map(with_split=True)
+        self.assertListEqual(list(mapped_iterable.keys()), ["train", "test"])
+        self.assertEqual(list(mapped_iterable["train"]), [{"value": 1}])
+        self.assertEqual(list(mapped_iterable["test"]), [{"value": 2}])
+
     def test_map(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dsets = self._create_dummy_dataset_dict()
