@@ -1,3 +1,5 @@
+import pyarrow as pa
+import pyarrow.parquet as pq
 import pytest
 
 from datasets import load_dataset
@@ -39,3 +41,20 @@ def test_parquet_columns(parquet_path):
     )
     assert len(ds.features) == 1
     assert len(next(iter(ds))) == 1
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+def test_parquet_empty_row_groups(tmp_path, streaming):
+    schema = pa.schema({"a": pa.int64()})
+    empty_table = pa.table({"a": []}, schema=schema)
+    full_path = str(tmp_path / "full.parquet")
+    pq.write_table(pa.table({"a": [1, 2, 3]}, schema=schema), full_path)
+    empty_path = str(tmp_path / "empty.parquet")
+    pq.write_table(empty_table, empty_path)
+    mixed_path = str(tmp_path / "mixed.parquet")
+    with pq.ParquetWriter(mixed_path, schema) as writer:
+        writer.write_table(empty_table)
+        writer.write_table(pa.table({"a": [7, 8]}, schema=schema))
+    assert pq.ParquetFile(empty_path).metadata.num_row_groups == 1
+    ds = load_dataset("parquet", data_files=[empty_path, full_path, mixed_path], split="train", streaming=streaming)
+    assert [row["a"] for row in ds] == [1, 2, 3, 7, 8]

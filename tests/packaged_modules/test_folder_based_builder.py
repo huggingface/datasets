@@ -617,3 +617,24 @@ def test_data_files_with_custom_file_names_column_in_metadata_file_large_string_
     assert len(examples) == 1
     assert "text" in examples[0] and "text_file_names" not in examples[0]
     assert len(examples[0]["text"]) == 1 and examples[0]["text"][0].endswith("file.txt")
+
+
+def test_data_files_with_empty_row_group_in_metadata_parquet(cache_dir, tmp_path, auto_text_file):
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    data_dir = tmp_path / "data_dir_with_empty_row_group_metadata"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(auto_text_file, data_dir / "file.txt")
+    schema = pa.schema({"file_name": pa.string(), "additional_feature": pa.string()})
+    with pq.ParquetWriter(data_dir / "metadata.parquet", schema) as writer:
+        writer.write_table(pa.table({"file_name": [], "additional_feature": []}, schema=schema))
+        writer.write_table(pa.table({"file_name": ["file.txt"], "additional_feature": ["Dummy file"]}, schema=schema))
+
+    data_files_with_metadata = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
+    autofolder = DummyFolderBasedBuilder(data_files=data_files_with_metadata, cache_dir=cache_dir)
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    generator = autofolder._generate_examples(**gen_kwargs)
+    examples = [example for _, example in generator]
+    assert len(examples) == 1
+    assert examples[0]["additional_feature"] == "Dummy file"
