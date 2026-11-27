@@ -1,6 +1,6 @@
 import json
 import os
-from itertools import islice
+from itertools import chain, islice
 from typing import Iterable
 
 import pyarrow as pa
@@ -38,9 +38,10 @@ class Eval(datasets.GeneratorBasedBuilder):
                 )
             )
         if not self.info.features:
+            # look past the first log, which has no samples if its run was killed before writing any
             first_examples = list(
                 islice(
-                    self._iter_samples_from_log_files(logs_files_iterables[0]),
+                    chain.from_iterable(map(self._iter_samples_from_log_files, logs_files_iterables)),
                     self.NUM_EXAMPLES_FOR_FEATURES_INFERENCE,
                 )
             )
