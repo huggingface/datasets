@@ -62,6 +62,11 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
             )
             self.device = str(jax.devices()[0])
         self.jnp_array_kwargs = jnp_array_kwargs
+        self._tensor_backend = "jax"
+
+    @property
+    def _tensor_kwargs(self):
+        return {"device": DEVICE_MAPPING[self.device], **self.jnp_array_kwargs}
 
     @staticmethod
     def _map_devices_to_str() -> dict[str, "jaxlib.xla_extension.Device"]:
@@ -156,19 +161,19 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
     def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.numpy_arrow_extractor().extract_row(pa_table)
         row = self.python_features_decoder.decode_row(row)
-        return self.recursive_tensorize(row)
+        return self.tensorize_row(row)
 
     def format_column(self, pa_table: pa.Table) -> "jax.Array":
         column = self.numpy_arrow_extractor().extract_column(pa_table)
         column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
-        column = self.recursive_tensorize(column)
+        column = self.tensorize_column(column, pa_table.column_names[0])
         column = self._consolidate(column)
         return column
 
     def format_batch(self, pa_table: pa.Table) -> Mapping:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
         batch = self.python_features_decoder.decode_batch(batch)
-        batch = self.recursive_tensorize(batch)
+        batch = self.tensorize_batch(batch)
         for column_name in batch:
             batch[column_name] = self._consolidate(batch[column_name])
         return batch
