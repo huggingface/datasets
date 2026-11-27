@@ -6,10 +6,11 @@ import pytest
 from packaging import version
 
 import datasets.config
-from datasets import ClassLabel, Features, Image
+from datasets import ClassLabel, Features, Image, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.csv.csv import Csv, CsvConfig
+from datasets.table import CastError
 
 from ..utils import require_pil
 
@@ -190,3 +191,44 @@ def test_csv_generate_tables_skips_malformed_row_with_on_bad_lines_skip(csv_file
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.num_rows == 1
     assert pa_table.to_pydict() == {"header1": [1], "header2": [2]}
+
+
+def _write_csv_files(directory, files):
+    directory.mkdir()
+    for name, content in files.items():
+        (directory / name).write_text(content)
+    return str(directory)
+
+
+def test_csv_streaming_infers_the_same_features_as_non_streaming(tmp_path):
+    path = _write_csv_files(tmp_path / "data", {"a.csv": "x,y\n1,2.5\n3,4.5\n", "b.csv": "x,y\n5,6.5\n"})
+    dataset = load_dataset(path, split="train", cache_dir=str(tmp_path / "cache"))
+    streamed = load_dataset(path, split="train", streaming=True)
+    assert streamed.features == dataset.features
+    assert list(streamed) == list(dataset)
+
+
+def test_csv_streaming_fills_a_missing_column_like_non_streaming(tmp_path):
+    # Like the JSON loader, a file without one of the columns gets it filled with nulls, in both modes
+    path = _write_csv_files(tmp_path / "data", {"a.csv": "x,y\n1,2\n", "b.csv": "x\n3\n"})
+    dataset = load_dataset(path, split="train", cache_dir=str(tmp_path / "cache"))
+    streamed = load_dataset(path, split="train", streaming=True)
+    assert list(streamed) == list(dataset) == [{"x": 1, "y": 2}, {"x": 3, "y": None}]
+
+
+@pytest.mark.parametrize(
+    "files",
+    [
+        {"a.csv": "model_type,pytorch\nbert,True\n", "b.csv": "auto_class,model_class\nAutoModel,BertModel\n"},
+        {"a.csv": "x\n1\n", "b.csv": "x,extra\n2,3\n"},
+        {"train.csv": "a,b\n1,2\n", "test.csv": "c\n3\n"},
+    ],
+    ids=["disjoint", "extra-column", "splits"],
+)
+def test_csv_streaming_rejects_a_different_schema_like_non_streaming(tmp_path, files):
+    path = _write_csv_files(tmp_path / "data", files)
+    with pytest.raises(datasets.exceptions.DatasetGenerationError):
+        load_dataset(path, cache_dir=str(tmp_path / "cache"))
+    with pytest.raises(CastError):
+        for split in load_dataset(path, streaming=True).values():
+            list(split)
