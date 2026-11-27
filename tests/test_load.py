@@ -1398,3 +1398,71 @@ def test_update_dataset_card_data_with_standalone_yaml():
     assert isinstance(
         builder.info.features["label"], datasets.ClassLabel
     )  # correctly loaded from long labels list in standalone yaml
+
+
+def _write_mockfs_csv_dataset(mockfs, directory):
+    for split, rows in [("train", ["a", "b"]), ("test", ["c"])]:
+        with mockfs.open(f"{directory}/{split}.csv", "w") as f:
+            f.write("text\n" + "\n".join(rows) + "\n")
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("path", ["mock://bucket/dataset", "mock://bucket/dataset/"])
+def test_load_dataset_from_fsspec_url(mockfs, path, streaming):
+    _write_mockfs_csv_dataset(mockfs, "bucket/dataset")
+    ds = load_dataset(path, storage_options=mockfs.storage_options, streaming=streaming)
+    assert set(ds) == {"train", "test"}
+    assert list(ds["train"]) == [{"text": "a"}, {"text": "b"}]
+    assert list(ds["test"]) == [{"text": "c"}]
+
+
+def test_load_dataset_builder_from_fsspec_url(mockfs):
+    _write_mockfs_csv_dataset(mockfs, "bucket/dataset")
+    builder = load_dataset_builder("mock://bucket/dataset", storage_options=mockfs.storage_options)
+    assert builder.dataset_name == "dataset"
+    assert builder.config.data_files == {
+        "train": ["mock://bucket/dataset/train.csv"],
+        "test": ["mock://bucket/dataset/test.csv"],
+    }
+
+
+def test_load_dataset_from_fsspec_url_with_data_dir_and_data_files(mockfs):
+    _write_mockfs_csv_dataset(mockfs, "bucket/dataset/subset")
+    with mockfs.open("bucket/dataset/other.csv", "w") as f:
+        f.write("text\nd\n")
+    ds = load_dataset("mock://bucket/dataset", data_dir="subset", storage_options=mockfs.storage_options)
+    assert {split: ds[split]["text"] for split in ds} == {"train": ["a", "b"], "test": ["c"]}
+    ds = load_dataset("mock://bucket/dataset", data_files="other.csv", storage_options=mockfs.storage_options)
+    assert {split: ds[split]["text"] for split in ds} == {"train": ["d"]}
+
+
+def test_load_dataset_from_fsspec_url_with_dataset_card(mockfs):
+    _write_mockfs_csv_dataset(mockfs, "bucket/dataset")
+    with mockfs.open("bucket/dataset/README.md", "w") as f:
+        f.write(
+            "---\nconfigs:\n- config_name: only_test\n  data_files:\n  - split: validation\n    path: test.csv\n---\n"
+        )
+    ds = load_dataset("mock://bucket/dataset", storage_options=mockfs.storage_options)
+    assert {split: ds[split]["text"] for split in ds} == {"validation": ["c"]}
+    assert ds["validation"].config_name == "only_test"
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_from_fsspec_url_with_standalone_yaml_over_dataset_card(mockfs, streaming):
+    _write_mockfs_csv_dataset(mockfs, "bucket/dataset")
+    with mockfs.open("bucket/dataset/README.md", "w") as f:
+        f.write("---\nconfigs:\n- config_name: card\n  data_files:\n  - split: train\n    path: train.csv\n---\n")
+    with mockfs.open("bucket/dataset/.huggingface.yaml", "w") as f:
+        f.write("configs:\n- config_name: standalone\n  data_files:\n  - split: validation\n    path: test.csv\n")
+    ds = load_dataset("mock://bucket/dataset", storage_options=mockfs.storage_options, streaming=streaming)
+    assert set(ds) == {"validation"}
+    assert ds["validation"].config_name == "standalone"
+    assert list(ds["validation"]) == [{"text": "c"}]
+
+
+def test_load_dataset_from_fsspec_url_not_found(mockfs):
+    with pytest.raises(FileNotFoundError, match="mock://bucket/missing"):
+        load_dataset("mock://bucket/missing", storage_options=mockfs.storage_options)
+    mockfs.makedirs("bucket/empty")
+    with pytest.raises(FileNotFoundError):
+        load_dataset("mock://bucket/empty", storage_options=mockfs.storage_options)

@@ -41,6 +41,18 @@ First, instantiate your cloud storage filesystem and list the files you'd like t
 ["path/to/my/data/0001.parquet", "path/to/my/data/0001.parquet", ...]
 ```
 
+### Load a dataset from a cloud storage
+
+To load the data files of a directory in a cloud storage without publishing them, pass the URL of the directory to [`load_dataset`], and the credentials of the filesystem in `storage_options`:
+
+```python
+>>> from datasets import load_dataset
+>>> storage_options = {"key": aws_access_key_id, "secret": aws_secret_access_key}
+>>> ds = load_dataset("s3://my-bucket/path/to/my/data", storage_options=storage_options)
+```
+
+The directory is read like a local directory: the dataset builder is inferred from the file extensions, splits are inferred from the file and directory names, and `data_files`, `data_dir` and `streaming=True` are supported.
+
 ### Publish a Dataset
 
 Then you can create a dataset on Hugging Face and import the data files, using for example:
