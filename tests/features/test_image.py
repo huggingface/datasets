@@ -687,6 +687,23 @@ def test_image_embed_storage(shared_datadir):
 
 @require_pil
 @pytest.mark.parametrize(
+    "dtype, expected_image_format",
+    [(np.uint8, "PNG"), (np.uint16, "TIFF"), (np.float32, "TIFF")],
+)
+def test_encode_np_array_with_single_channel(dtype, expected_image_format):
+    array = np.arange(16).reshape(4, 4, 1).astype(dtype)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        encoded_image = Image().encode_example(array)
+
+    decoded_image = Image().decode_example(encoded_image)
+    assert decoded_image.format == expected_image_format
+    np.testing.assert_array_equal(np.array(decoded_image), array[..., 0])
+
+
+@require_pil
+@pytest.mark.parametrize(
     "array, dtype_cast, expected_image_format",
     [
         (np.arange(16).reshape(4, 4).astype(np.uint8), "exact_match", "PNG"),
