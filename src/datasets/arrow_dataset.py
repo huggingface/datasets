@@ -4220,6 +4220,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             _batch_fn = _batch_arrow_table
             with_indices = False
 
+        features = Features({col: List(feature) for col, feature in self.features.items()})
+        if len(self) == 0:
+            if num_proc is not None and num_proc < 0:
+                raise ValueError("num_proc must be >= 0 or None.")
+            info = self.info.copy()
+            info.features = features
+            return Dataset(
+                pa.Table.from_batches([], schema=features.arrow_schema),
+                info=info,
+                split=self.split,
+                fingerprint=new_fingerprint,
+            )
+
         return self.with_format("arrow").map(
             _batch_fn,
             with_indices=with_indices,
@@ -4229,7 +4242,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_proc=num_proc,
             new_fingerprint=new_fingerprint,
             desc="Batching examples",
-            features=Features({col: List(feature) for col, feature in self.features.items()}),
+            features=features,
         )
 
     @transmit_format
