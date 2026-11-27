@@ -201,6 +201,16 @@ def test_concatenate_datasets_after_split_dataset_by_node(axis, world_size, num_
     assert len({tuple(x.values()) for rows in rows_per_rank for x in rows}) == len(full_rows)
 
 
+@pytest.mark.parametrize("method", ["skip", "take"])
+@pytest.mark.parametrize("world_size", [2, 3])
+def test_concatenate_datasets_after_skip_or_take_after_split_dataset_by_node(method, world_size):
+    full_ds = IterableDataset.from_dict({"a": list(range(12))}, num_shards=4)
+    for rank in range(world_size):
+        ds_rank = split_dataset_by_node(full_ds, rank=rank, world_size=world_size)
+        ds_rank = ds_rank.skip(2) if method == "skip" else ds_rank.take(2)
+        assert list(concatenate_datasets([ds_rank])) == list(ds_rank)
+
+
 def test_concatenate_datasets_split_differently_by_node():
     full_ds = IterableDataset.from_dict({"a": list(range(8))}, num_shards=4)
     ds_rank0 = split_dataset_by_node(full_ds, rank=0, world_size=2)
