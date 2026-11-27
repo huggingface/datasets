@@ -1405,13 +1405,22 @@ class ConcatenationTable(Table):
             # We set promote_options="default" to fill missing columns with null values
             return pa.concat_tables(pa_tables, promote_options="default")
         elif axis == 1:
-            for i, table in enumerate(pa_tables):
-                if i == 0:
-                    pa_table = table
-                else:
-                    for name, col in zip(table.column_names, table.columns):
-                        pa_table = pa_table.append_column(name, col)
-            return pa_table
+            if len(pa_tables) == 1:
+                return pa_tables[0]
+            first_table = pa_tables[0]
+            columns = list(first_table.columns)
+            fields = list(first_table.schema)
+            for table in pa_tables[1:]:
+                if table.num_columns and table.num_rows != first_table.num_rows:
+                    raise pa.ArrowInvalid(
+                        "Added column's length must match table's length. "
+                        f"Expected length {first_table.num_rows} but got length {table.num_rows}"
+                    )
+                columns.extend(table.columns)
+                fields.extend(pa.field(name, col.type) for name, col in zip(table.column_names, table.columns))
+            if not columns:
+                return first_table
+            return pa.Table.from_arrays(columns, schema=pa.schema(fields, metadata=first_table.schema.metadata))
         else:
             raise ValueError("'axis' must be either 0 or 1")
 

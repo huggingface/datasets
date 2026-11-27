@@ -702,6 +702,24 @@ def test_concatenation_table_from_tables(axis, in_memory_pa_table, arrow_file):
     assert isinstance(table.blocks[1][0] if axis == 0 else table.blocks[0][1], MemoryMappedTable)
 
 
+def test_concatenation_table_concat_blocks_axis1_preserves_schema():
+    first_field = pa.field("left", pa.int64(), nullable=False, metadata={b"unit": b"seconds"})
+    first = pa.Table.from_arrays([pa.array([1, 2])], schema=pa.schema([first_field], metadata={b"source": b"first"}))
+    second = pa.Table.from_arrays(
+        [pa.chunked_array([[3], [4]])],
+        schema=pa.schema([pa.field("right", pa.int64(), nullable=False, metadata={b"unit": b"meters"})]),
+    )
+    with assert_arrow_memory_doesnt_increase():
+        result = ConcatenationTable._concat_blocks([first, second], axis=1)
+    expected_schema = pa.schema([first_field, pa.field("right", pa.int64())], metadata={b"source": b"first"})
+    assert result.schema.equals(expected_schema, check_metadata=True)
+    assert result.to_pydict() == {"left": [1, 2], "right": [3, 4]}
+    assert result.column("right").num_chunks == 2
+    assert ConcatenationTable._concat_blocks([first.select([]), second.select([])], axis=1).num_rows == 2
+    with pytest.raises(pa.ArrowInvalid, match="Added column's length must match table's length"):
+        ConcatenationTable._concat_blocks([first.select([]), second.slice(0, 1)], axis=1)
+
+
 def test_concatenation_table_from_tables_axis1_misaligned_blocks(arrow_file):
     table = MemoryMappedTable.from_file(arrow_file)
     t1 = table.slice(0, 2)
