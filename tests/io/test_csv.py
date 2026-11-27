@@ -1,3 +1,4 @@
+import codecs
 import csv
 import io
 import os
@@ -12,17 +13,23 @@ from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_inc
 
 
 @pytest.mark.parametrize("num_proc", [None, 2])
-@pytest.mark.parametrize("header", [True, False, ["prompt", "reward"]])
-def test_dataset_to_csv_empty(num_proc, header):
+@pytest.mark.parametrize("encoding", ["utf-8", "utf-16"])
+@pytest.mark.parametrize("header", [True, False, ["prompt", "récompense"]])
+def test_dataset_to_csv_empty(num_proc, encoding, header):
     dataset = Dataset.from_dict(
         {"text": [], "label": []}, features=Features({"text": Value("string"), "label": Value("int64")})
     )
     with io.BytesIO() as buffer:
-        written = dataset.to_csv(buffer, num_proc=num_proc, header=header)
+        written = dataset.to_csv(buffer, num_proc=num_proc, header=header, encoding=encoding)
         content = buffer.getvalue()
     assert written == len(content)
+    if not header:
+        assert content == b""
+    elif encoding == "utf-16":
+        assert content.startswith(codecs.BOM_UTF16)
+        assert content.count(codecs.BOM_UTF16) == 1
     expected_header = ["text", "label"] if header is True else header
-    assert list(csv.reader(io.StringIO(content.decode("utf-8")))) == ([expected_header] if header else [])
+    assert list(csv.reader(io.StringIO(content.decode(encoding)))) == ([expected_header] if header else [])
 
 
 def _check_csv_dataset(dataset, expected_features):
@@ -178,6 +185,31 @@ def test_dataset_to_csv_invalidproc(csv_path, tmp_path):
     dataset = CsvDatasetReader({"train": csv_path}, cache_dir=cache_dir).read()
     with pytest.raises(ValueError):
         CsvDatasetWriter(dataset["train"], output_csv, num_proc=0)
+
+
+@pytest.mark.parametrize("num_proc", [1, 2])
+def test_dataset_to_csv_encoding(num_proc, tmp_path):
+    # The encoding passed to pandas is the one the bytes are written in. pandas only applies it
+    # when it writes a file itself; here it returns a str that the writer encodes.
+    dataset = Dataset.from_dict({"a": ["x", "y", "z"]})
+    output_csv = os.path.join(tmp_path, "out.csv")
+    CsvDatasetWriter(dataset, output_csv, batch_size=2, num_proc=num_proc, encoding="utf-16").write()
+    with open(output_csv, "rb") as f:
+        data = f.read()
+    # one byte order mark for the whole file, not one per batch
+    assert data.startswith(codecs.BOM_UTF16)
+    assert data.count(codecs.BOM_UTF16) == 1
+    with open(output_csv, encoding="utf-16", newline="") as f:
+        rows = list(csv.DictReader(f))
+    assert [row["a"] for row in rows] == ["x", "y", "z"]
+    # encoding errors are handled by the same encoder
+    output_csv = os.path.join(tmp_path, "errors.csv")
+    CsvDatasetWriter(
+        Dataset.from_dict({"a": ["café"]}), output_csv, num_proc=num_proc, encoding="ascii", errors="replace"
+    ).write()
+    with open(output_csv, encoding="ascii", newline="") as f:
+        rows = list(csv.DictReader(f))
+    assert [row["a"] for row in rows] == ["caf?"]
 
 
 def test_dataset_to_csv_fsspec(dataset, mockfs):
