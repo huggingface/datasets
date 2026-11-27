@@ -343,6 +343,31 @@ def test_rebatched_arrow_examples_iterable(tables, batch_size, drop_last_batch):
     assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
 
 
+@pytest.mark.parametrize("batch_size", [None, 0, -1, 2])
+@pytest.mark.parametrize(
+    "tables", [[], [pa.table({"id": pa.array([], type=pa.int64())})], [pa.table({}), pa.table({})]]
+)
+def test_rebatched_arrow_examples_iterable_empty_whole_batch(tables, batch_size):
+    ex_iterable = RebatchedArrowExamplesIterable(
+        ArrowExamplesIterable(lambda: iter(enumerate(tables)), {}), batch_size=batch_size
+    )
+    assert list(ex_iterable.iter_arrow()) == []
+    assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
+
+
+@pytest.mark.parametrize("format_type", ["arrow", "pandas"])
+@pytest.mark.parametrize("batch_size", [None, 0, -1])
+@pytest.mark.parametrize("empty_method", ["take", "filter"])
+def test_iterable_dataset_map_empty_whole_batch(format_type, batch_size, empty_method):
+    dataset = Dataset.from_dict({"id": [0, 1]}).to_iterable_dataset().with_format(format_type)
+    dataset = dataset.take(0) if empty_method == "take" else dataset.filter(lambda example: False)
+    function = MagicMock(side_effect=lambda table: table)
+    mapped = dataset.map(function, batched=True, batch_size=batch_size)
+
+    assert list(mapped) == []
+    function.assert_not_called()
+
+
 @pytest.mark.parametrize(
     "table_chunks",
     [
