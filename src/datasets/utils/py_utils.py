@@ -22,9 +22,11 @@ import multiprocessing.pool
 import os
 import queue
 import re
+import threading
 import types
 import warnings
 from collections.abc import Iterable
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
 from queue import Empty
@@ -622,6 +624,46 @@ def iflatmap_unordered(
             if not pool_changed:
                 # we get the result in case there's an error to raise
                 [async_result.get(timeout=0.05) for async_result in async_results]
+
+
+def iflatmap_unordered_in_threads(
+    num_threads: int,
+    func: Callable[..., Iterable[Y]],
+    *,
+    kwargs_iterable: Iterable[dict],
+) -> Iterable[Y]:
+    """Like `iflatmap_unordered`, but runs the generators in `num_threads` threads.
+
+    If a generator raises, the other ones stop after their current item and the error is raised.
+    """
+    results = queue.Queue()
+    stop = threading.Event()
+
+    def write_generator_to_queue(kwargs: dict) -> None:
+        if stop.is_set():
+            return
+        try:
+            for result in func(**kwargs):
+                results.put(result)
+                if stop.is_set():
+                    break
+        except BaseException:
+            stop.set()
+            raise
+
+    with ThreadPoolExecutor(num_threads) as executor:
+        futures = [executor.submit(write_generator_to_queue, kwargs) for kwargs in kwargs_iterable]
+        try:
+            while not stop.is_set():
+                try:
+                    yield results.get(timeout=0.05)
+                except Empty:
+                    if all(future.done() for future in futures) and results.empty():
+                        break
+        finally:
+            stop.set()
+    for future in futures:
+        future.result()
 
 
 T = TypeVar("T")

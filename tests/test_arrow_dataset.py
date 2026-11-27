@@ -5462,3 +5462,56 @@ def test_dataset_push_to_hub_uploads_every_row_with_num_proc(offline_parquet_upl
     if num_shards == 1:
         # a single shard is written without starting a pool of processes
         assert not mp.get_context.return_value.Pool.called
+
+
+def _push_parquet_shards_with_threads(dataset, num_shards, num_threads):
+    from huggingface_hub.hf_file_system import HfFileSystemResolvedRepositoryPath
+
+    return dataset._push_parquet_shards_to_hub(
+        resolved_output_path=HfFileSystemResolvedRepositoryPath(
+            repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
+        ),
+        data_dir="data",
+        split="train",
+        token=None,
+        create_pr=False,
+        max_shard_size=None,
+        num_shards=num_shards,
+        embed_external_files=False,
+        num_proc=None,
+        num_threads=num_threads,
+    )
+
+
+@pytest.mark.parametrize("num_shards", [1, 3, 8])
+def test_dataset_push_to_hub_with_threads_uploads_the_same_shards(recorded_parquet_uploads, num_shards):
+    dataset = Dataset.from_dict({"id": list(range(20)), "text": [str(i) * i for i in range(20)]})
+    uploads, max_concurrent = {}, {}
+    for num_threads in (0, 3):
+        recorded_parquet_uploads.files.clear()
+        recorded_parquet_uploads.max_concurrent = 0
+        additions, _, _, split_info, _ = _push_parquet_shards_with_threads(dataset, num_shards, num_threads)
+        uploads[num_threads] = dict(recorded_parquet_uploads.files)
+        max_concurrent[num_threads] = recorded_parquet_uploads.max_concurrent
+        assert sorted(addition.path_in_repo for addition in additions) == sorted(uploads[num_threads])
+        assert split_info.num_examples == 20
+    assert sorted(uploads[0]) == [f"data/train-{i:05d}-of-{num_shards:05d}.parquet" for i in range(num_shards)]
+    assert uploads[3] == uploads[0]
+    assert max_concurrent[0] == 1
+    assert max_concurrent[3] == min(3, num_shards)
+
+
+def test_dataset_push_to_hub_uses_threads_by_default(recorded_parquet_uploads):
+    dataset = Dataset.from_dict({"id": list(range(20))})
+    _push_parquet_shards_with_threads(dataset, num_shards=8, num_threads=None)
+    assert len(recorded_parquet_uploads.files) == 8
+    assert recorded_parquet_uploads.max_concurrent == datasets.config.PUSH_TO_HUB_NUM_THREADS
+
+
+def test_dataset_push_to_hub_with_threads_stops_after_an_upload_error(recorded_parquet_uploads):
+    recorded_parquet_uploads.fail_on = "data/train-00000-of-00020.parquet"
+    dataset = Dataset.from_dict({"id": list(range(20))})
+    with pytest.raises(RuntimeError, match="train-00000-of-00020.parquet failed"):
+        _push_parquet_shards_with_threads(dataset, num_shards=20, num_threads=2)
+    # the other thread finishes its current shard, and the remaining shards aren't uploaded
+    assert len(recorded_parquet_uploads.files) < 19

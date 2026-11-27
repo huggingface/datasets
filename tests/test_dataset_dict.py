@@ -441,6 +441,7 @@ class DatasetDictTest(TestCase):
             num_shards,
             embed_external_files,
             num_proc,
+            num_threads=None,
         ):
             forwarded_calls.append(
                 {

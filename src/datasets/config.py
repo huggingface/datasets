@@ -197,6 +197,9 @@ ARROW_READER_BATCH_SIZE_IN_DATASET_ITER = 10
 # Max uncompressed shard size in bytes (e.g. to shard parquet datasets in push_to_hub or download_and_prepare)
 MAX_SHARD_SIZE = "500MB"
 
+# Default number of threads converting and uploading the shards in push_to_hub, like the uploads of huggingface_hub
+PUSH_TO_HUB_NUM_THREADS = 5
+
 # Max uncompressed row group size in bytes (e.g. for parquet files in push_to_hub or download_and_prepare)
 MAX_ROW_GROUP_SIZE = "100MB"
 

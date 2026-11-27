@@ -142,6 +142,7 @@ from .utils.py_utils import (
     convert_file_size_to_int,
     glob_pattern_to_regex,
     iflatmap_unordered,
+    iflatmap_unordered_in_threads,
     string_to_dict,
 )
 from .utils.stratify import stratified_shuffle_split_generate_indices
@@ -6076,6 +6077,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         num_shards: Optional[int],
         embed_external_files: bool,
         num_proc: Optional[int],
+        num_threads: Optional[int] = None,
     ) -> tuple[list[CommitOperationAdd], list[str], int, SplitInfo]:
         """Pushes the dataset shards as Parquet files to the hub.
 
@@ -6126,6 +6128,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
             num_proc = num_shards
             num_jobs = num_shards
+        num_threads = config.PUSH_TO_HUB_NUM_THREADS if num_threads is None else num_threads
+        num_threads = min(num_threads, num_shards) if num_proc is None or num_proc < 1 else 0
+        if num_threads > 1:
+            # one job per shard, so that the shards are the same as without threads
+            num_jobs = num_shards
         kwargs_iterable = [
             {
                 "self": self.shard(num_shards=num_jobs, index=job_id, contiguous=True),
@@ -6144,6 +6151,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ]
         desc = "Uploading the dataset shards"
         desc += f" (num_proc={num_proc})" if num_proc is not None and num_proc >= 1 else ""
+        desc += f" (num_threads={num_threads})" if num_threads > 1 else ""
         pbar = hf_tqdm(
             unit=" shards",
             total=num_shards,
@@ -6154,15 +6162,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if num_proc is None or num_proc < 1
             else mp.get_context("spawn").Pool(num_proc) as pool
         ):
-            update_stream = (
-                Dataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
-                if pool is None
-                else iflatmap_unordered(
-                    pool,
-                    Dataset._push_parquet_shards_to_hub_single,
-                    kwargs_iterable=kwargs_iterable,
+            if num_threads > 1:
+                update_stream = iflatmap_unordered_in_threads(
+                    num_threads, Dataset._push_parquet_shards_to_hub_single, kwargs_iterable=kwargs_iterable
                 )
-            )
+            elif pool is None:
+                update_stream = Dataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
+            else:
+                update_stream = iflatmap_unordered(
+                    pool, Dataset._push_parquet_shards_to_hub_single, kwargs_iterable=kwargs_iterable
+                )
             completed_jobs = {}
             for job_id, done, content in update_stream:
                 if not done:
@@ -6195,6 +6204,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         num_shards: Optional[int] = None,
         embed_external_files: bool = True,
         num_proc: Optional[int] = None,
+        num_threads: Optional[int] = None,
         append: bool = False,
     ) -> CommitInfo:
         """Pushes the dataset to the hub as a Parquet dataset.
@@ -6264,6 +6274,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Multiprocessing is disabled by default.
 
                 <Added version="4.0.0"/>
+
+            num_threads (`int`, *optional*, defaults to `None`):
+                Number of threads converting the shards to Parquet and uploading them, when `num_proc` isn't set.
+                Each thread handles one shard at a time, so at most `num_threads` shards are on disk at once.
+                Defaults to 5, like the uploads of `huggingface_hub`. Set it to 0 or 1 to convert and upload
+                the shards one after the other.
+
+                <Added version="5.3.0"/>
 
             append (`bool`, defaults to `False`):
                 Append rows to existing splits, preserving their features and rows. Only the last Parquet
@@ -6348,6 +6366,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 num_shards=num_shards,
                 embed_external_files=embed_external_files,
                 num_proc=num_proc,
+                num_threads=num_threads,
             )
         else:
             try:
@@ -6380,6 +6399,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 num_shards=num_shards,
                 embed_external_files=embed_external_files,
                 num_proc=num_proc,
+                num_threads=num_threads,
                 append=append,
             )
 
@@ -7105,6 +7125,7 @@ def _push_to_repo(
     num_shards: Optional[int] = None,
     embed_external_files: bool = True,
     num_proc: Optional[int] = None,
+    num_threads: Optional[int] = None,
     append: bool = False,
 ) -> CommitInfo:
     if append:
@@ -7139,6 +7160,7 @@ def _push_to_repo(
         create_pr=create_pr,
         embed_external_files=embed_external_files,
         num_proc=num_proc,
+        num_threads=num_threads,
     )
 
     commit_message = commit_message if commit_message is not None else "Upload dataset"
@@ -7283,6 +7305,7 @@ def _push_to_bucket(
     num_shards: Optional[int] = None,
     embed_external_files: bool = True,
     num_proc: Optional[int] = None,
+    num_threads: Optional[int] = None,
 ) -> None:
     api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
     resolved_output_path = HfFileSystemResolvedBucketPath(bucket_id=bucket_id, path=path)
@@ -7304,6 +7327,7 @@ def _push_to_bucket(
         create_pr=create_pr,
         embed_external_files=embed_external_files,
         num_proc=num_proc,
+        num_threads=num_threads,
     )
 
     # Don't delete the new files

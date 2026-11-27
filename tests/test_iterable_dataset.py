@@ -4515,3 +4515,44 @@ def test_iterable_dataset_push_to_hub_more_shards_with_unpicklable_source(offlin
 def _gen_lines_from_handle(fh):
     for line in fh:
         yield {"id": int(line)}
+
+
+def _push_iterable_parquet_shards_with_threads(dataset, num_shards, num_threads):
+    return dataset._push_parquet_shards_to_hub(
+        resolved_output_path=HfFileSystemResolvedRepositoryPath(
+            repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
+        ),
+        data_dir="data",
+        split="train",
+        token=None,
+        create_pr=False,
+        max_shard_size=None,
+        num_shards=num_shards,
+        embed_external_files=False,
+        num_proc=None,
+        num_threads=num_threads,
+    )
+
+
+@pytest.mark.parametrize(
+    "source_shards, num_shards, expected_max_concurrent",
+    [(1, 3, 1), (3, 7, 3), (4, 2, 2), (4, 4, 3), (2, 7, 2), (5, 3, 3)],
+)
+def test_iterable_dataset_push_to_hub_with_threads_uploads_the_same_shards(
+    recorded_parquet_uploads, source_shards, num_shards, expected_max_concurrent
+):
+    dataset = Dataset.from_dict({"id": list(range(20))}).to_iterable_dataset(num_shards=source_shards)
+    uploads, max_concurrent = {}, {}
+    for num_threads in (0, 3):
+        recorded_parquet_uploads.files.clear()
+        recorded_parquet_uploads.max_concurrent = 0
+        additions, _, _, split_info, _ = _push_iterable_parquet_shards_with_threads(dataset, num_shards, num_threads)
+        uploads[num_threads] = dict(recorded_parquet_uploads.files)
+        max_concurrent[num_threads] = recorded_parquet_uploads.max_concurrent
+        assert sorted(addition.path_in_repo for addition in additions) == sorted(uploads[num_threads])
+        assert split_info.num_examples == 20
+    assert sorted(uploads[0]) == [f"data/train-{i:05d}-of-{num_shards:05d}.parquet" for i in range(num_shards)]
+    assert uploads[3] == uploads[0]
+    assert max_concurrent[0] == 1
+    # each thread handles whole input shards
+    assert max_concurrent[3] == expected_max_concurrent
