@@ -4515,3 +4515,39 @@ def test_iterable_dataset_push_to_hub_more_shards_with_unpicklable_source(offlin
 def _gen_lines_from_handle(fh):
     for line in fh:
         yield {"id": int(line)}
+
+
+@pytest.mark.parametrize(
+    "probabilities, unreachable, strategy",
+    [
+        ([1.0, 0.0], 1, "all_exhausted_without_replacement"),
+        ([0.0, 1.0], 0, "all_exhausted_without_replacement"),
+        ([1.0, 0.0], 1, "all_exhausted"),
+        ([0.0, 1.0], 0, "all_exhausted"),
+    ],
+)
+def test_interleave_iterable_all_exhausted_zero_probability_raises(probabilities, unreachable, strategy):
+    # The iterable path uses RandomlyCyclingMultiSourcesExamplesIterable, which
+    # stops only when every source is exhausted under both all_exhausted
+    # strategies. A zero-probability source can never be drawn, so it must fail
+    # fast here too instead of hanging.
+    sources = [
+        IterableDataset.from_dict({"a": [0, 1, 2]}),
+        IterableDataset.from_dict({"a": [10, 11, 12, 13, 14]}),
+    ]
+    with pytest.raises(ValueError, match="probability 0") as excinfo:
+        interleave_datasets(
+            sources,
+            probabilities=probabilities,
+            seed=7,
+            stopping_strategy=strategy,
+        )
+    assert f"indices [{unreachable}]" in str(excinfo.value)
+
+    control = interleave_datasets(
+        sources,
+        probabilities=[0.5, 0.5],
+        seed=7,
+        stopping_strategy=strategy,
+    )
+    assert len(list(control)) > 0
