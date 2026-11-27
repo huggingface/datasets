@@ -721,6 +721,102 @@ class SelectColumnsIterable(_BaseExamplesIterable):
         return self.ex_iterable.num_shards
 
 
+class RenameColumnsIterable(_BaseExamplesIterable):
+    """Rename columns without decoding the examples.
+
+    The values are passed through as they are, so media like images keep their original bytes and are decoded only
+    once, when iterating. The output isn't marked as typed: the dataset features are applied when iterating, which
+    keeps a later `cast_column()` working on examples that were already decoded upstream.
+
+    If `input_features` (the dataset features before renaming) is passed, the columns an example doesn't have are
+    added as None before renaming, as when the dataset features are applied.
+
+    Like the `map()` it replaces, it yields Python examples and has no `iter_arrow`: the Arrow tables of concatenated
+    datasets with different columns can't be batched together yet.
+    """
+
+    def __init__(
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        column_mapping: dict[str, str],
+        input_features: Optional[Features] = None,
+    ):
+        super().__init__()
+        self.ex_iterable = ex_iterable
+        self.column_mapping = column_mapping
+        self.input_features = input_features
+
+    def _init_state_dict(self) -> dict:
+        self._state_dict = self.ex_iterable._init_state_dict()
+        return self._state_dict
+
+    def __iter__(self):
+        for key, example in self.ex_iterable:
+            if self.input_features is not None:
+                missing_columns = [col for col in self.input_features if col not in example]
+                if missing_columns:
+                    example = {**example, **dict.fromkeys(missing_columns)}
+            renamed_columns = _rename_columns_fn(example, self.column_mapping)
+            other_columns = {col: value for col, value in example.items() if col not in self.column_mapping}
+            yield key, {**other_columns, **renamed_columns}
+
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "RenameColumnsIterable":
+        return RenameColumnsIterable(
+            self.ex_iterable.shuffle_data_sources(generator), self.column_mapping, self.input_features
+        )
+
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "RenameColumnsIterable":
+        return RenameColumnsIterable(
+            self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
+            self.column_mapping,
+            self.input_features,
+        )
+
+    def reshard_data_sources(self) -> "RenameColumnsIterable":
+        return RenameColumnsIterable(self.ex_iterable.reshard_data_sources(), self.column_mapping, self.input_features)
+
+    @property
+    def num_shards(self) -> int:
+        return self.ex_iterable.num_shards
+
+
+class RemoveColumnsIterable(_BaseExamplesIterable):
+    """Remove columns without decoding the examples.
+
+    Like `RenameColumnsIterable`, the other values are passed through as they are, the output isn't marked as typed
+    and it yields Python examples. Columns that are not in an example are ignored.
+    """
+
+    def __init__(self, ex_iterable: _BaseExamplesIterable, column_names: list[str]):
+        super().__init__()
+        self.ex_iterable = ex_iterable
+        self.column_names = column_names
+
+    def _init_state_dict(self) -> dict:
+        self._state_dict = self.ex_iterable._init_state_dict()
+        return self._state_dict
+
+    def __iter__(self):
+        column_names = set(self.column_names)
+        for key, example in self.ex_iterable:
+            yield key, {col: value for col, value in example.items() if col not in column_names}
+
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "RemoveColumnsIterable":
+        return RemoveColumnsIterable(self.ex_iterable.shuffle_data_sources(generator), self.column_names)
+
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "RemoveColumnsIterable":
+        return RemoveColumnsIterable(
+            self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous), self.column_names
+        )
+
+    def reshard_data_sources(self) -> "RemoveColumnsIterable":
+        return RemoveColumnsIterable(self.ex_iterable.reshard_data_sources(), self.column_names)
+
+    @property
+    def num_shards(self) -> int:
+        return self.ex_iterable.num_shards
+
+
 class StepExamplesIterable(_BaseExamplesIterable):
     def __init__(self, ex_iterable: _BaseExamplesIterable, step: int, offset: int):
         super().__init__()
@@ -4358,26 +4454,19 @@ class IterableDataset(DatasetInfoMixin):
             `IterableDataset`: A copy of the dataset with renamed columns
         """
 
-        original_features = self._info.features.copy() if self._info.features else None
-        if self._formatting and self._formatting.is_table:
-            # with a table format (arrow, pandas, polars...) the function gets tables instead of dicts
-            ds_iterable = (
-                self.with_format("arrow")
-                .map(partial(_rename_columns_fn, column_mapping=column_mapping), batched=True)
-                .with_format(self._formatting.format_type)
-            )
-        else:
-            ds_iterable = self.map(
-                partial(_rename_columns_fn, column_mapping=column_mapping), remove_columns=list(column_mapping)
-            )
-        if original_features is not None:
-            ds_iterable._info.features = Features(
-                {
-                    column_mapping[col] if col in column_mapping.keys() else col: feature
-                    for col, feature in original_features.items()
-                }
-            )
-        return ds_iterable
+        info = self._info.copy()
+        if info.features is not None:
+            info.features = Features({column_mapping.get(col, col): feature for col, feature in info.features.items()})
+        # Renaming doesn't need decoded values: don't go through `map()`, which would decode the examples
+        # and re-encode them with the dataset features (e.g. compressing JPEG images again).
+        return IterableDataset(
+            ex_iterable=RenameColumnsIterable(self._ex_iterable, column_mapping, input_features=self._info.features),
+            info=info,
+            split=self._split,
+            formatting=self._formatting,
+            distributed=deepcopy(self._distributed),
+            token_per_repo_id=self._token_per_repo_id,
+        )
 
     def remove_columns(self, column_names: Union[str, list[str]]) -> "IterableDataset":
         """
@@ -4404,15 +4493,21 @@ class IterableDataset(DatasetInfoMixin):
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
         ```
         """
-        original_features = self._info.features.copy() if self._info.features else None
-        ds_iterable = self.map(remove_columns=column_names)
-        if original_features is not None:
-            ds_iterable._info.features = original_features.copy()
-            for col, _ in original_features.items():
-                if col in column_names:
-                    del ds_iterable._info.features[col]
-
-        return ds_iterable
+        column_names = [column_names] if isinstance(column_names, str) else list(column_names)
+        info = self._info.copy()
+        if info.features is not None:
+            info.features = Features(
+                {col: feature for col, feature in info.features.items() if col not in column_names}
+            )
+        # Like `rename_columns`, don't decode and re-encode the examples with `map()` to remove columns.
+        return IterableDataset(
+            ex_iterable=RemoveColumnsIterable(self._ex_iterable, column_names),
+            info=info,
+            split=self._split,
+            formatting=self._formatting,
+            distributed=deepcopy(self._distributed),
+            token_per_repo_id=self._token_per_repo_id,
+        )
 
     def select_columns(self, column_names: Union[str, list[str]]) -> "IterableDataset":
         """Select one or several column(s) in the dataset and the features

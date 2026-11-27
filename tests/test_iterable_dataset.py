@@ -6,6 +6,7 @@ import sys
 import time
 from copy import deepcopy
 from dataclasses import dataclass
+from io import BytesIO
 from itertools import chain, cycle, islice
 from pathlib import Path
 from threading import Event
@@ -3348,6 +3349,105 @@ def test_iterable_dataset_remove_columns(dataset_with_several_columns: IterableD
     assert new_dataset.column_names is not None
     assert all(c not in new_dataset.features for c in ["id", "filepath"])
     assert all(c not in new_dataset.column_names for c in ["id", "filepath"])
+
+
+@pytest.mark.parametrize("source", ["arrow", "generator"])
+@pytest.mark.parametrize(
+    "transform",
+    [
+        lambda ds: ds.rename_column("label", "new_label"),
+        lambda ds: ds.rename_columns({"label": "new_label"}),
+        lambda ds: ds.remove_columns("label"),
+        lambda ds: ds.remove_columns(["label"]),
+    ],
+    ids=["rename_column", "rename_columns", "remove_columns_str", "remove_columns_list"],
+)
+def test_iterable_dataset_rename_and_remove_columns_dont_reencode_images(source, transform):
+    import PIL.Image
+
+    buffer = BytesIO()
+    array = np.random.default_rng(0).integers(0, 256, size=(16, 16, 3), dtype=np.uint8)
+    PIL.Image.fromarray(array).save(buffer, format="JPEG", quality=95)
+    jpeg_bytes = buffer.getvalue()
+    features = Features({"image": Image(), "label": Value("int64")})
+    if source == "arrow":
+        data = {"image": [{"bytes": jpeg_bytes, "path": None}] * 2, "label": [0, 1]}
+        ds = Dataset.from_dict(data, features=features).to_iterable_dataset()
+    else:
+
+        def gen():
+            for label in range(2):
+                yield {"image": {"bytes": jpeg_bytes, "path": None}, "label": label}
+
+        ds = IterableDataset.from_generator(gen, features=features)
+    ds = transform(ds)
+    expected_pixels = np.asarray(PIL.Image.open(BytesIO(jpeg_bytes)))
+    examples = list(ds)
+    assert len(examples) == 2
+    for example in examples:
+        np.testing.assert_array_equal(np.asarray(example["image"]), expected_pixels)
+    # the stored image bytes are passed through as they are, e.g. when writing the dataset to Parquet
+    tables = list(ds.with_format("arrow"))
+    assert [table["image"].to_pylist()[0]["bytes"] for table in tables] == [jpeg_bytes, jpeg_bytes]
+
+
+@pytest.mark.parametrize("typed", [False, True])
+def test_iterable_dataset_cast_column_after_rename_and_remove_columns(typed):
+    ds = Dataset.from_dict({"label": ["neg", "pos"], "other": [0, 1]}).to_iterable_dataset()
+    if typed:
+        ds = ds.map(lambda x: x, features=ds.features)
+    ds = ds.rename_column("label", "sentiment").remove_columns("other")
+    ds = ds.cast_column("sentiment", ClassLabel(names=["neg", "pos"]))
+    assert list(ds) == [{"sentiment": 0}, {"sentiment": 1}]
+
+
+@pytest.mark.parametrize("source", ["arrow", "generator"])
+def test_iterable_dataset_rename_and_remove_columns_state_dict(source):
+    if source == "arrow":
+        data = {"a": list(range(6)), "b": [0] * 6}
+        ds = Dataset.from_dict(data).to_iterable_dataset(num_shards=2)
+    else:
+
+        def gen(shards):
+            for shard in shards:
+                for i in range(3):
+                    yield {"a": shard * 3 + i, "b": 0}
+
+        ds = IterableDataset.from_generator(gen, gen_kwargs={"shards": [0, 1]})
+    ds = ds.rename_column("a", "c").remove_columns("b")
+    iterator = iter(ds)
+    assert [next(iterator) for _ in range(2)] == [{"c": 0}, {"c": 1}]
+    state_dict = ds.state_dict()
+    remaining = list(iterator)
+    assert remaining == [{"c": i} for i in range(2, 6)]
+    ds.load_state_dict(state_dict)
+    assert list(ds) == remaining
+
+
+def test_iterable_dataset_rename_column_missing_from_some_examples():
+    ds1 = Dataset.from_dict({"a": [1], "b": ["x"]}).to_iterable_dataset()
+    ds2 = Dataset.from_dict({"a": [2]}).to_iterable_dataset()
+    ds = concatenate_datasets([ds1, ds2]).rename_column("b", "c")
+    assert list(ds) == [{"a": 1, "c": "x"}, {"a": 2, "c": None}]
+
+    def gen():
+        yield {"a": 1, "b": "x"}
+        yield {"a": 2}
+
+    features = Features({"a": Value("int64"), "b": Value("string")})
+    ds = IterableDataset.from_generator(gen, features=features).rename_column("b", "c")
+    assert list(ds) == [{"a": 1, "c": "x"}, {"a": 2, "c": None}]
+
+
+def test_iterable_dataset_rename_and_remove_columns_of_sources_with_different_columns():
+    ds1 = Dataset.from_dict({"a": [1, 3], "b": ["x", "y"]}).to_iterable_dataset()
+    ds2 = Dataset.from_dict({"a": [2, 4]}).to_iterable_dataset()
+    ds = concatenate_datasets([ds1, ds2])
+    assert list(ds.remove_columns("a").batch(4)) == [{"b": ["x", "y", None, None]}]
+    renamed = ds.rename_column("b", "c")
+    assert list(renamed.iter(batch_size=4)) == [{"a": [1, 3, 2, 4], "c": ["x", "y", None, None]}]
+    assert len(list(renamed.shuffle(seed=0, buffer_size=10))) == 4
+    assert len(list(renamed.map(lambda batch: batch, batched=True, batch_size=4))) == 4
 
 
 def test_iterable_dataset_select_columns(dataset_with_several_columns: IterableDataset):
