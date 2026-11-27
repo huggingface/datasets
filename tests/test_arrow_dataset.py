@@ -3467,6 +3467,16 @@ _messages = [
 ]
 
 
+def test_shuffle_with_array_like_seed():
+    dataset = Dataset.from_dict({"row": list(range(10))})
+    seed = np.array([1, 2], dtype=np.uint32)
+
+    shuffled_dataset = dataset.shuffle(seed=seed)
+
+    expected_indices = np.random.default_rng(seed).permutation(len(dataset)).tolist()
+    assert list(shuffled_dataset["row"]) == expected_indices
+
+
 class MiscellaneousDatasetTest(TestCase):
     def test_from_pandas(self):
         data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
