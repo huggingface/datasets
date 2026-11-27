@@ -1201,6 +1201,26 @@ def test_mapped_examples_iterable_drop_last_batch_and_arrow_format(n, func, batc
         ),  # add the index to the id
         (5, lambda t, indices: t.append_column("id+idx", pc.add(t["id"], indices)), True, None),  # same with bs=None
         (5, lambda t, indices: t.append_column("id+idx", pc.add(t["id"], indices)), True, -1),  # same with bs<=0
+        (
+            6,
+            lambda t, indices: t.append_column("source_idx", pa.array(indices)).take([0, 1, 0, 1]),
+            True,
+            2,
+        ),  # expanding a batch must not advance the input indices by the output length
+        (
+            6,
+            lambda t, indices: t.append_column("source_idx", pa.array(indices)).slice(0, 1),
+            True,
+            2,
+        ),  # shrinking a batch must still consume all its input indices
+        (
+            6,
+            lambda t, indices: t.append_column("source_idx", pa.array(indices)).slice(
+                0, 0 if t["id"][0].as_py() == 0 else len(t)
+            ),
+            True,
+            2,
+        ),  # an empty output batch must also advance the input indices
     ],
 )
 def test_mapped_examples_iterable_with_indices_and_arrow_format(n, func, batched, batch_size):
@@ -1232,6 +1252,25 @@ def test_mapped_examples_iterable_with_indices_and_arrow_format(n, func, batched
     assert [x for _, x in ex_iterable] == expected
     assert_load_state_dict_resumes_iteration(ex_iterable)
     assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
+
+
+@pytest.mark.parametrize("first_batch_rows", [[0, 1, 0, 1], [1], []])
+def test_iterable_dataset_concatenate_arrow_map_with_indices_changes_batch_size(first_batch_rows):
+    def transform(table, indices):
+        table = table.append_column("source_idx", pa.array(indices))
+        return table.take(pa.array(first_batch_rows, type=pa.int64())) if table["id"][0].as_py() == 0 else table
+
+    mapped = (
+        Dataset.from_dict({"id": list(range(6))})
+        .to_iterable_dataset()
+        .with_format("arrow")
+        .map(transform, with_indices=True, batched=True, batch_size=2)
+    )
+    # Mixing Arrow and Python iterables exercises the mapped iterable's row iterator.
+    other = IterableDataset.from_generator(lambda: iter([{"id": 0, "source_idx": 0}]))
+    combined = concatenate_datasets([mapped, other])
+    expected_ids = first_batch_rows + [2, 3, 4, 5, 0]
+    assert list(combined) == [{"id": i, "source_idx": i} for i in expected_ids]
 
 
 @pytest.mark.parametrize(
