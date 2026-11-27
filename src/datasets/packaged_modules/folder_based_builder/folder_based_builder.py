@@ -16,6 +16,7 @@ from datasets import config
 from datasets.builder import Key
 from datasets.features.features import FeatureType, _visit, _visit_with_path, _VisitPath, require_storage_cast
 from datasets.utils.file_utils import readline
+from datasets.utils.json import ujson_loads
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -349,6 +350,22 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                     f"Batch of {len(batch)} bytes couldn't be parsed with block_size={block_size}. Retrying with block_size={block_size * 2}."
                                 )
                                 block_size *= 2
+                    try:
+                        pa_table.validate()
+                    except pa.ArrowInvalid as e:
+                        # pyarrow can return invalid list offsets when a list starts with null: rebuild row by row
+                        try:
+                            pa_table = pa.concat_tables(
+                                [
+                                    pa.Table.from_pylist([ujson_loads(line)])
+                                    for line in batch.splitlines()
+                                    if line.strip()
+                                ],
+                                promote_options="default",
+                            )
+                            pa_table.validate()
+                        except (ValueError, pa.ArrowInvalid, pa.ArrowNotImplementedError):
+                            raise e
                     if self.config.filters is not None:
                         pa_table = pa_table.filter(filter_expr)
                     if len(pa_table) > 0:
