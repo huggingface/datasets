@@ -1,5 +1,6 @@
 import importlib
 import os
+import pickle
 import tempfile
 import types
 from contextlib import nullcontext as does_not_raise
@@ -14,11 +15,13 @@ import pytest
 from multiprocess.pool import Pool
 
 from datasets.arrow_dataset import Dataset
+from datasets.arrow_reader import ReadInstruction
 from datasets.arrow_writer import ArrowWriter
 from datasets.builder import (
     ArrowBasedBuilder,
     BuilderConfig,
     DatasetBuilder,
+    FileFormatError,
     GeneratorBasedBuilder,
     InvalidConfigName,
     Key,
@@ -166,6 +169,21 @@ class DummyArrowBasedBuilderWithShards(ArrowBasedBuilder):
         for shard_idx, filepath in enumerate(filepaths):
             for i in range(10):
                 yield Key(shard_idx, i), pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
+
+
+class DummyGeneratorBasedBuilderWithIdsInTwoSplits(GeneratorBasedBuilder):
+    def _info(self):
+        return DatasetInfo(features=Features({"id": Value("int64")}))
+
+    def _split_generators(self, dl_manager):
+        return [
+            SplitGenerator(name=Split.TRAIN, gen_kwargs={"offset": 0}),
+            SplitGenerator(name=Split.TEST, gen_kwargs={"offset": 1000}),
+        ]
+
+    def _generate_examples(self, offset):
+        for i in range(100):
+            yield i, {"id": offset + i}
 
 
 class DummyGeneratorBasedBuilderWithShards(GeneratorBasedBuilder):
@@ -640,6 +658,126 @@ def test_builder_streaming_works_in_subprocess(tmp_path):
     p = Process(target=_run_test_builder_streaming_works_in_subprocesses, args=(dummy_builder,))
     p.start()
     p.join()
+
+
+def _prepare_cached_builder(tmp_path, num_shards=4, **builder_kwargs):
+    """Prepare a two-split dataset in the cache, as `num_shards` Arrow files per split."""
+    builder = DummyGeneratorBasedBuilderWithIdsInTwoSplits(
+        cache_dir=str(tmp_path), writer_batch_size=100 // num_shards, **builder_kwargs
+    )
+    with patch("datasets.config.MAX_SHARD_SIZE", 1):  # one writer batch per shard
+        builder.download_and_prepare()
+    return builder
+
+
+def test_builder_as_iterable_dataset(tmp_path):
+    builder = _prepare_cached_builder(tmp_path)
+    iterable_datasets = builder.as_iterable_dataset()
+    assert isinstance(iterable_datasets, IterableDatasetDict)
+    assert list(iterable_datasets) == ["train", "test"]
+    for name, iterable_dataset in iterable_datasets.items():
+        assert isinstance(iterable_dataset, IterableDataset)
+        assert iterable_dataset.split == name
+        assert iterable_dataset.features == Features({"id": Value("int64")})
+        assert list(iterable_dataset) == list(builder.as_dataset(name))
+    iterable_dataset = builder.as_iterable_dataset(split="train")
+    assert isinstance(iterable_dataset, IterableDataset)
+    assert [example["id"] for example in iterable_dataset] == list(range(100))
+
+
+@pytest.mark.parametrize("split", ["train", "train+test", "all", "train[10:30]", "test[:20%]", "train[:10]+test[-5:]"])
+def test_builder_as_iterable_dataset_with_split_expression(split, tmp_path):
+    builder = _prepare_cached_builder(tmp_path)
+    iterable_dataset = builder.as_iterable_dataset(split=split)
+    assert isinstance(iterable_dataset, IterableDataset)
+    expected = builder.as_dataset(split=split)
+    assert iterable_dataset.split == expected.split
+    assert [example["id"] for example in iterable_dataset] == expected["id"]
+
+
+def test_builder_as_iterable_dataset_with_read_instruction(tmp_path):
+    builder = _prepare_cached_builder(tmp_path)
+    instruction = ReadInstruction("train", from_=25, to=75, unit="abs")
+    iterable_dataset = builder.as_iterable_dataset(split=instruction)
+    assert [example["id"] for example in iterable_dataset] == list(range(25, 75))
+
+
+@pytest.mark.parametrize("num_shards", [1, 4])
+def test_builder_as_iterable_dataset_shards_follow_the_cached_files(num_shards, tmp_path):
+    builder = _prepare_cached_builder(tmp_path, num_shards=num_shards)
+    iterable_dataset = builder.as_iterable_dataset(split="train")
+    assert iterable_dataset.num_shards == num_shards
+    shards = [iterable_dataset.shard(num_shards=num_shards, index=index) for index in range(num_shards)]
+    assert [len(list(shard)) for shard in shards] == [100 // num_shards] * num_shards
+    assert [example["id"] for shard in shards for example in shard] == list(range(100))
+
+
+def test_builder_as_iterable_dataset_slices_only_the_requested_rows_of_each_shard(tmp_path):
+    builder = _prepare_cached_builder(tmp_path)
+    iterable_dataset = builder.as_iterable_dataset(split="train[10:60]")
+    assert iterable_dataset.num_shards == 3  # the 4 files, minus the one that holds only rows 75-99
+    assert [example["id"] for example in iterable_dataset] == list(range(10, 60))
+
+
+def test_builder_as_iterable_dataset_resumes_from_state_dict(tmp_path):
+    builder = _prepare_cached_builder(tmp_path)
+    iterable_dataset = builder.as_iterable_dataset(split="train")
+    iterator = iter(iterable_dataset)
+    consumed = [next(iterator)["id"] for _ in range(40)]
+    state_dict = iterable_dataset.state_dict()
+    resumed = builder.as_iterable_dataset(split="train")
+    resumed.load_state_dict(state_dict)
+    assert consumed + [example["id"] for example in resumed] == list(range(100))
+
+
+def test_builder_as_iterable_dataset_supports_the_iterable_dataset_api(tmp_path):
+    builder = _prepare_cached_builder(tmp_path)
+    iterable_dataset = builder.as_iterable_dataset(split="train")
+    mapped = iterable_dataset.map(lambda example: {"double": example["id"] * 2})
+    assert [example["double"] for example in mapped] == [2 * i for i in range(100)]
+    shuffled = iterable_dataset.shuffle(seed=42, buffer_size=10)
+    assert sorted(example["id"] for example in shuffled) == list(range(100))
+    assert [example["id"] for example in shuffled] != list(range(100))
+    assert list(iterable_dataset.with_format("numpy").take(1))[0]["id"].shape == ()
+
+
+def test_builder_as_iterable_dataset_reads_the_cache_without_copying_it(tmp_path):
+    builder = _prepare_cached_builder(tmp_path)
+    with assert_arrow_memory_doesnt_increase():
+        # keep the iterator, and with it the table being read, alive while memory is measured
+        iterator = iter(builder.as_iterable_dataset(split="train"))
+        next(iterator)
+
+
+def test_builder_as_iterable_dataset_requires_a_prepared_dataset(tmp_path):
+    builder = DummyGeneratorBasedBuilderWithIdsInTwoSplits(cache_dir=str(tmp_path))
+    with pytest.raises(FileNotFoundError):
+        builder.as_iterable_dataset()
+
+
+def test_builder_as_iterable_dataset_requires_arrow_files(tmp_path):
+    builder = DummyGeneratorBasedBuilderWithIdsInTwoSplits(cache_dir=str(tmp_path))
+    builder.download_and_prepare(file_format="parquet")
+    with pytest.raises(FileFormatError):
+        builder.as_iterable_dataset()
+
+
+@pytest.mark.parametrize("split", ["train[0:0]", "validation"])
+def test_builder_as_iterable_dataset_rejects_splits_that_select_nothing(split, tmp_path):
+    builder = _prepare_cached_builder(tmp_path)
+    with pytest.raises(ValueError) as as_dataset_error:
+        builder.as_dataset(split=split)
+    with pytest.raises(ValueError) as as_iterable_dataset_error:
+        builder.as_iterable_dataset(split=split)
+    assert type(as_iterable_dataset_error.value) is type(as_dataset_error.value)
+
+
+def test_builder_as_iterable_dataset_is_picklable(tmp_path):
+    builder = _prepare_cached_builder(tmp_path)
+    iterable_dataset = builder.as_iterable_dataset(split="train")
+    # stdlib pickle, as DataLoader workers started with spawn use; dill would also accept local functions
+    reloaded = pickle.loads(pickle.dumps(iterable_dataset))
+    assert list(reloaded) == list(iterable_dataset)
 
 
 class DummyBuilderWithVersion(GeneratorBasedBuilder):
