@@ -370,8 +370,10 @@ def format_kwargs_for_fingerprint(
         p.name: p.default for p in inspect.signature(func).parameters.values() if p.default != inspect._empty
     }
     for default_varname, default_value in default_values.items():
-        if default_varname in kwargs_for_fingerprint and kwargs_for_fingerprint[default_varname] == default_value:
-            kwargs_for_fingerprint.pop(default_varname)
+        if default_varname in kwargs_for_fingerprint:
+            is_default = kwargs_for_fingerprint[default_varname] == default_value
+            if isinstance(is_default, (bool, np.bool_)) and is_default:
+                kwargs_for_fingerprint.pop(default_varname)
     return kwargs_for_fingerprint
 
 
