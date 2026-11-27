@@ -89,6 +89,45 @@ def test_from_dict_array2d_numpy_roundtrip(tmp_path):
     assert actual.tobytes() == data.tobytes()
 
 
+@pytest.mark.parametrize("explicit_cache_file", [False, True])
+def test_map_cache_with_rank_and_different_num_proc(tmp_path, explicit_cache_file):
+    Dataset.from_dict({"id": list(range(4))}).save_to_disk(tmp_path / "data")
+    cache_file_name = str(tmp_path / "mapped.arrow") if explicit_cache_file else None
+
+    def add_rank(example, rank):
+        return {"worker": rank or 0}
+
+    with load_from_disk(tmp_path / "data") as dataset:
+        kwargs = {"with_rank": True, "cache_file_name": cache_file_name}
+        with dataset.map(add_rank, num_proc=1, **kwargs) as single:
+            assert list(single["worker"]) == [0, 0, 0, 0]
+            single_fingerprint = single._fingerprint
+        with dataset.map(add_rank, num_proc=2, **kwargs) as parallel:
+            assert list(parallel["worker"]) == [0, 0, 1, 1]
+            assert parallel._fingerprint != single_fingerprint
+        with dataset.map(add_rank, num_proc=1, **kwargs) as single:
+            assert list(single["worker"]) == [0, 0, 0, 0]
+
+
+@pytest.mark.parametrize("with_rank", [False, True])
+def test_filter_cache_with_different_num_proc(tmp_path, with_rank):
+    dataset = Dataset.from_dict({"id": list(range(4))})
+
+    def keep_first_worker(example, rank=None):
+        return not rank
+
+    kwargs = {"with_rank": with_rank, "cache_file_name": str(tmp_path / "filtered.arrow")}
+    with dataset.filter(keep_first_worker, num_proc=1, **kwargs) as single:
+        assert list(single["id"]) == [0, 1, 2, 3]
+        cache_files = single.cache_files
+    with dataset.filter(keep_first_worker, num_proc=2, **kwargs) as parallel:
+        if with_rank:
+            assert list(parallel["id"]) == [0, 1]
+        else:
+            assert list(parallel["id"]) == [0, 1, 2, 3]
+            assert parallel.cache_files == cache_files
+
+
 class PickableMagicMock(MagicMock):
     def __reduce__(self):
         return MagicMock, ()

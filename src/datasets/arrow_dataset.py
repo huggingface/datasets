@@ -3524,12 +3524,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             "on_mixed_types": on_mixed_types,
         }
 
+        num_shards = num_proc or 1
         if new_fingerprint is None:
             # we create a unique hash from the function,
             # current dataset file and the mapping args
             transform = format_transform_for_fingerprint(Dataset._map_single)
             kwargs_for_fingerprint = format_kwargs_for_fingerprint(Dataset._map_single, (), dataset_kwargs)
             kwargs_for_fingerprint["fingerprint_name"] = "new_fingerprint"
+            if with_rank:
+                kwargs_for_fingerprint["num_shards"] = num_shards
             new_fingerprint = update_fingerprint(self._fingerprint, transform, kwargs_for_fingerprint)
         else:
             validate_fingerprint(new_fingerprint)
@@ -3559,7 +3562,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise NonExistentDatasetError
 
         existing_cache_file_map: dict[int, list[str]] = defaultdict(list)
-        if cache_file_name is not None:
+        # A different shard count changes the ranks passed to the callback.
+        if cache_file_name is not None and not with_rank:
             if os.path.exists(cache_file_name):
                 existing_cache_file_map[1] = [cache_file_name]
 
@@ -3574,7 +3578,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     file_num_proc = int(suffix_variable_map["num_proc"])
                     existing_cache_file_map[file_num_proc].append(cache_file)
 
-        num_shards = num_proc or 1
         if existing_cache_file_map:
             # to avoid remapping when a different num_proc is given than when originally cached, update num_shards to
             # what was used originally
@@ -4359,7 +4362,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 self._indices,
             ),
             with_indices=True,
-            with_rank=True,
+            with_rank=with_rank,
             features=Features({"indices": Value("uint64")}),
             batched=True,
             batch_size=batch_size,
@@ -8091,9 +8094,11 @@ def get_indices_from_mask_function(
     *args,
     **fn_kwargs,
 ):
-    if batched:
-        # we extract indices and rank from args
+    if with_rank:
         *inputs, indices, rank = args
+    else:
+        *inputs, indices = args
+    if batched:
         additional_args = ()
         if with_indices:
             additional_args += (indices,)
@@ -8105,7 +8110,6 @@ def get_indices_from_mask_function(
     else:
         # we get batched data (to return less data than input) but `function` only accepts one example
         # therefore we need to call `function` on each example of the batch to get the mask
-        *inputs, indices, rank = args
         mask = []
         if input_columns is None:
             # inputs only contains a batch of examples
@@ -8150,9 +8154,11 @@ async def async_get_indices_from_mask_function(
     **fn_kwargs,
 ):
     """same function but async"""
-    if batched:
-        # we extract indices and rank from args
+    if with_rank:
         *inputs, indices, rank = args
+    else:
+        *inputs, indices = args
+    if batched:
         additional_args = ()
         if with_indices:
             additional_args += (indices,)
@@ -8164,7 +8170,6 @@ async def async_get_indices_from_mask_function(
     else:
         # we get batched data (to return less data than input) but `function` only accepts one example
         # therefore we need to call `function` on each example of the batch to get the mask
-        *inputs, indices, rank = args
         mask = []
         if input_columns is None:
             # inputs only contains a batch of examples
