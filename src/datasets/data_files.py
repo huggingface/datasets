@@ -300,6 +300,26 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], list[str]]) -> di
     raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
 
 
+# "hf://<repo>/resolve/<revision>/<path>" or "hf://<repo>/blob/<revision>/<path>", from the URL of a file on the Hub website
+_HF_PATH_WITH_WEBSITE_URL_PART_RE = re.compile(
+    r"^hf://(?!buckets/)((?:datasets/|spaces/)?[^/@]+/[^/@]+)/(resolve|blob)/([^/]+)/(.+)$"
+)
+
+
+def _get_hf_path_with_website_url_part_hint(pattern: str) -> str:
+    """Return a hint to fix a `hf://` path that contains the "/resolve/<revision>" part of a Hub file URL, or ""."""
+    match = _HF_PATH_WITH_WEBSITE_URL_PART_RE.match(pattern)
+    if match is None:
+        return ""
+    repo, url_part, revision, path_in_repo = match.groups()
+    revision_suffix = f"@{revision}" if revision != config.HUB_DEFAULT_VERSION else ""
+    return (
+        f"\nIt looks like you used parts of the URL of the file from the Hugging Face website, but you should "
+        f'remove the "/{url_part}/{revision}" part to have a valid `hf://` path.\n'
+        f"Please try again using this path instead:\n    hf://{repo}{revision_suffix}/{path_in_repo}"
+    )
+
+
 def resolve_pattern(
     pattern: str,
     base_path: str,
@@ -402,6 +422,7 @@ def resolve_pattern(
         error_msg = f"Unable to find '{pattern}'"
         if allowed_extensions is not None:
             error_msg += f" with any supported extension {list(allowed_extensions)}"
+        error_msg += _get_hf_path_with_website_url_part_hint(pattern)
         raise FileNotFoundError(error_msg)
     return out
 

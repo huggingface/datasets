@@ -690,3 +690,50 @@ def test_get_data_patterns_from_directory_with_the_word_data_twice(tmp_path):
     data_file.touch()
     data_file_patterns = get_data_patterns(repo_dir.as_posix())
     assert data_file_patterns == {"train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"]}
+
+
+@pytest.mark.parametrize(
+    "pattern, suggested_path",
+    [
+        (
+            "hf://datasets/org/name/resolve/main/data/train.json",
+            "hf://datasets/org/name/data/train.json",
+        ),
+        ("hf://datasets/org/name/blob/main/train.json", "hf://datasets/org/name/train.json"),
+        ("hf://datasets/org/name/resolve/v1.0/train.json", "hf://datasets/org/name@v1.0/train.json"),
+        (
+            "hf://datasets/org/name/resolve/refs%2Fconvert%2Fparquet/default/train/0000.parquet",
+            "hf://datasets/org/name@refs%2Fconvert%2Fparquet/default/train/0000.parquet",
+        ),
+        ("hf://spaces/org/name/resolve/main/data/*.csv", "hf://spaces/org/name/data/*.csv"),
+        ("hf://org/model/resolve/main/data.json", "hf://org/model/data.json"),
+    ],
+)
+def test_resolve_pattern_suggests_hf_path_without_the_resolve_part_of_the_url(pattern, suggested_path):
+    from huggingface_hub import HfFileSystem
+
+    with patch.object(HfFileSystem, "glob", return_value={}):
+        with pytest.raises(FileNotFoundError) as excinfo:
+            resolve_pattern(pattern, base_path="")
+    error_message = str(excinfo.value)
+    assert error_message.startswith(f"Unable to find '{pattern}'")
+    assert "It looks like you used parts of the URL of the file from the Hugging Face website" in error_message
+    assert error_message.endswith(f"Please try again using this path instead:\n    {suggested_path}")
+
+
+@pytest.mark.parametrize(
+    "pattern",
+    [
+        "hf://datasets/org/name/data/train.json",
+        "hf://datasets/org/name/data/resolve/main/train.json",  # a "resolve" directory in the repository
+        "hf://datasets/org/name@main/resolve/main/train.json",
+        "hf://buckets/org/name/resolve/main/train.json",
+    ],
+)
+def test_resolve_pattern_no_hf_path_suggestion(pattern):
+    from huggingface_hub import HfFileSystem
+
+    with patch.object(HfFileSystem, "glob", return_value={}):
+        with pytest.raises(FileNotFoundError) as excinfo:
+            resolve_pattern(pattern, base_path="")
+    assert str(excinfo.value) == f"Unable to find '{pattern}'"
