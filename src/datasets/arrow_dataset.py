@@ -5836,7 +5836,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             def extra_nbytes_visitor(array, feature):
                 nonlocal extra_nbytes
-                if hasattr(feature, "embed_storage"):  # the features whose external files get embedded
+                if hasattr(feature, "embed_storage"):  # same check as embed_table_storage: files that get embedded
                     for x in array.to_pylist():
                         if x is not None and x["bytes"] is None and x["path"] is not None:
                             size = xgetsize(x["path"])
