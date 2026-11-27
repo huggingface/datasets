@@ -1,3 +1,4 @@
+import importlib
 import json
 import textwrap
 from unittest.mock import Mock, patch
@@ -724,7 +725,10 @@ def test_json_array_over_the_block_size_limit_is_read_in_chunks(list_of, tmp_pat
     path = tmp_path / "data.json"
     path.write_text(json.dumps(items))
     chunksize = 1 << 10
-    with patch("datasets.packaged_modules.json.json.MAX_JSON_BLOCK_SIZE", chunksize):
+    # patch the module object: `datasets.packaged_modules.json` is the module, not the package, which breaks
+    # the resolution of a "datasets.packaged_modules.json.json..." target by patch() before Python 3.11
+    json_module = importlib.import_module("datasets.packaged_modules.json.json")
+    with patch.object(json_module, "MAX_JSON_BLOCK_SIZE", chunksize):
         dataset, read_sizes = _load_json_recording_read_sizes(path, chunksize, str(tmp_path / "cache"))
     assert list(dataset["text"]) == texts
     longest_line = max(len(json.dumps({"text": text})) for text in texts) + 1
