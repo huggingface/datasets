@@ -2386,6 +2386,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 break
         dataset.info.features = self._info.features.flatten(max_depth=max_depth)
         dataset.info.features = Features({col: dataset.info.features[col] for col in dataset.data.column_names})
+        if dataset.info.column_metadata:
+            dataset.info.column_metadata = _select_column_metadata(dataset.info.column_metadata, dataset.info.features)
         if self._format_columns is not None:
             formatted_features = Features({col: self._info.features[col] for col in self._format_columns})
             dataset._format_columns = list(formatted_features.flatten(max_depth=max_depth))

@@ -54,6 +54,22 @@ def test_column_metadata_follows_column_operations():
     assert ds.remove_columns("a").add_column("a", [0, 0, 0]).info.column_metadata == {"b": {"source": "manual"}}
 
 
+def test_flatten_drops_metadata_for_removed_columns(tmp_path):
+    metadata = {"reading": {"source": "instrument-a"}, "id": {"scope": "record"}}
+    ds = Dataset.from_list([{"reading": {"amplitude": 1.5}, "id": 1}]).with_column_metadata(metadata)
+
+    flattened = ds.flatten()
+
+    expected_metadata = {"id": {"scope": "record"}}
+    assert flattened[0] == {"reading.amplitude": 1.5, "id": 1}
+    assert flattened.info.column_metadata == expected_metadata
+    assert flattened.add_column("reading", [9.5]).info.column_metadata == expected_metadata
+    assert ds.info.column_metadata == metadata
+
+    flattened.save_to_disk(str(tmp_path / "flattened"))
+    assert load_from_disk(str(tmp_path / "flattened")).info.column_metadata == expected_metadata
+
+
 def test_column_metadata_concatenate_datasets():
     ds1 = _dataset().with_column_metadata({"a": {"unit": "cm"}, "b": {"source": "manual"}})
     ds2 = _dataset().with_column_metadata({"a": {"unit": "cm"}, "b": {"source": "scraped"}})
