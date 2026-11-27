@@ -1103,6 +1103,28 @@ def test_indexed_table_mixin():
     assert table.fast_slice(2, 13) == pa_table.slice(2, 13)
 
 
+@pytest.mark.parametrize(
+    "indices,chunk_sizes",
+    [
+        ([1], [1]),
+        ([1, 2, 3, 4], [2, 2]),  # crosses a record batch boundary
+        ([4, 5, 0, 1, 1, 2], [2, 2, 2]),  # reordered runs and a repeated row
+        (np.array([5, 2, 0]), [1, 1, 1]),
+    ],
+)
+def test_fast_gather_contiguous_runs(indices, chunk_sizes):
+    source = pa.table({"id": range(8), "tokens": [[0], [], None, [3, 4], [5], [], [6], None]})
+    source = source.replace_schema_metadata({"split": "train"})
+    # Slice first so that row indices are relative to chunks with nonzero Arrow offsets.
+    source = pa.concat_tables([source.slice(1, 3), source.slice(4, 3)])
+    gathered = Table(source).fast_gather(indices)
+
+    assert gathered.equals(source.take(indices), check_metadata=True)
+    assert [len(chunk) for chunk in gathered.column("id").chunks] == chunk_sizes
+    source_buffers = {chunk.buffers()[1].address for chunk in source.column("id").chunks}
+    assert all(chunk.buffers()[1].address in source_buffers for chunk in gathered.column("id").chunks)
+
+
 def test_cast_integer_array_to_features():
     arr = pa.array([[0, 1]])
     assert cast_array_to_feature(arr, List(Value("string"))).type == pa.list_(pa.string())
