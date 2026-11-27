@@ -14,6 +14,7 @@
 
 __version__ = "5.2.1.dev0"
 
+from . import hashing
 from .arrow_dataset import Column, Dataset
 from .arrow_reader import ReadInstruction
 from .builder import ArrowBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
