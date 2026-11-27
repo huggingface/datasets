@@ -98,6 +98,13 @@ class JsonDatasetWriter:
         if "index" not in self.to_json_kwargs and orient in ["split", "table"]:
             self.to_json_kwargs["index"] = False
 
+        # Opening a compressed file can write bytes before the first batch is serialized.
+        mode = self.to_json_kwargs.get("mode", "w")
+        if mode not in ["w", "a"]:
+            raise ValueError(f"mode={mode} is not a valid option. Only 'w' and 'a' are currently supported.")
+        if mode == "a" and (not lines or orient != "records"):
+            raise ValueError("mode='a' (append) is only supported when lines is True and orient is 'records'")
+
         # Determine the default compression value based on self.path_or_buf type
         default_compression = "infer" if isinstance(self.path_or_buf, (str, bytes, os.PathLike)) else None
         compression = self.to_json_kwargs.pop("compression", default_compression)
@@ -112,7 +119,7 @@ class JsonDatasetWriter:
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
             with fsspec.open(
-                self.path_or_buf, "wb", compression=compression, **(self.storage_options or {})
+                self.path_or_buf, f"{mode}b", compression=compression, **(self.storage_options or {})
             ) as buffer:
                 written = self._write(file_obj=buffer, orient=orient, lines=lines, **self.to_json_kwargs)
         else:

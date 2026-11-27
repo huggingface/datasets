@@ -91,7 +91,10 @@ class CsvDatasetWriter:
         index = self.to_csv_kwargs.pop("index", False)
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
-            with fsspec.open(self.path_or_buf, "wb", **(self.storage_options or {})) as buffer:
+            mode = self.to_csv_kwargs.pop("mode", "w").replace("t", "")
+            if "b" not in mode:
+                mode += "b"
+            with fsspec.open(self.path_or_buf, mode, **(self.storage_options or {})) as buffer:
                 written = self._write(file_obj=buffer, header=header, index=index, **self.to_csv_kwargs)
         else:
             written = self._write(file_obj=self.path_or_buf, header=header, index=index, **self.to_csv_kwargs)
