@@ -183,10 +183,8 @@ def string_to_dict(string: str, pattern: str) -> Optional[dict[str, str]]:
     result = re.search(regex, string)
     if result is None:
         return None
-    values = list(result.groups())
     keys = re.findall(r"{(.+?)}", pattern)
-    _dict = dict(zip(keys, values))
-    return _dict
+    return {key: result.group(f"_{key}") for key in keys}
 
 
 def asdict(obj):
