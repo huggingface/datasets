@@ -145,6 +145,11 @@ class CsvConfig(datasets.BuilderConfig):
 class Csv(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = CsvConfig
 
+    def __init__(self, *args, **kwargs):
+        if kwargs.get("column_names") is not None:
+            kwargs["names"] = kwargs["column_names"]
+        super().__init__(*args, **kwargs)
+
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
 
