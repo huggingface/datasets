@@ -114,6 +114,9 @@ class TranslationVariableLanguages:
             else:
                 translation_tuples.extend([(lang, el) for el in text])
 
+        if not translation_tuples:
+            return {"language": [], "translation": []}
+
         # Ensure translations are in ascending order by language code.
         languages, translations = zip(*sorted(translation_tuples))
 
