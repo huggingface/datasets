@@ -1563,6 +1563,102 @@ def test_map_resume_multiple_times_from_parquet(tmp_path, batch_size, checkpoint
     assert actual == expected
 
 
+def _double_id_in_place(example):
+    example["double"] = example["id"] * 2
+    return example
+
+
+def _raise_on_id_5(example):
+    if example["id"] == 5:
+        raise ValueError("error on id 5")
+    return example
+
+
+def _exit_on_id_5(example):
+    if example["id"] == 5:
+        os._exit(1)
+    return example
+
+
+@pytest.mark.parametrize(
+    "function, map_kwargs",
+    [
+        (_double_id_in_place, {"remove_columns": ["id"]}),  # the function returns its input example
+        (
+            lambda batch, indices: {"double": [i * 2 for i in batch["id"]], "index": indices},
+            {"batched": True, "batch_size": 7, "with_indices": True},
+        ),
+        (lambda id_: {"double": id_ * 2}, {"input_columns": "id"}),
+        (lambda example, factor: {"double": example["id"] * factor}, {"fn_kwargs": {"factor": 2}}),
+        (lambda: {"constant": 1}, {"input_columns": []}),
+    ],
+)
+def test_map_num_proc_returns_the_same_examples(function, map_kwargs):
+    dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": 30}))
+    expected = list(dataset.map(function, **map_kwargs))
+    assert list(dataset.map(function, num_proc=2, **map_kwargs)) == expected
+
+
+@pytest.mark.parametrize("batched", [False, True])
+def test_map_num_proc_resume_multiple_times(batched):
+    def build():
+        dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": 30}))
+        return dataset.map(
+            lambda example, indices: {"index": indices}, with_indices=True, batched=batched, batch_size=7, num_proc=2
+        )
+
+    expected = list(build())
+    dataset = build()
+    actual = []
+    for consume in [2, 3, 7]:
+        iterator = iter(dataset)
+        actual.extend(islice(iterator, consume))
+        state = pickle.loads(pickle.dumps(dataset.state_dict()))
+        dataset = build()
+        dataset.load_state_dict(state)
+    actual.extend(dataset)
+    assert actual == expected
+
+
+def test_map_num_proc_stops_the_processes_when_the_iteration_stops():
+    import multiprocess
+
+    children_before = set(multiprocess.active_children())
+    dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": 30})).map(_double_id_in_place, num_proc=2)
+    iterator = iter(dataset)
+    next(iterator)
+    assert len(set(multiprocess.active_children()) - children_before) == 2
+    iterator.close()
+    assert set(multiprocess.active_children()) - children_before == set()
+
+
+def test_map_num_proc_raises_the_errors_of_the_function():
+    import multiprocess
+
+    children_before = set(multiprocess.active_children())
+    dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": 30}))
+    with pytest.raises(ValueError, match="error on id 5"):
+        list(dataset.map(_raise_on_id_5, num_proc=2))
+    assert set(multiprocess.active_children()) - children_before == set()
+
+
+def test_map_num_proc_raises_if_a_process_dies():
+    dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": 30}))
+    with pytest.raises(RuntimeError, match="abruptly died"):
+        list(dataset.map(_exit_on_id_5, num_proc=2))
+
+
+def test_map_num_proc_invalid():
+    dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": 30}))
+    with pytest.raises(ValueError, match="num_proc must be >= 0"):
+        dataset.map(_double_id_in_place, num_proc=-1)
+    with pytest.raises(ValueError, match="asynchronous"):
+        dataset.map(_wrap_async(_double_id_in_place), num_proc=2)
+    with pytest.raises(ValueError, match="'arrow'"):
+        dataset.with_format("arrow").map(lambda table: table, num_proc=2)
+    assert list(dataset.map(_double_id_in_place, num_proc=0)) == list(dataset.map(_double_id_in_place))
+
+
 def test_filter_async():
     dset = Dataset.from_dict({"x": range(100)}).to_iterable_dataset()
 
