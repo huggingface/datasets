@@ -200,6 +200,81 @@ def test_dataset_with_image_feature_from_pil_image(infer_feature, shared_datadir
 
 
 @require_pil
+@pytest.mark.parametrize("use_bytes_filename", [False, True])
+@pytest.mark.parametrize("use_map", [False, True])
+def test_dataset_with_image_feature_from_loaded_pil_missing_source(tmp_path, use_bytes_filename, use_map):
+    import PIL.Image
+
+    image_path = tmp_path / "image.png"
+    PIL.Image.new("RGB", (4, 4), (0, 192, 0)).save(image_path)
+    filename = os.fsencode(image_path) if use_bytes_filename else str(image_path)
+    features = Features({"image": Image()})
+    images = []
+
+    def remove_source(example):
+        image = PIL.Image.open(filename) if use_bytes_filename else example["image"]
+        images.append(image)
+        image.load()
+        image_path.unlink()
+        return {"image": image}
+
+    try:
+        if use_map:
+            dataset = Dataset.from_dict({"image": [str(image_path)]}, features=features).map(remove_source)
+        else:
+            image = PIL.Image.open(filename)
+            images.append(image)
+            image.load()
+            image_path.unlink()
+            dataset = Dataset.from_dict({"image": [image]}, features=features)
+
+        storage = dataset.cast_column("image", Image(decode=False))[0]["image"]
+        assert storage["path"] is None
+        assert storage["bytes"] is not None
+        saved_path = tmp_path / "saved"
+        dataset.save_to_disk(saved_path)
+        restored = Dataset.load_from_disk(saved_path)
+        assert restored.features == features
+        for result in [dataset, restored]:
+            with result[0]["image"] as decoded:
+                assert decoded.size == (4, 4)
+                assert decoded.mode == "RGB"
+                assert decoded.getpixel((0, 0)) == (0, 192, 0)
+                assert decoded.format == "PNG"
+    finally:
+        for image in images:
+            image.close()
+
+
+@require_pil
+@pytest.mark.parametrize(
+    "filename",
+    [
+        "https://example.invalid/image.png",
+        "zip://image.png::https://example.invalid/archive.zip",
+        b"https://example.invalid/image.png",
+        b"zip://image.png::https://example.invalid/archive.zip",
+    ],
+)
+def test_image_encode_pil_preserves_nonlocal_filename(filename):
+    import PIL.Image
+
+    with PIL.Image.new("RGB", (4, 4)) as image:
+        image.filename = filename
+        assert Image().encode_example(image) == {"path": filename, "bytes": None}
+
+
+@require_pil
+def test_image_encode_pil_preserves_existing_bytes_filename(shared_datadir):
+    import PIL.Image
+
+    image_path = shared_datadir / "test_image_rgb.jpg"
+    with PIL.Image.open(os.fsencode(image_path)) as image:
+        assert isinstance(image.filename, bytes)
+        assert Image().encode_example(image) == {"path": image.filename, "bytes": None}
+
+
+@require_pil
 def test_dataset_with_image_feature_from_np_array():
     import PIL.Image
 
