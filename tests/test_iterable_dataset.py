@@ -3379,6 +3379,16 @@ def test_iterable_dataset_cast_column():
     assert list(casted_dataset) == [casted_features.encode_example(ex) for _, ex in ex_iterable]
 
 
+def test_iterable_dataset_cast_column_unknown_features():
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
+    dataset = IterableDataset(ex_iterable)
+    assert dataset.features is None
+    casted_dataset = dataset.cast_column("label", Value("bool"))
+    casted_features = Features({"id": Value("int64"), "label": Value("bool")})
+    assert casted_dataset.features == casted_features
+    assert list(casted_dataset) == [casted_features.encode_example(ex) for _, ex in ex_iterable]
+
+
 def test_iterable_dataset_cast():
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
     features = Features({"id": Value("int64"), "label": Value("int64")})
