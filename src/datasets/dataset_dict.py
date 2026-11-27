@@ -1945,6 +1945,51 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         """
         return IterableDatasetDict({k: dataset.with_format(type=type) for k, dataset in self.items()})
 
+    def with_transform(
+        self,
+        transform: Callable,
+        columns: Optional[list[str]] = None,
+        output_all_columns: bool = False,
+    ) -> "IterableDatasetDict":
+        """
+        Return a dataset dict that applies this transform on-the-fly on batches of examples of every split,
+        like [`~datasets.DatasetDict.with_transform`].
+
+        For iterable datasets, this is roughly equivalent to a batched [`~datasets.IterableDatasetDict.map`]
+        that removes the input columns. See [`~datasets.IterableDataset.with_transform`] for more details.
+
+        Args:
+            transform (`Callable`):
+                User-defined formatting transform. A formatting function is a callable that takes a batch (as a `dict`)
+                as input and returns a batch.
+            columns (`List[str]`, *optional*):
+                Columns to format in the output.
+                If specified, then the input batch of the transform only contains those columns.
+            output_all_columns (`bool`, defaults to `False`):
+                Keep un-formatted columns as well in the output (as python objects).
+                If set to `True`, then the other un-formatted columns are kept with the output of the transform.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> from transformers import AutoTokenizer
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", streaming=True)
+        >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+        >>> def encode(batch):
+        ...     return tokenizer(batch["text"], truncation=True)
+        >>> ds = ds.with_transform(encode)
+        >>> list(next(iter(ds["validation"])))
+        ['input_ids', 'token_type_ids', 'attention_mask']
+        ```
+        """
+        return IterableDatasetDict(
+            {
+                k: dataset.with_transform(transform, columns=columns, output_all_columns=output_all_columns)
+                for k, dataset in self.items()
+            }
+        )
+
     def map(
         self,
         function: Optional[Callable] = None,
