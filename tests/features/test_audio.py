@@ -801,6 +801,8 @@ def test_audio_decode_example_opus_convert_to_stereo(shared_datadir):
     decoded_example = audio.decode_example(audio.encode_example(audio_path))
     assert isinstance(decoded_example, AudioDecoder)
     samples = decoded_example.get_all_samples()
+    assert decoded_example["array"].ndim == 2
+    assert decoded_example["array"].shape[0] == 2
     assert samples.sample_rate == 48000
     assert samples.data.shape == (2, 48000)
 
@@ -815,5 +817,7 @@ def test_audio_decode_example_opus_convert_to_mono(shared_datadir):
     decoded_example = audio.decode_example(audio.encode_example(audio_path))
     assert isinstance(decoded_example, AudioDecoder)
     samples = decoded_example.get_all_samples()
+    assert decoded_example["array"].ndim == 1
+    assert abs(decoded_example["array"].shape[0] - samples.data.shape[1]) < 2
     assert samples.sample_rate == 44100
     assert samples.data.shape == (1, 202311)
