@@ -1,9 +1,11 @@
+import gzip
 import textwrap
+import zipfile
 
 import pyarrow as pa
 import pytest
 
-from datasets import Features, Image
+from datasets import Features, Image, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.text.text import Text, TextConfig
@@ -88,3 +90,43 @@ def test_text_sample_by(sample_by, text_file):
     generator = text._generate_tables(base_files=[text_file], files_iterables=[[text_file]])
     generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()["text"]
     assert generated_content == expected_content
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize(
+    "encoding, encoding_errors, expected",
+    [("latin-1", None, ["café", "naïve"]), ("utf-8", "replace", ["caf\ufffd", "na\ufffdve"])],
+)
+def test_text_in_zip_archive_with_encoding(tmp_path, streaming, encoding, encoding_errors, expected):
+    # files inside an archive are read through fsspec, which must get the encoding and the error handling too
+    archive_path = tmp_path / "data.zip"
+    with zipfile.ZipFile(archive_path, "w") as zf:
+        zf.writestr("data.txt", "café\nnaïve\n".encode("latin-1"))
+    dataset = load_dataset(
+        "text",
+        data_files=str(archive_path),
+        encoding=encoding,
+        encoding_errors=encoding_errors,
+        split="train",
+        streaming=streaming,
+        cache_dir=str(tmp_path / "cache"),
+    )
+    assert [example["text"] for example in dataset] == expected
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+def test_text_gzip_utf16_small_chunks(tmp_path, streaming):
+    path = tmp_path / "text.txt.gz"
+    expected = ["caf\u00e9", "\u732b", "last line"]
+    with gzip.open(path, "wb") as stream:
+        stream.write("\r\n".join(expected).encode("utf-16"))
+    dataset = load_dataset(
+        "text",
+        data_files=str(path),
+        split="train",
+        streaming=streaming,
+        encoding="utf-16",
+        chunksize=3,
+        cache_dir=str(tmp_path / "cache"),
+    )
+    assert [row["text"] for row in dataset] == expected
