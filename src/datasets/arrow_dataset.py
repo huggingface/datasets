@@ -87,7 +87,7 @@ from .data_files import (
     sanitize_patterns,
 )
 from .download.streaming_download_manager import xgetsize
-from .features import Audio, ClassLabel, Features, Image, List, Value, Video
+from .features import ClassLabel, Features, List, Value
 from .features.features import (
     FeatureType,
     _align_features,
@@ -5836,7 +5836,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             def extra_nbytes_visitor(array, feature):
                 nonlocal extra_nbytes
-                if isinstance(feature, (Audio, Image, Video)):
+                if hasattr(feature, "embed_storage"):  # same check as embed_table_storage: files that get embedded
                     for x in array.to_pylist():
                         if x is not None and x["bytes"] is None and x["path"] is not None:
                             size = xgetsize(x["path"])

@@ -33,15 +33,21 @@ from datasets.dataset_dict import DatasetDict
 from datasets.features import (
     Array2D,
     Array3D,
+    BioSequence,
+    BioStructure,
     ClassLabel,
     Features,
     Image,
     Json,
     LargeList,
     List,
+    Mesh,
+    Nifti,
+    Pdf,
     Translation,
     TranslationVariableLanguages,
     Value,
+    Video,
 )
 from datasets.info import DatasetInfo
 from datasets.iterable_dataset import IterableDataset
@@ -4821,6 +4827,16 @@ class StratifiedTest(TestCase):
             assert len(d1["train"]["text"]) + len(d1["test"]["text"]) == y.size
             assert len(d1["train"]["text"]) == train_size
             assert len(d1["test"]["text"]) == test_size
+
+
+@pytest.mark.parametrize("feature_cls", [BioSequence, BioStructure, Image, Mesh, Nifti, Pdf, Video])
+def test_dataset_estimate_nbytes_counts_external_files(feature_cls, tmp_path):
+    # the size of files referenced by path decides the number of shards and the row group size in push_to_hub,
+    # so it must be counted for every feature whose files get embedded
+    path = tmp_path / "file.bin"
+    path.write_bytes(b"0" * 100_000)
+    ds = Dataset.from_dict({"x": [{"bytes": None, "path": str(path)}] * 10}, features=Features({"x": feature_cls()}))
+    assert ds._estimate_nbytes() > 0.9 * 10 * 100_000
 
 
 def test_dataset_estimate_nbytes(image_file):
