@@ -5134,6 +5134,56 @@ def test_categorical_dataset(tmpdir):
     assert entry["animals"] == "Flamingo"
 
 
+@pytest.mark.parametrize(
+    "batch_kwargs", [{"batch_size": 3}, {"by_column": "label"}, {"by_column": ["id", "label"], "batch_size": 2}]
+)
+@pytest.mark.parametrize("source_kind", ["empty", "filtered", "memory_mapped"])
+@pytest.mark.parametrize("format_type", [None, "arrow", "numpy", "pandas", "polars"])
+def test_dataset_batch_empty(tmp_path, batch_kwargs, source_kind, format_type):
+    features = Features(
+        {"id": Value("int64"), "label": ClassLabel(names=["a", "b"]), "nested": List({"value": Value("string")})}
+    )
+    info = DatasetInfo(description="Empty partition", features=features)
+    if source_kind == "empty":
+        ds = Dataset.from_dict({"id": [], "label": [], "nested": []}, info=info, split="train")
+    else:
+        ds = Dataset.from_dict({"id": [1], "label": [0], "nested": [[{"value": "x"}]]}, info=info, split="train")
+        if source_kind == "memory_mapped":
+            ds.save_to_disk(tmp_path / "source")
+            ds = load_from_disk(tmp_path / "source")
+        ds = ds.filter(lambda example: False)
+    ds = ds.with_format(format_type)
+
+    batched_ds = ds.batch(**batch_kwargs, new_fingerprint="empty-batch")
+
+    expected_features = Features(
+        {
+            "id": List(Value("int64")),
+            "label": List(ClassLabel(names=["a", "b"])),
+            "nested": List(List({"value": Value("string")})),
+        }
+    )
+    assert batched_ds.features == expected_features
+    assert batched_ds.data.schema.remove_metadata() == expected_features.arrow_schema.remove_metadata()
+    assert batched_ds.num_rows == 0
+    assert list(batched_ds) == []
+    assert batched_ds.info.description == "Empty partition"
+    assert batched_ds.split == "train"
+    assert batched_ds.format == ds.format
+    assert batched_ds._fingerprint == "empty-batch"
+    assert ds.features == features
+
+
+@pytest.mark.parametrize("num_rows", [0, 1])
+def test_dataset_batch_num_proc_validation(num_rows):
+    ds = Dataset.from_dict({"id": list(range(num_rows))})
+
+    with pytest.raises(ValueError, match="num_proc must be >= 0 or None"):
+        ds.batch(batch_size=2, num_proc=-1)
+    with pytest.raises(NotImplementedError, match="Multiprocessed batching by column"):
+        ds.batch(by_column="id", num_proc=-1)
+
+
 def test_dataset_batch():
     # Create a simple Dataset
     data = {"id": list(range(10)), "text": [f"Text {i}" for i in range(10)]}
