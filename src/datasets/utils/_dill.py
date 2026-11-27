@@ -147,6 +147,34 @@ def _save_set(pickler, obj):
     log(pickler, "# Se")
 
 
+def _with_large_offsets(type_: pa.DataType) -> pa.DataType:
+    """Return the same type with every 32-bit offset (string, binary, list) replaced by a 64-bit one."""
+    if pa.types.is_string(type_):
+        return pa.large_string()
+    if pa.types.is_binary(type_):
+        return pa.large_binary()
+    if pa.types.is_list(type_) or pa.types.is_large_list(type_):
+        return pa.large_list(type_.value_field.with_type(_with_large_offsets(type_.value_type)))
+    if pa.types.is_fixed_size_list(type_):
+        return pa.list_(type_.value_field.with_type(_with_large_offsets(type_.value_type)), type_.list_size)
+    if pa.types.is_struct(type_):
+        return pa.struct([field.with_type(_with_large_offsets(field.type)) for field in type_])
+    return type_
+
+
+def _combine_chunks(chunked_array: pa.ChunkedArray) -> pa.Array:
+    # A string, binary or list array has 32-bit offsets, so combining chunks that hold more than
+    # 2**31 - 1 bytes or list items in total fails with an offset overflow. Widen the offsets to
+    # 64-bit in that case only, so the hashes of smaller columns don't change.
+    try:
+        return chunked_array.combine_chunks()
+    except pa.ArrowInvalid:
+        large_type = _with_large_offsets(chunked_array.type)
+        if large_type == chunked_array.type:
+            raise
+        return chunked_array.cast(large_type).combine_chunks()
+
+
 @pklregister(pa.Table)
 def _save_arrowTable(pickler, obj):
     # pyarrow's default pickle serializes each chunk's buffers separately, so the
@@ -160,7 +188,7 @@ def _save_arrowTable(pickler, obj):
         return pa.Table.from_arrays(columns, schema=schema)
 
     log(pickler, f"Ta: {obj}")
-    args = (obj.schema, [column.combine_chunks() for column in obj.columns])
+    args = (obj.schema, [_combine_chunks(column) for column in obj.columns])
     pickler.save_reduce(create_arrowTable, args, obj=obj)
     log(pickler, "# Ta")
 
@@ -173,7 +201,7 @@ def _save_arrowChunkedArray(pickler, obj):
         return pa.chunked_array([array])
 
     log(pickler, f"Ca: {obj}")
-    args = (obj.combine_chunks(),)
+    args = (_combine_chunks(obj),)
     pickler.save_reduce(create_arrowChunkedArray, args, obj=obj)
     log(pickler, "# Ca")
 

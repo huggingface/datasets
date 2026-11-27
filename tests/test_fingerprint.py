@@ -254,6 +254,33 @@ class HashingTest(TestCase):
         self.assertEqual(hash_few_chunks, hash_many_chunks)
         self.assertNotEqual(hash_few_chunks, hash_other_data)
 
+    def test_hash_arrow_table_with_more_values_than_32_bit_offsets(self):
+        import pyarrow as pa
+
+        # Combining the chunks of a column with more than 2**31 - 1 values overflows 32-bit offsets.
+        # Null values have no buffers, so a list<null> column gets there without allocating memory.
+        def list_of_nulls(num_lists, list_size=2**28):
+            offsets = pa.array(range(0, (num_lists + 1) * list_size, list_size), type=pa.int32())
+            return pa.ListArray.from_arrays(offsets, pa.nulls(num_lists * list_size))
+
+        def in_struct(array):
+            return pa.StructArray.from_arrays([array], ["values"])
+
+        for wrap in (lambda array: array, in_struct):
+            with self.subTest(type=wrap(list_of_nulls(1)).type):
+                column = pa.chunked_array([wrap(list_of_nulls(num_lists)) for num_lists in (4, 4, 4)])
+                same_data_other_chunks = pa.chunked_array([wrap(list_of_nulls(num_lists)) for num_lists in (2, 6, 4)])
+                fewer_values = pa.chunked_array([wrap(list_of_nulls(num_lists)) for num_lists in (4, 4, 3)])
+                self.assertEqual(
+                    Hasher.hash(InMemoryTable(pa.table({"col": column}))),
+                    Hasher.hash(InMemoryTable(pa.table({"col": same_data_other_chunks}))),
+                )
+                self.assertNotEqual(
+                    Hasher.hash(InMemoryTable(pa.table({"col": column}))),
+                    Hasher.hash(InMemoryTable(pa.table({"col": fewer_values}))),
+                )
+                self.assertEqual(Hasher.hash(column), Hasher.hash(same_data_other_chunks))
+
     def test_hash_update(self):
         hasher = Hasher()
         for x in ["hello", Foo("hello")]:
