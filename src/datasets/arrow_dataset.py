@@ -730,6 +730,23 @@ class Column(Sequence_):
             return value == list(self)
 
 
+def _write_saved_dataset_state_and_info(
+    fs: fsspec.AbstractFileSystem, dataset_path: str, state: dict, info: DatasetInfo
+) -> None:
+    """Write the state and info files of a dataset directory, read back by `Dataset.load_from_disk`."""
+    with fs.open(
+        posixpath.join(dataset_path, config.DATASET_STATE_JSON_FILENAME), "w", encoding="utf-8"
+    ) as state_file:
+        json.dump(state, state_file, indent=2, sort_keys=True)
+    dataset_info = asdict(info)
+    with fs.open(
+        posixpath.join(dataset_path, config.DATASET_INFO_FILENAME), "w", encoding="utf-8"
+    ) as dataset_info_file:
+        # Sort only the first level of keys, or we might shuffle fields of nested features if we use sort_keys=True
+        sorted_keys_dataset_info = {key: dataset_info[key] for key in sorted(dataset_info)}
+        json.dump(sorted_keys_dataset_info, dataset_info_file, indent=2)
+
+
 class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     """A Dataset backed by an Arrow table."""
 
@@ -1910,9 +1927,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 raise TypeError(
                     str(e) + f"\nThe format kwargs must be JSON serializable, but key '{k}' isn't."
                 ) from None
-        # Get json serializable dataset info
-        dataset_info = asdict(self._info)
-
         shards_done = 0
         pbar = hf_tqdm(
             unit=" examples",
@@ -1955,16 +1969,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             shard_lengths[job_id], shard_sizes[job_id] = content
                         else:
                             pbar.update(content)
-        with fs.open(
-            posixpath.join(dataset_path, config.DATASET_STATE_JSON_FILENAME), "w", encoding="utf-8"
-        ) as state_file:
-            json.dump(state, state_file, indent=2, sort_keys=True)
-        with fs.open(
-            posixpath.join(dataset_path, config.DATASET_INFO_FILENAME), "w", encoding="utf-8"
-        ) as dataset_info_file:
-            # Sort only the first level of keys, or we might shuffle fields of nested features if we use sort_keys=True
-            sorted_keys_dataset_info = {key: dataset_info[key] for key in sorted(dataset_info)}
-            json.dump(sorted_keys_dataset_info, dataset_info_file, indent=2)
+        _write_saved_dataset_state_and_info(fs, dataset_path, state, self._info)
 
     @staticmethod
     def _save_to_disk_single(

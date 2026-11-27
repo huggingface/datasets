@@ -2361,6 +2361,65 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         """
         return IterableDatasetDict({k: dataset.cast(features=features) for k, dataset in self.items()})
 
+    def save_to_disk(
+        self,
+        dataset_dict_path: PathLike,
+        max_shard_size: Optional[Union[str, int]] = None,
+        num_proc: Optional[int] = None,
+        storage_options: Optional[dict] = None,
+    ):
+        """
+        Saves the dataset dict to a filesystem using `fsspec.spec.AbstractFileSystem`.
+        The directory can be loaded as a [`DatasetDict`] with [`load_from_disk`].
+
+        The examples are written to Arrow files while iterating over the datasets, so they are not loaded in memory.
+
+        For [`Image`], [`Audio`] and [`Video`] data:
+
+        All the Image(), Audio() and Video() data are stored in the arrow files.
+        If you want to store paths or urls, please use the Value("string") type.
+
+        Args:
+            dataset_dict_path (`path-like`):
+                Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
+                of the dataset dict directory where the dataset dict will be saved to.
+            max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
+                The maximum size of the dataset shards to be saved to the filesystem: a new shard is started when
+                the current one reaches this size. If expressed as a string, needs to be digits followed by a unit
+                (like `"50MB"`).
+            num_proc (`int`, *optional*, default `None`):
+                Number of processes to iterate over each dataset and save it.
+                See [`IterableDataset.save_to_disk`] for more details.
+                Multiprocessing is disabled by default.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+
+        Example:
+
+        ```python
+        >>> from datasets import load_dataset, load_from_disk
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", streaming=True)
+        >>> ds.save_to_disk("path/to/dataset/directory")
+        >>> ds = load_from_disk("path/to/dataset/directory")
+        ```
+        """
+        fs: fsspec.AbstractFileSystem
+        fs, _ = url_to_fs(dataset_dict_path, **(storage_options or {}))
+        fs.makedirs(dataset_dict_path, exist_ok=True)
+        with fs.open(
+            posixpath.join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME),
+            "w",
+            encoding="utf-8",
+        ) as f:
+            json.dump({"splits": list(self)}, f)
+        for k, dataset in self.items():
+            dataset.save_to_disk(
+                posixpath.join(dataset_dict_path, k),
+                max_shard_size=max_shard_size,
+                num_proc=num_proc,
+                storage_options=storage_options,
+            )
+
     def push_to_hub(
         self,
         repo_id: str,

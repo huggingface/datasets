@@ -3,6 +3,7 @@ import concurrent.futures
 import contextlib
 import inspect
 import itertools
+import posixpath
 import re
 import sys
 import tempfile
@@ -24,6 +25,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.dataset as pds
 import pyarrow.parquet as pq
+from fsspec.core import url_to_fs
 from huggingface_hub import (
     CommitInfo,
     CommitOperationAdd,
@@ -36,7 +38,13 @@ from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFil
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from . import __version__, config
-from .arrow_dataset import Dataset, DatasetInfoMixin, _push_to_bucket, _push_to_repo
+from .arrow_dataset import (
+    Dataset,
+    DatasetInfoMixin,
+    _push_to_bucket,
+    _push_to_repo,
+    _write_saved_dataset_state_and_info,
+)
 from .features import Features
 from .features.features import (
     FeatureType,
@@ -49,6 +57,7 @@ from .features.features import (
     cast_to_python_objects,
     require_decoding,
 )
+from .fingerprint import generate_random_fingerprint
 from .formatting import (
     ArrowFormatter,
     PythonFormatter,
@@ -5078,6 +5087,158 @@ class IterableDataset(DatasetInfoMixin):
         return Dataset(table, fingerprint="unset").to_parquet(
             path_or_buf, storage_options=storage_options, **parquet_writer_kwargs
         )
+
+    def save_to_disk(
+        self,
+        dataset_path: PathLike,
+        max_shard_size: Optional[Union[str, int]] = None,
+        num_proc: Optional[int] = None,
+        storage_options: Optional[dict] = None,
+    ):
+        """
+        Saves the dataset to a dataset directory, or in a filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
+        The directory can be loaded as a [`Dataset`] with [`load_from_disk`].
+
+        The examples are written to Arrow files while iterating over the dataset, so the dataset is not loaded in memory.
+
+        For [`Image`], [`Audio`] and [`Video`] data:
+
+        All the Image(), Audio() and Video() data are stored in the arrow files.
+        If you want to store paths or urls, please use the Value("string") type.
+
+        Args:
+            dataset_path (`path-like`):
+                Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
+                of the dataset directory where the dataset will be saved to.
+            max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
+                The maximum size of the dataset shards to be saved to the filesystem: a new shard is started when
+                the current one reaches this size. If expressed as a string, needs to be digits followed by a unit
+                (like `"50MB"`).
+            num_proc (`int`, *optional*):
+                Number of processes to iterate over the dataset and save it. Each process saves a contiguous group of
+                the dataset shards (see `dataset.num_shards`), so `num_proc` can't be higher than `dataset.num_shards`.
+                Multiprocessing is disabled by default.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset, load_from_disk
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
+        >>> ds = ds.filter(lambda example: example["label"] == 1)
+        >>> ds.save_to_disk("path/to/dataset/directory")
+        >>> ds = load_from_disk("path/to/dataset/directory")
+        ```
+        """
+        # the features are needed to write the Arrow files, and are the same for all the processes
+        dataset = self._resolve_features()
+        max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+        if num_proc is not None and num_proc > dataset.num_shards:
+            logger.warning(
+                f"Too many num_proc: {num_proc} (max is dataset.num_shards={dataset.num_shards}). "
+                f"Stopping {num_proc - dataset.num_shards} processes."
+            )
+            num_proc = dataset.num_shards
+        use_multiprocessing = num_proc is not None and num_proc >= 1
+        num_jobs = num_proc if use_multiprocessing else 1
+
+        fs: fsspec.AbstractFileSystem
+        fs, _ = url_to_fs(dataset_path, **(storage_options or {}))
+        fs.makedirs(dataset_path, exist_ok=True)
+
+        # the number of shards is known at the end, so the files are renamed with the -SSSSS-of-NNNNN pattern after
+        fpath = posixpath.join(dataset_path, "data-JJJJJ-SSSSS-of-NNNNN.arrow")
+        kwargs_per_job = [
+            {
+                "job_id": job_id,
+                "shard": dataset.shard(num_shards=num_jobs, index=job_id, contiguous=True)
+                if num_jobs > 1
+                else dataset,
+                "fpath": fpath,
+                "max_shard_size": max_shard_size,
+                "storage_options": storage_options,
+            }
+            for job_id in range(num_jobs)
+        ]
+        shard_lengths_per_job: list[list[int]] = [[] for _ in range(num_jobs)]
+        with (
+            hf_tqdm(unit=" examples", desc="Saving the dataset") as pbar,
+            mp.get_context("spawn").Pool(num_jobs) if use_multiprocessing else contextlib.nullcontext() as pool,
+        ):
+            updates = (
+                IterableDataset._save_to_disk_single(**kwargs_per_job[0])
+                if pool is None
+                else iflatmap_unordered(pool, IterableDataset._save_to_disk_single, kwargs_iterable=kwargs_per_job)
+            )
+            for job_id, done, content in updates:
+                if done:
+                    shard_lengths_per_job[job_id] = content
+                else:
+                    pbar.update(content)
+
+        num_shards = sum(len(shard_lengths) for shard_lengths in shard_lengths_per_job)
+        data_files = []
+        for job_id, shard_lengths in enumerate(shard_lengths_per_job):
+            for shard_id in range(len(shard_lengths)):
+                filename = f"data-{len(data_files):05d}-of-{num_shards:05d}.arrow"
+                fs.mv(
+                    fpath.replace("JJJJJ", f"{job_id:05d}").replace("SSSSS", f"{shard_id:05d}"),
+                    posixpath.join(dataset_path, filename),
+                )
+                data_files.append({"filename": filename})
+        state = {
+            "_data_files": data_files,
+            "_fingerprint": generate_random_fingerprint(),
+            "_format_columns": None,
+            "_format_kwargs": {},
+            "_format_type": dataset._formatting.format_type if dataset._formatting else None,
+            "_output_all_columns": False,
+            "_split": str(dataset.split) if dataset.split is not None else None,
+        }
+        _write_saved_dataset_state_and_info(fs, dataset_path, state, dataset._info)
+
+    @staticmethod
+    def _save_to_disk_single(
+        job_id: int,
+        shard: "IterableDataset",
+        fpath: str,
+        max_shard_size: int,
+        storage_options: Optional[dict],
+    ) -> Iterator[tuple[int, bool, Union[int, list[int]]]]:
+        """Write `shard` to Arrow files at `fpath`, where `JJJJJ` is replaced by `job_id` and `SSSSS` by the index of
+        the file, and start a new file when the current one reaches `max_shard_size` bytes.
+
+        Yields `(job_id, False, num_examples)` to update the progress bar, and finally `(job_id, True, shard_lengths)`.
+        """
+        from .arrow_writer import ArrowWriter, get_arrow_writer_batch_size_from_features
+
+        batch_size = get_arrow_writer_batch_size_from_features(shard.features) or config.DEFAULT_MAX_BATCH_SIZE
+        shard_lengths: list[int] = []
+
+        def get_writer() -> ArrowWriter:
+            return ArrowWriter(
+                features=shard.features,
+                path=fpath.replace("JJJJJ", f"{job_id:05d}").replace("SSSSS", f"{len(shard_lengths):05d}"),
+                storage_options=storage_options,
+                embed_local_files=True,
+            )
+
+        writer = get_writer()
+        try:
+            for pa_table in shard.with_format("arrow").iter(batch_size=batch_size):
+                if writer._num_bytes > max_shard_size:
+                    num_examples, _ = writer.finalize()
+                    writer.close()
+                    shard_lengths.append(num_examples)
+                    writer = get_writer()
+                writer.write_table(pa_table)
+                yield job_id, False, len(pa_table)
+            num_examples, _ = writer.finalize()
+        finally:
+            writer.close()
+        shard_lengths.append(num_examples)
+        yield job_id, True, shard_lengths
 
     def _write_parquet_shards(
         self,
