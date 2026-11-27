@@ -25,7 +25,7 @@ If you would like to work on any of the open Issues:
 3. Work on your self-assigned issue and eventually create a Pull Request.
 
 ## How to create a Pull Request?
-If you want to add a dataset see specific instructions in the section [*How to add a dataset*](#how-to-add-a-dataset).
+If you want to add a dataset see specific instructions in the section [*How to add a dataset*](#how-to-add-a-dataset-on-hugging-face).
 
 1. Fork the [repository](https://github.com/huggingface/datasets) by clicking on the 'Fork' button on the repository's page. This creates a copy of the code under your GitHub user account.
 
