@@ -7,7 +7,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Audio, Features, Image, IterableDataset
+from datasets import Audio, Dataset, Features, Image, IterableDataset
 from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter, query_table
 from datasets.formatting.formatting import (
     LazyBatch,
@@ -252,6 +252,45 @@ class LazyDictTest(TestCase):
         self.assertEqual(lazy_batch.items(), lazy_batch_copy.items())
         lazy_batch["d"] = [1, 2, 3]
         self.assertNotEqual(lazy_batch.items(), lazy_batch_copy.items())
+
+
+@pytest.mark.parametrize("lazy_type", [LazyRow, LazyBatch])
+@pytest.mark.parametrize("lazy_defaults", [False, True])
+@pytest.mark.parametrize("read_before_union", [False, True])
+def test_lazy_dict_reverse_union(lazy_type, lazy_defaults, read_before_union):
+    table = pa.table({"a": [1, 2], "b": ["foo", "bar"]})
+    defaults_table = pa.table({"a": [-1, -1], "c": [3, 4]})
+    formatter = PythonFormatter()
+    lazy = lazy_type(table, formatter)
+    defaults = lazy_type(defaults_table, formatter)
+    expected = {"a": [1, 2], "b": ["foo", "bar"], "c": [3, 4]}
+    if lazy_type is LazyRow:
+        expected = {key: value[0] for key, value in expected.items()}
+    if not lazy_defaults:
+        defaults = dict(defaults)
+    if read_before_union:
+        assert lazy["a"] == expected["a"]
+
+    merged = lazy.__ror__(defaults)
+
+    assert dict(merged) == expected
+    assert dict(lazy) == {key: expected[key] for key in ("a", "b")}
+    assert defaults["a"] == (-1 if lazy_type is LazyRow else [-1, -1])
+    merged["a"] = None
+    assert lazy["a"] == expected["a"]
+
+
+@pytest.mark.parametrize("batched", [False, True])
+def test_map_reverse_union_preserves_existing_columns(batched):
+    dataset = Dataset.from_dict({"label": [2, 3], "text": ["a", "b"]})
+
+    def add_defaults(example):
+        defaults = {"label": [-1, -1], "extra": [0, 0]} if batched else {"label": -1, "extra": 0}
+        return defaults | example
+
+    result = dataset.map(add_defaults, batched=batched, keep_in_memory=True)
+
+    assert result.to_dict() == {"label": [2, 3], "text": ["a", "b"], "extra": [0, 0]}
 
 
 class FormatterTest(TestCase):
