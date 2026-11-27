@@ -125,8 +125,8 @@ class Image:
         elif isinstance(value, PIL.Image.Image):
             # convert the PIL image to bytes (default format is PNG/TIFF)
             return encode_pil_image(value)
-        elif value.get("path") is not None and os.path.isfile(value["path"]):
-            # we set "bytes": None to not duplicate the data if they're already available locally
+        elif value.get("path") is not None and os.path.isabs(value["path"]) and os.path.isfile(value["path"]):
+            # Avoid duplicating an absolute local file. Relative paths can be archive labels.
             return {"bytes": None, "path": value.get("path")}
         elif value.get("bytes") is not None or value.get("path") is not None:
             # store the image bytes, and path is used to infer the image format using the file extension
