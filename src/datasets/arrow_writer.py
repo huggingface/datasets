@@ -172,19 +172,51 @@ def get_parquet_column_options(features: Features, schema: pa.Schema) -> dict:
     Parquet matches them against the leaf column paths (e.g. "col.list.element.field"), not the top-level column names.
     """
 
-    def leaf_paths(path: str, pa_type: pa.DataType) -> list[str]:
+    def leaf_paths(path: str, pa_type: pa.DataType, feature: Any = None) -> list[tuple[str, bool]]:
         if isinstance(pa_type, pa.ExtensionType):
             pa_type = pa_type.storage_type
+        if hasattr(feature, "embed_storage") and feature.embed_storage:
+
+            def _all_leaves(p: str, t: pa.DataType) -> list[str]:
+                if isinstance(t, pa.ExtensionType):
+                    t = t.storage_type
+                if pa.types.is_struct(t):
+                    return [leaf for field in t for leaf in _all_leaves(f"{p}.{field.name}", field.type)]
+                if pa.types.is_list(t) or pa.types.is_large_list(t) or pa.types.is_fixed_size_list(t):
+                    return _all_leaves(f"{p}.list.element", t.value_type)
+                return [p]
+
+            return [(leaf, True) for leaf in _all_leaves(path, pa_type)]
+
         if pa.types.is_struct(pa_type):
-            return [leaf for field in pa_type for leaf in leaf_paths(f"{path}.{field.name}", field.type)]
-        if pa.types.is_list(pa_type) or pa.types.is_large_list(pa_type) or pa.types.is_fixed_size_list(pa_type):
-            return leaf_paths(f"{path}.list.element", pa_type.value_type)
-        return [path]
+            return [
+                leaf
+                for field in pa_type
+                for leaf in leaf_paths(
+                    f"{path}.{field.name}",
+                    field.type,
+                    feature.get(field.name) if isinstance(feature, dict) else None,
+                )
+            ]
+        if (
+            pa.types.is_list(pa_type)
+            or pa.types.is_large_list(pa_type)
+            or pa.types.is_fixed_size_list(pa_type)
+        ):
+            sub_feature = None
+            if hasattr(feature, "feature"):
+                sub_feature = feature.feature
+            elif isinstance(feature, list) and len(feature) > 0:
+                sub_feature = feature[0]
+            return leaf_paths(f"{path}.list.element", pa_type.value_type, sub_feature)
+
+        embed = require_storage_embed(feature) if feature is not None else False
+        return [(path, embed)]
 
     compression, use_dictionary, column_encoding = {}, [], {}
     for field in schema:
-        embed = require_storage_embed(features[field.name])
-        for leaf in leaf_paths(field.name, field.type):
+        feature = features.get(field.name) if features is not None else None
+        for leaf, embed in leaf_paths(field.name, field.type, feature):
             compression[leaf] = "none" if embed else "snappy"
             if embed:
                 column_encoding[leaf] = "PLAIN"

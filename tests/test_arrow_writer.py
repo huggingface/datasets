@@ -12,7 +12,7 @@ import pytest
 
 from datasets import config
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence
-from datasets.features import Array2D, ClassLabel, Features, Image, List, Value
+from datasets.features import Array2D, Audio, ClassLabel, Features, Image, List, Value
 from datasets.features.features import Array2DExtensionType, cast_to_python_objects
 
 from .utils import require_pil
@@ -365,6 +365,63 @@ def test_parquet_writer_compresses_nested_columns():
         "image.path": "UNCOMPRESSED",
     }
 
+
+def test_parquet_writer_compresses_nested_non_embed_columns_alongside_media():
+    features = Features(
+        {
+            "article": {
+                "title": Value("string"),
+                "body": Value("string"),
+                "thumbnail": Image(),
+            },
+            "gallery": [
+                {
+                    "caption": Value("string"),
+                    "image": Image(),
+                }
+            ],
+            "audio_track": {
+                "name": Value("string"),
+                "audio": Audio(),
+            },
+        }
+    )
+    output = pa.BufferOutputStream()
+    with ParquetWriter(stream=output, features=features) as writer:
+        writer.write(
+            {
+                "article": {
+                    "title": "foo",
+                    "body": "bar",
+                    "thumbnail": {"bytes": b"img_bytes", "path": None},
+                },
+                "gallery": [
+                    {
+                        "caption": "cap",
+                        "image": {"bytes": b"gal_bytes", "path": None},
+                    }
+                ],
+                "audio_track": {
+                    "name": "track1",
+                    "audio": {"bytes": b"audio_bytes", "path": None},
+                },
+            }
+        )
+        writer.finalize()
+    metadata = pq.ParquetFile(pa.BufferReader(output.getvalue())).metadata
+    columns = [metadata.row_group(0).column(i) for i in range(metadata.num_columns)]
+    assert {column.path_in_schema: column.compression for column in columns} == {
+        "article.title": "SNAPPY",
+        "article.body": "SNAPPY",
+        "article.thumbnail.bytes": "UNCOMPRESSED",
+        "article.thumbnail.path": "UNCOMPRESSED",
+        "gallery.list.element.caption": "SNAPPY",
+        "gallery.list.element.image.bytes": "UNCOMPRESSED",
+        "gallery.list.element.image.path": "UNCOMPRESSED",
+        "audio_track.name": "SNAPPY",
+        "audio_track.audio.bytes": "UNCOMPRESSED",
+        "audio_track.audio.path": "UNCOMPRESSED",
+    }
 
 def test_parquet_writer_uses_content_defined_chunking():
     def write_and_get_argument_and_metadata(**kwargs):
