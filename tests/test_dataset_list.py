@@ -45,3 +45,31 @@ class DatasetListTest(TestCase):
         dset = Dataset.from_list([])
         self.assertEqual(len(dset), 0)
         self.assertListEqual(dset.column_names, [])
+
+    def test_create_empty_records(self):
+        dset = Dataset.from_list([{}, {}])
+        self.assertEqual(len(dset), 2)
+        self.assertListEqual(dset.column_names, [])
+        self.assertListEqual(dset.to_list(), [{}, {}])
+
+    def test_create_single_empty_record(self):
+        dset = Dataset.from_list([{}])
+        self.assertEqual(len(dset), 1)
+        self.assertDictEqual(dset[0], {})
+
+    def test_create_empty_records_map_and_filter(self):
+        dset = Dataset.from_list([{}, {}, {}])
+        self.assertEqual(len(dset.map(lambda example: {})), 3)
+        self.assertEqual(len(dset.map(lambda example: {"a": 1})), 3)
+        self.assertEqual(len(dset.filter(lambda example: True)), 3)
+        self.assertEqual(len(dset.filter(lambda example: False)), 0)
+
+    def test_create_empty_records_save_and_load(self):
+        import tempfile
+
+        dset = Dataset.from_list([{}, {}, {}])
+        with tempfile.TemporaryDirectory() as temp_dir:
+            dset.save_to_disk(temp_dir)
+            reloaded = Dataset.load_from_disk(temp_dir)
+        self.assertEqual(len(reloaded), 3)
+        self.assertListEqual(reloaded.to_list(), [{}, {}, {}])

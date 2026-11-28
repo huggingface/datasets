@@ -43,7 +43,14 @@ from .features.features import (
 )
 from .filesystems import is_remote_filesystem
 from .info import DatasetInfo
-from .table import array_cast, cast_array_to_feature, embed_table_storage, table_cast
+from .table import (
+    _empty_table,
+    _rebuild_empty_table,
+    array_cast,
+    cast_array_to_feature,
+    embed_table_storage,
+    table_cast,
+)
 from .utils import logging
 from .utils.json import (
     find_mixed_struct_types_field_paths,
@@ -679,7 +686,7 @@ class ArrowWriter:
                     row[0][col].to_pylist()[0] if isinstance(row[0][col], (pa.Array, pa.ChunkedArray)) else row[0][col]
                     for row in self.current_examples
                 ]
-        self._write_batch(batch_examples=batch_examples)
+        self._write_batch(batch_examples=batch_examples, num_rows=len(self.current_examples))
         self.current_examples = []
 
     def write_rows_on_file(self):
@@ -727,6 +734,7 @@ class ArrowWriter:
         batch_examples: dict[str, list],
         writer_batch_size: Optional[int] = None,
         try_original_type: Optional[bool] = True,
+        num_rows: Optional[int] = None,
     ):
         """Write a batch of Example to file.
         Ignores the batch if it appears to be empty,
@@ -735,9 +743,13 @@ class ArrowWriter:
         Args:
             batch_examples: the batch of examples to add.
             try_original_type: use `try_type` when instantiating OptimizedTypedSequence if `True`, otherwise `try_type = None`.
+            num_rows: number of rows in the batch. Only used when `batch_examples` has no column
+                to infer the row count from, e.g. a batch of empty dicts.
         """
         self.write_examples_on_file()  # in case there are buffered examples to write first
-        self._write_batch(batch_examples, writer_batch_size=writer_batch_size, try_original_type=try_original_type)
+        self._write_batch(
+            batch_examples, writer_batch_size=writer_batch_size, try_original_type=try_original_type, num_rows=num_rows
+        )
 
     def _check_null_column(self, col: str, values):
         """Raise an informative error if a column written as null gets values that are not None.
@@ -761,6 +773,7 @@ class ArrowWriter:
         batch_examples: dict[str, list],
         writer_batch_size: Optional[int] = None,
         try_original_type: Optional[bool] = True,
+        num_rows: Optional[int] = None,
     ):
         if batch_examples and len(next(iter(batch_examples.values()))) == 0:
             return
@@ -798,7 +811,12 @@ class ArrowWriter:
                 arrays.append(pa.array(typed_sequence))
                 inferred_features[col] = typed_sequence.get_inferred_type()
         schema = inferred_features.arrow_schema if self.pa_writer is None else self.schema
-        pa_table = pa.Table.from_arrays(arrays, schema=schema)
+        if not arrays and num_rows:
+            # the batch has rows but no columns (e.g. a batch of empty dicts):
+            # the row count cannot be inferred from the arrays, so keep it explicitly
+            pa_table = _rebuild_empty_table(_empty_table(num_rows), schema)
+        else:
+            pa_table = pa.Table.from_arrays(arrays, schema=schema)
         self.write_table(pa_table, writer_batch_size)
 
     def write_table(self, pa_table: pa.Table, writer_batch_size: Optional[int] = None):

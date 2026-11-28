@@ -372,6 +372,56 @@ def test_in_memory_table_replace_schema_metadata(in_memory_pa_table):
     assert isinstance(table, InMemoryTable)
 
 
+def _empty_pa_table(num_rows: int) -> pa.Table:
+    return pa.table({"_dummy": [None] * num_rows}).drop(["_dummy"])
+
+
+def test_cast_table_to_schema_preserves_empty_table_num_rows():
+    table = _empty_pa_table(2)
+    schema = Features({}).arrow_schema
+    casted = cast_table_to_schema(table, schema)
+    assert casted.num_rows == 2
+    assert casted.num_columns == 0
+    assert casted.schema == schema
+
+
+def test_table_cast_preserves_empty_table_num_rows():
+    table = _empty_pa_table(2)
+    schema = table.schema.with_metadata({b"huggingface": b"{}"})
+    casted = table_cast(table, schema)
+    assert casted.num_rows == 2
+    assert casted.num_columns == 0
+    assert casted.schema == schema
+
+
+def test_embed_table_storage_preserves_empty_table_num_rows():
+    table = _empty_pa_table(2)
+    embedded = embed_table_storage(table)
+    assert embedded.num_rows == 2
+    assert embedded.num_columns == 0
+
+
+def test_in_memory_table_replace_schema_metadata_empty_table():
+    table = InMemoryTable(_empty_pa_table(2)).replace_schema_metadata({"huggingface": "{}"})
+    assert table.table.num_rows == 2
+    assert table.table.num_columns == 0
+    assert isinstance(table, InMemoryTable)
+
+
+def test_memory_mapped_table_replace_schema_metadata_empty_table(tmp_path):
+    path = str(tmp_path / "empty.arrow")
+    with pa.OSFile(path, "wb") as sink:
+        with pa.ipc.new_stream(sink, pa.schema([])) as writer:
+            writer.write_table(_empty_pa_table(2))
+    table = MemoryMappedTable.from_file(path).replace_schema_metadata({"huggingface": "{}"})
+    assert table.table.num_rows == 2
+    assert table.table.num_columns == 0
+    assert isinstance(table, MemoryMappedTable)
+    assert table.replays == [("replace_schema_metadata", ({"huggingface": "{}"},), {})]
+    # unpickling replays the metadata replacement and must keep the rows
+    assert pickle.loads(pickle.dumps(table)).table.num_rows == 2
+
+
 def test_in_memory_table_add_column(in_memory_pa_table):
     i = len(in_memory_pa_table.column_names)
     field_ = "new_field"

@@ -149,9 +149,12 @@ def _split_evenly(total: int, num_parts: int, part: int) -> tuple[int, int]:
     return start, start + div + (part < mod)
 
 
-def _batch_to_examples(batch: dict[str, list]) -> Iterator[dict[str, Any]]:
+def _batch_to_examples(batch: dict[str, list], num_examples: Optional[int] = None) -> Iterator[dict[str, Any]]:
     """Convert a batch (dict of examples) to examples list"""
     n_examples = 0 if len(batch) == 0 else len(batch[next(iter(batch))])
+    if len(batch) == 0 and num_examples is not None:
+        # a batch with no columns still holds one empty example per row
+        n_examples = num_examples
     for i in range(n_examples):
         yield {col: array[i] for col, array in batch.items()}
 
@@ -441,7 +444,7 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
                     continue
                 for pa_subtable in pa_table.to_reader(max_chunksize=config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER):
                     formatted_batch = formatter.format_batch(pa_subtable)
-                    for example in _batch_to_examples(formatted_batch):
+                    for example in _batch_to_examples(formatted_batch, num_examples=len(pa_subtable)):
                         if shard_example_idx >= shard_example_idx_start:
                             if self._state_dict:
                                 self._state_dict["shard_example_idx"] += 1
@@ -1674,7 +1677,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 outputs = (
                     (key, transformed_example)
                     for key, transformed_batch in outputs
-                    for transformed_example in _batch_to_examples(transformed_batch)
+                    for transformed_example in _batch_to_examples(transformed_batch, num_examples=len(key))
                 )
             for key, transformed_example in outputs:
                 if self._state_dict and self._state_dict["previous_state"] is not None:
@@ -2577,7 +2580,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             # feature casting (inc column addition) handled within self._iter_arrow()
             for key, pa_table in self._iter_arrow():
                 batch = formatter.format_batch(pa_table)
-                for example in _batch_to_examples(batch):
+                for example in _batch_to_examples(batch, num_examples=len(pa_table)):
                     yield key, example
         else:
             format_dict = (

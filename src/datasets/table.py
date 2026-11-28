@@ -945,6 +945,10 @@ class InMemoryTable(TableBlock):
         Returns:
             `datasets.table.Table`: shallow_copy
         """
+        if self.table.num_columns == 0 and self.table.num_rows > 0:
+            # replacing the metadata of a 0-column table must keep its rows (see _rebuild_empty_table)
+            metadata = args[0] if args else kwargs.get("metadata")
+            return InMemoryTable(_rebuild_empty_table(self.table, self.table.schema.with_metadata(metadata)))
         return InMemoryTable(self.table.replace_schema_metadata(*args, **kwargs))
 
     def add_column(self, *args, **kwargs):
@@ -1111,6 +1115,10 @@ class MemoryMappedTable(TableBlock):
                     table = table_cast(table, *args, **kwargs)
                 elif name == "flatten":
                     table = table_flatten(table, *args, **kwargs)
+                elif name == "replace_schema_metadata" and table.num_columns == 0 and table.num_rows > 0:
+                    # replaying a metadata replacement on a 0-column table must keep its rows
+                    metadata = args[0] if args else kwargs.get("metadata")
+                    table = _rebuild_empty_table(table, table.schema.with_metadata(metadata))
                 else:
                     table = getattr(table, name)(*args, **kwargs)
         return table
@@ -1212,6 +1220,12 @@ class MemoryMappedTable(TableBlock):
         """
         replay = ("replace_schema_metadata", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
+        if self.table.num_columns == 0 and self.table.num_rows > 0:
+            # replacing the metadata of a 0-column table must keep its rows (see _rebuild_empty_table)
+            metadata = args[0] if args else kwargs.get("metadata")
+            return MemoryMappedTable(
+                _rebuild_empty_table(self.table, self.table.schema.with_metadata(metadata)), self.path, replays
+            )
         return MemoryMappedTable(self.table.replace_schema_metadata(*args, **kwargs), self.path, replays)
 
     def add_column(self, *args, **kwargs):
@@ -2302,6 +2316,27 @@ def cast_table_to_features(table: pa.Table, features: "Features"):
     return pa.Table.from_arrays(arrays, schema=features.arrow_schema)
 
 
+def _empty_table(num_rows: int) -> pa.Table:
+    """Create a table with no columns and `num_rows` rows.
+
+    PyArrow infers a table's row count from its arrays, so there is no direct
+    way to build a 0-column table with rows. Build a 1-column table and drop
+    the column instead; dropping a column preserves the row count.
+    """
+    return pa.table({"_dummy": [None] * num_rows}).drop(["_dummy"])
+
+
+def _rebuild_empty_table(table: pa.Table, schema: pa.Schema) -> pa.Table:
+    """Return `table` with `schema`, preserving the row count of a 0-column table.
+
+    PyArrow infers a table's row count from its arrays, so operations that
+    rebuild a 0-column table from an empty list of arrays (`pa.Table.from_arrays`,
+    `Table.cast`, `Table.replace_schema_metadata`) silently reset its row count
+    to 0. Rebuilding from the table's own batches keeps the row count.
+    """
+    return pa.Table.from_batches(table.to_batches(), schema=schema)
+
+
 def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
     """Cast a table to the arrow schema. Different from `cast_table_to_features`, this method can preserve nullability.
 
@@ -2331,6 +2366,9 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
         )
         for name, feature in features.items()
     ]
+    if not arrays and table.num_rows:
+        # casting a 0-column table must keep its rows (see _rebuild_empty_table)
+        return _rebuild_empty_table(table, schema)
     return pa.Table.from_arrays(arrays, schema=schema)
 
 
@@ -2373,6 +2411,9 @@ def embed_table_storage(table: pa.Table, token_per_repo_id=None, local_files: bo
         else table[name]
         for name, feature in features.items()
     ]
+    if not arrays and table.num_rows:
+        # embedding the storage of a 0-column table must keep its rows (see _rebuild_empty_table)
+        return _rebuild_empty_table(table, features.arrow_schema)
     return pa.Table.from_arrays(arrays, schema=features.arrow_schema)
 
 
@@ -2393,6 +2434,9 @@ def table_cast(table: pa.Table, schema: pa.Schema):
     if table.schema != schema:
         return cast_table_to_schema(table, schema)
     elif table.schema.metadata != schema.metadata:
+        if table.num_columns == 0 and table.num_rows:
+            # replacing the metadata of a 0-column table must keep its rows (see _rebuild_empty_table)
+            return _rebuild_empty_table(table, schema)
         return table.replace_schema_metadata(schema.metadata)
     else:
         return table

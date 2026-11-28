@@ -122,6 +122,7 @@ from .table import (
     Table,
     _batch_accumulate_arrow_table_by_columns,
     _batch_arrow_table,
+    _empty_table,
     _memory_mapped_record_batch_reader_from_file,
     cast_array_to_feature,
     concat_tables,
@@ -1304,7 +1305,26 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         # for simplicity and consistency wrt OptimizedTypedSequence we do not use InMemoryTable.from_pylist here
+        num_rows = len(mapping)
         mapping = {k: [r.get(k) for r in mapping] for k in mapping[0]} if mapping else {}
+        if not mapping and num_rows:
+            # All records are empty dicts. PyArrow cannot infer a row count
+            # from an empty column mapping, so build a 0-column table with
+            # one row per record directly instead of going through from_dict.
+            if info is not None and features is not None and info.features != features:
+                raise ValueError(
+                    f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
+                )
+            features = features if features is not None else info.features if info is not None else None
+            if features is not None:
+                features = _fix_for_backward_compatible_features(features)
+            pa_table = InMemoryTable(_empty_table(num_rows))
+            if info is None:
+                info = DatasetInfo()
+            info.features = features
+            if info.features is None:
+                info.features = Features({})
+            return cls(pa_table, info=info, split=split)
         return cls.from_dict(mapping, features, info, split, on_mixed_types=on_mixed_types)
 
     @staticmethod
@@ -4107,9 +4127,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 if isinstance(batch, pl.DataFrame):
                                     writer.write_table(batch.to_arrow())
                                 else:
-                                    writer.write_batch(batch, try_original_type=try_original_type)
+                                    writer.write_batch(
+                                        batch, try_original_type=try_original_type, num_rows=num_examples_in_batch
+                                    )
                             else:
-                                writer.write_batch(batch, try_original_type=try_original_type)
+                                writer.write_batch(
+                                    batch, try_original_type=try_original_type, num_rows=num_examples_in_batch
+                                )
                         num_examples_progress_update += num_examples_in_batch
                         if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                             _time = time.time()
@@ -8110,7 +8134,7 @@ def get_indices_from_mask_function(
         if input_columns is None:
             # inputs only contains a batch of examples
             batch: dict = inputs[0]
-            num_examples = len(batch[next(iter(batch.keys()))])
+            num_examples = len(batch[next(iter(batch.keys()))]) if batch else len(indices)
             for i in range(num_examples):
                 example = {key: batch[key][i] for key in batch}
                 additional_args = ()
@@ -8169,7 +8193,7 @@ async def async_get_indices_from_mask_function(
         if input_columns is None:
             # inputs only contains a batch of examples
             batch: dict = inputs[0]
-            num_examples = len(batch[next(iter(batch.keys()))])
+            num_examples = len(batch[next(iter(batch.keys()))]) if batch else len(indices)
             for i in range(num_examples):
                 example = {key: batch[key][i] for key in batch}
                 additional_args = ()
