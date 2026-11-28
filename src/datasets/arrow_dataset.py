@@ -4186,6 +4186,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 <Added version="4.9.0"/>
             drop_last_batch (`bool`, defaults to `False`):
                 Whether to drop the last incomplete batch.
+                Batches made with `by_column` are always complete groups, so no batch is dropped in that case.
             num_proc (`int`, *optional*, defaults to `None`):
                 Max number of processes when generating cache. Already cached shards are loaded sequentially.
             new_fingerprint (`str`, *optional*, defaults to `None`):
@@ -4216,6 +4217,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 _batch_accumulate_arrow_table_by_columns, columns=columns, tables_accumulator=[], length=len(self)
             )
             with_indices = True
+            # groups are never incomplete, and dropping the last input batch would drop or truncate groups
+            drop_last_batch = False
         else:
             _batch_fn = _batch_arrow_table
             with_indices = False

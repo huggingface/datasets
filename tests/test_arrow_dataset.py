@@ -5318,6 +5318,34 @@ def test_dataset_batch_by_column_with_nulls(batch_size, streaming):
     assert batch_ids(ds, "category") == [[0, 1, 2]]
 
 
+@pytest.mark.parametrize("streaming", [False, True])
+def test_dataset_batch_by_column_with_drop_last_batch(streaming):
+    def batch_ids(ds):
+        if streaming:
+            ds = ds.to_iterable_dataset()
+        return [batch["id"] for batch in ds.batch(by_column="category", batch_size=4, drop_last_batch=True)]
+
+    # groups are always complete, so drop_last_batch must not drop or truncate any of them
+    ds = Dataset.from_dict({"id": list(range(10)), "category": [0, 0, 0, 1, 1, 2, 2, 2, 3, 3]})
+    assert batch_ids(ds) == [[0, 1, 2], [3, 4], [5, 6, 7], [8, 9]]
+
+    # a group straddling the last input batch
+    ds = Dataset.from_dict({"id": list(range(10)), "category": [0, 0, 0, 1, 1, 2, 2, 2, 2, 3]})
+    assert batch_ids(ds) == [[0, 1, 2], [3, 4], [5, 6, 7, 8], [9]]
+
+    # a single group larger than batch_size
+    ds = Dataset.from_dict({"id": list(range(6)), "category": [0] * 6})
+    assert batch_ids(ds) == [[0, 1, 2, 3, 4, 5]]
+
+    # a length that is an exact multiple of batch_size
+    ds = Dataset.from_dict({"id": list(range(8)), "category": [0, 0, 1, 1, 2, 2, 3, 3]})
+    assert batch_ids(ds) == [[0, 1], [2, 3], [4, 5], [6, 7]]
+
+    # a dataset shorter than batch_size, read through an indices mapping
+    ds = Dataset.from_dict({"id": list(range(6)), "category": [9, 0, 9, 0, 9, 1]}).select([5, 1, 3])
+    assert batch_ids(ds) == [[5], [1, 3]]
+
+
 @pytest.mark.parametrize("format_type", ["pyarrow", "pandas"])
 def test_dataset_batch_with_table_format(format_type):
     ds = Dataset.from_dict({"a": [1, 2, 3, 4]})
