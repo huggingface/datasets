@@ -1551,6 +1551,38 @@ def encode_nested_example(schema, obj, level=0):
     return obj
 
 
+def _has_bio_feature(schema) -> bool:
+    if isinstance(schema, (BioSequence, BioStructure)):
+        return True
+    elif isinstance(schema, dict):
+        return any(_has_bio_feature(sub_schema) for sub_schema in schema.values())
+    elif isinstance(schema, (LargeList, List)):
+        return _has_bio_feature(schema.feature)
+    return False
+
+
+def _encode_bio_objects(schema, obj):
+    """Serialize the Biopython objects of `obj` with the `format` of the `BioSequence`/`BioStructure` feature holding them.
+
+    This must run before `cast_to_python_objects`, which doesn't know the schema and always serializes a `SeqRecord` as
+    FASTA and a `Structure` as PDB. Other values are returned as they are.
+    """
+    if isinstance(schema, (BioSequence, BioStructure)):
+        if config.BIOPYTHON_AVAILABLE and "Bio" in sys.modules:
+            from Bio.PDB.Structure import Structure
+            from Bio.SeqRecord import SeqRecord
+
+            if isinstance(obj, (SeqRecord, Structure)):
+                return schema.encode_example(obj)
+    elif isinstance(schema, dict):
+        if isinstance(obj, Mapping):
+            return {k: _encode_bio_objects(schema[k], v) if k in schema else v for k, v in obj.items()}
+    elif isinstance(schema, (LargeList, List)):
+        if isinstance(obj, (list, tuple)):
+            return [_encode_bio_objects(schema.feature, x) for x in obj]
+    return obj
+
+
 def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
     """Decode a nested example.
     This is used since some features (in particular Audio and Image) have some logic during decoding.
@@ -2249,6 +2281,8 @@ class Features(dict):
         Returns:
             `dict[str, Any]`
         """
+        if _has_bio_feature(self):
+            example = _encode_bio_objects(self, example)
         example = cast_to_python_objects(example)
         return encode_nested_example(self, example)
 
@@ -2265,6 +2299,8 @@ class Features(dict):
         Returns:
             `list[Any]` or `np.ndarray`
         """
+        if _has_bio_feature(self[column_name]):
+            column = [_encode_bio_objects(self[column_name], obj) for obj in column]
         column = cast_to_python_objects(column)
         if (
             type(column) is np.ndarray
@@ -2294,6 +2330,8 @@ class Features(dict):
         if set(batch) != set(self):
             raise ValueError(f"Column mismatch between batch {set(batch)} and features {set(self)}")
         for key, column in batch.items():
+            if _has_bio_feature(self[key]):
+                column = [_encode_bio_objects(self[key], obj) for obj in column]
             column = cast_to_python_objects(column)
             encoded_batch[key] = [encode_nested_example(self[key], obj, level=1) for obj in column]
         return encoded_batch
