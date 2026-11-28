@@ -576,6 +576,14 @@ class Value:
         if pa.types.is_boolean(self.pa_type):
             return bool(value)
         elif pa.types.is_integer(self.pa_type):
+            if isinstance(value, (float, np.floating)):
+                if isinstance(value, np.longdouble) and np.isfinite(value):
+                    # Preserve extended precision when Python float would round the value.
+                    if value != np.trunc(value):
+                        raise pa.ArrowInvalid(f"Float value {str(value)} was truncated converting to {self.pa_type}")
+                    return pa.scalar(int(value), type=self.pa_type).as_py()
+                # Use Arrow's safe cast to avoid truncating floating-point values.
+                return pa.scalar(float(value)).cast(self.pa_type).as_py()
             return int(value)
         elif pa.types.is_floating(self.pa_type):
             return float(value)
