@@ -587,6 +587,21 @@ def test_json_generate_tables(file_fixture, config_kwargs, expected, request):
     assert out == expected
 
 
+@pytest.mark.parametrize("padding, chunksize", [(120, None), (0, 1)])
+@pytest.mark.parametrize("streaming", [False, True])
+def test_json_array_of_objects_with_leading_padding_or_small_chunksize(tmp_path, padding, chunksize, streaming):
+    records = [{"id": 1, "text": "hello"}, {"id": 2, "text": "world"}]
+    path = tmp_path / "records.json"
+    path.write_text("[" + " " * padding + json.dumps(records)[1:], encoding="utf-8")
+
+    kwargs = {"streaming": streaming}
+    if chunksize is not None:
+        kwargs["chunksize"] = chunksize
+    dataset = load_dataset("json", data_files=str(path), split="train", **kwargs)
+
+    assert list(dataset) == records
+
+
 @pytest.fixture
 def bounded_json_parser(monkeypatch):
     read_json = paj.read_json

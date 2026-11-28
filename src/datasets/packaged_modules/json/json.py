@@ -251,7 +251,7 @@ class Json(datasets.ArrowBasedBuilder):
                                 else:
                                     # convert to JSON Lines
                                     full_data = batch + f.read()
-                                    if b"{" in batch[:100].split(b'"', 1)[0]:  # list of objects
+                                    if b"{" in full_data.split(b'"', 1)[0]:  # list of objects
                                         batch = "\n".join(ujson_dumps(x) for x in ujson_loads(full_data)).encode()
                                     else:  # list of strings
                                         batch = "\n".join(
