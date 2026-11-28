@@ -242,7 +242,15 @@ def generate_fingerprint(dataset: "Dataset") -> str:
         hasher.update(state[key])
     # hash data files last modification timestamps as well
     for cache_file in dataset.cache_files:
-        hasher.update(os.path.getmtime(cache_file["filename"]))
+        try:
+            mtime = os.path.getmtime(cache_file["filename"])
+        except FileNotFoundError:
+            logger.warning(
+                f"Cache file {cache_file['filename']} is missing. "
+                "Using a random fingerprint to avoid reusing cached results."
+            )
+            return generate_random_fingerprint()
+        hasher.update(mtime)
     return hasher.hexdigest()
 
 
