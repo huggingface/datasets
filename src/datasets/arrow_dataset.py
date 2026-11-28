@@ -5776,6 +5776,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     ) -> int:
         """Exports the dataset to a SQL database.
 
+        With a `sqlite:///` file URI, in a single process and with no `to_sql` keyword arguments other than
+        `if_exists`, the batches after the first are committed in larger transactions, which is faster; the values
+        stored are unchanged.
+
         Args:
             name (`str`):
                 Name of SQL table.
