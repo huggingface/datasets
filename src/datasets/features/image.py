@@ -213,12 +213,15 @@ class Image:
             }
         )
 
-    def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray, pa.ListArray]) -> pa.StructArray:
+    def cast_storage(
+        self, storage: Union[pa.StringArray, pa.StringViewArray, pa.StructArray, pa.ListArray]
+    ) -> pa.StructArray:
         """Cast an Arrow array to the Image arrow storage type.
         The Arrow types that can be converted to the Image pyarrow storage type are:
 
         - `pa.string()` - it must contain the "path" data
         - `pa.large_string()` - it must contain the "path" data (will be cast to string if possible)
+        - `pa.string_view()` - it must contain the "path" data (will be cast to string)
         - `pa.binary()` - it must contain the image bytes
         - `pa.struct({"bytes": pa.binary()})`
         - `pa.struct({"path": pa.string()})`
@@ -226,7 +229,7 @@ class Image:
         - `pa.list(*)` - it must contain the image array data
 
         Args:
-            storage (`Union[pa.StringArray, pa.StructArray, pa.ListArray]`):
+            storage (`Union[pa.StringArray, pa.StringViewArray, pa.StructArray, pa.ListArray]`):
                 PyArrow array to cast.
 
         Returns:
@@ -242,6 +245,8 @@ class Image:
                     f"This can happen if string values exceed 2GB. "
                     f"Original error: {e}"
                 ) from e
+        elif pa.types.is_string_view(storage.type):
+            storage = storage.cast(pa.string())
         if pa.types.is_string(storage.type):
             bytes_array = pa.array([None] * len(storage), type=pa.binary())
             storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"], mask=storage.is_null())
