@@ -7,7 +7,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Audio, Features, Image, IterableDataset
+from datasets import Audio, Dataset, Features, Image, IterableDataset
 from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter, query_table
 from datasets.formatting.formatting import (
     LazyBatch,
@@ -1074,3 +1074,49 @@ def test_iterable_dataset_of_arrays_format_to_jax(any_arrays_dataset: IterableDa
 
     formatted = any_arrays_dataset.with_format("jax")
     assert all(isinstance(example["array"], jnp.ndarray) for example in formatted)
+
+
+@pytest.mark.parametrize(
+    "pa_type",
+    [
+        pa.int8(),
+        pa.int16(),
+        pa.int32(),
+        pa.int64(),
+        pa.uint8(),
+        pa.uint16(),
+        pa.uint32(),
+        pa.uint64(),
+        pa.float16(),
+        pa.float32(),
+        pa.float64(),
+    ],
+)
+@pytest.mark.parametrize("nullable", [False, True])
+@pytest.mark.parametrize("chunking", ["single", "multiple", "sliced"])
+def test_numpy_extractor_numeric_chunks(pa_type, nullable, chunking):
+    values = [1, None if nullable else 2, 3, 4]
+    array = pa.array(values, type=pa_type)
+    if chunking == "single":
+        column = pa.chunked_array([array])
+    elif chunking == "multiple":
+        column = pa.chunked_array([array[:0], array[:2], array[2:], array[:0]])
+    else:
+        column = pa.chunked_array([array.slice(1, 2)])
+        values = values[1:3]
+    expected_dtype = np.float64 if nullable and pa.types.is_integer(pa_type) else pa_type.to_pandas_dtype()
+    expected = np.asarray([np.nan if value is None else value for value in values], dtype=expected_dtype)
+
+    extractor = NumpyArrowExtractor()
+    result = extractor.extract_column(pa.table({"x": column}))
+    np.testing.assert_equal(result, expected)
+    assert result.dtype == expected.dtype
+    assert result.flags.writeable
+
+    # Extracted arrays must not mutate Arrow storage or later reads.
+    result[0] = 10
+    np.testing.assert_equal(extractor.extract_column(pa.table({"x": column})), expected)
+
+    dataset = Dataset(pa.table({"x": column})).with_format("numpy", dtype=expected_dtype)
+    np.testing.assert_equal(dataset[:]["x"], expected)
+    np.testing.assert_equal(dataset[0]["x"], expected[0])
