@@ -2023,11 +2023,53 @@ class InterleavedShardsExamplesIterable(_BaseExamplesIterable):
 
 
 class BufferShuffledExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterable: _BaseExamplesIterable, buffer_size: int, generator: np.random.Generator):
+    """Shuffle the examples of `ex_iterable` using a shuffle buffer of `buffer_size` examples.
+
+    The examples are added one by one in the buffer. Once the buffer is full, it is shuffled, half of the examples are
+    yielded and the other half stays in the buffer to be mixed with the next examples. This provides an approximate
+    shuffling of the whole stream of examples, with a memory usage bounded by `buffer_size`.
+
+    The content of the shuffle buffer is not saved in the `state_dict`, since it would require to keep up to
+    `buffer_size` examples in memory. Instead the buffer is refilled when resuming from a checkpoint:
+    `num_std * buffer_size` examples are read again from a state of the underlying iterable that is saved in the
+    `state_dict`, and the examples that the buffer yields while reading them are dropped. Since an example stays in
+    the buffer for `buffer_size` examples on average (i.e. one standard deviation of the distance between its position
+    in the input and its position in the output), the buffer is as well shuffled as it would have been without
+    interrupting the iteration, as soon as `num_std` is big enough (e.g. 5). Only the examples that were in the buffer
+    when the checkpoint was saved are lost: they are replaced by examples that are read later on.
+
+    With `num_std=0`, no example is read again: the buffer is simply refilled with the next examples.
+
+    If the underlying iterable is exhausted while the buffer is being refilled, the examples that are left in the
+    buffer are dropped: they were all read before the checkpointed position, and yielding them would yield examples a
+    second time.
+
+    Args:
+        ex_iterable (`_BaseExamplesIterable`): the iterable to shuffle.
+        buffer_size (`int`): the number of examples to keep in the shuffle buffer.
+        generator (`np.random.Generator`): the random generator used to shuffle the examples.
+        num_std (`int`, *optional*, defaults to `datasets.config.SHUFFLE_BUFFER_WARMUP_NUM_STD`):
+            number of standard deviations of the shuffle buffer to read again to refill it when resuming from a
+            checkpoint. Use 0 to resume without reading any example again.
+    """
+
+    def __init__(
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        buffer_size: int,
+        generator: np.random.Generator,
+        num_std: Optional[int] = None,
+    ):
         super().__init__()
         self.ex_iterable = ex_iterable
         self.buffer_size = buffer_size
         self.generator = generator
+        self.num_std = config.SHUFFLE_BUFFER_WARMUP_NUM_STD if num_std is None else num_std
+
+    @property
+    def warmup_num_examples(self) -> int:
+        """Number of examples to read again, and to drop, to refill the shuffle buffer when resuming."""
+        return max(0, self.num_std) * self.buffer_size
 
     def shift_rngs(self, value: int) -> "_BaseExamplesIterable":
         rng = deepcopy(self.generator)
@@ -2036,6 +2078,7 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
             ex_iterable=self.ex_iterable,
             buffer_size=self.buffer_size,
             generator=np.random.default_rng(seed=new_seed),
+            num_std=self.num_std,
         )
 
     @property
@@ -2051,18 +2094,170 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         return self._iter_arrow if self.ex_iterable.iter_arrow else None
 
     def _init_state_dict(self) -> dict:
-        self._state_dict = self.ex_iterable._init_state_dict()
+        self._state_dict = {
+            "examples_iterable": self.ex_iterable._init_state_dict(),
+            "bit_generator_state": self.generator.bit_generator.state,
+            "num_examples_read": 0,
+            "num_examples_yielded": 0,
+            # the two last states of the underlying iterable: the oldest one is read again to refill the shuffle
+            # buffer when resuming (see `_start_iteration`) and the newest one replaces it as soon as it gets stale
+            "previous_states": [],
+            "type": self.__class__.__name__,
+        }
+        # the state of the underlying iterable at the beginning of the epoch is always available: reading all the
+        # examples of the epoch again restores the shuffle buffer exactly as it was
+        start_state = {
+            "examples_iterable": _fast_copy(self._state_dict["examples_iterable"]),
+            "num_examples_read": 0,
+            "num_examples_yielded": 0,
+        }
+        self._state_dict["previous_states"] = [_fast_copy(start_state), _fast_copy(start_state)]
         self._original_state_dict = self.state_dict()
         return self._state_dict
 
     def load_state_dict(self, state_dict: dict) -> dict:
+        previous_states = state_dict.get("previous_states")
+        if "examples_iterable" not in state_dict:
+            # Backward compatibility: before the shuffle buffer could be refilled when resuming, the state dict of this
+            # iterable was the state dict of the underlying iterable, which does not contain any previous state.
+            state_dict = {"examples_iterable": deepcopy(state_dict)}
+        # `previous_states` is a list of fixed size that has to replace the current one rather than being merged with
+        # it, so it is loaded by `_load_previous_states` instead of `_inner_load_state_dict`
+        state_dict = {key: value for key, value in state_dict.items() if key != "previous_states"}
+        resume_from_checkpoint = (
+            bool(self._state_dict)
+            and state_dict["examples_iterable"] != self._original_state_dict["examples_iterable"]
+        )
+        state_dict = super().load_state_dict(state_dict)
+        state_dict["previous_states"] = self._load_previous_states(previous_states)
+        if resume_from_checkpoint and (self.warmup_num_examples == 0 or not previous_states):
+            logger.warning(
+                "Loading a state dict of a shuffle buffer of a dataset without the buffer content. "
+                "The shuffle buffer will be refilled with new examples before starting to yield new examples."
+            )
+        return state_dict
+
+    def _load_previous_states(self, previous_states: Optional[list]) -> list:
+        """Get the two last saved states of the underlying iterable.
+
+        The first one is the state that is read again to refill the shuffle buffer when resuming, and the second one is
+        kept to replace it as soon as it gets too recent (less than `warmup_num_examples` before the checkpoint).
+
+        State dicts saved by older versions of the library don't contain any previous state: in that case the position
+        in the underlying iterable at the time of the checkpoint becomes the reference point, with the counters reset
+        to zero. The shuffle buffer can't be refilled by reading previous examples again in that case, since the
+        random generator state at the time of the checkpoint is unknown.
+        """
+        if not previous_states:
+            state_at_checkpoint = {
+                "examples_iterable": self._state_dict["examples_iterable"],
+                "num_examples_read": self._state_dict["num_examples_read"],
+                "num_examples_yielded": self._state_dict["num_examples_yielded"],
+            }
+            return [_fast_copy(state_at_checkpoint), _fast_copy(state_at_checkpoint)]
+        oldest_state, latest_state = previous_states[0], previous_states[-1]
+        return [_fast_copy(oldest_state), _fast_copy(latest_state)]
+
+    def _save_previous_state(self) -> None:
+        """Save the state of the underlying iterable, to read it again from a past state when resuming.
+
+        The states are saved every `warmup_num_examples` examples, so that the `state_dict` always contains a state
+        that is at least `warmup_num_examples` examples before the current position.
+        """
+        previous_states = self._state_dict["previous_states"]
+        if self._state_dict["num_examples_read"] - previous_states[-1]["num_examples_read"] >= (
+            self.warmup_num_examples
+        ):
+            previous_states.append(
+                {
+                    "examples_iterable": self.ex_iterable.state_dict(),
+                    "num_examples_read": self._state_dict["num_examples_read"],
+                    "num_examples_yielded": self._state_dict["num_examples_yielded"],
+                }
+            )
+            del previous_states[:-2]
+
+    def _get_resumption_point(self) -> tuple[Optional[dict], int, int, bool]:
+        """Get where the underlying iterable has to be read again from when resuming from a checkpoint.
+
+        Returns:
+            `tuple[Optional[dict], int, int, bool]`:
+                - the state of the underlying iterable to read again (or None to resume from the checkpointed state),
+                - the number of examples that had been read from the underlying iterable when that state was saved,
+                - the number of examples this iterable had yielded when that state was saved,
+                - whether reading again from that state restores exactly the examples of the interrupted iteration.
+        """
+        if not self._state_dict or self.warmup_num_examples <= 0:
+            return None, 0, 0, False
+        previous_states = self._state_dict.get("previous_states") or []
+        if not previous_states:
+            return None, 0, 0, False
+        previous_state = previous_states[0]
+        if previous_state["num_examples_read"] >= self._state_dict["num_examples_read"]:
+            return None, 0, 0, False
+        # when all the examples read since the beginning of the epoch are read again, the shuffle buffer is restored
+        # exactly as it was: it is the only case where the random generator state of the interrupted iteration is known
+        is_exact_replay = previous_state["examples_iterable"] == self._original_state_dict["examples_iterable"]
+        return (
+            previous_state["examples_iterable"],
+            previous_state["num_examples_read"],
+            previous_state["num_examples_yielded"],
+            is_exact_replay,
+        )
+
+    def _start_iteration(self) -> tuple[np.random.Generator, tuple[int, int], tuple[int, int]]:
+        """Prepare the rng and the example counters before reading the underlying iterable.
+
+        Since the content of the shuffle buffer is not saved in the `state_dict`, the buffer has to be refilled before
+        yielding examples again: examples are read again from a past state of the underlying iterable (see
+        `_get_resumption_point`), and the examples that the buffer yields while reading them are dropped.
+        The refill is over either when `warmup_num_examples` examples have been read again, or, when all the examples
+        of the epoch are read again, as soon as this iterable has yielded as many examples as before the interruption:
+        in that case the iteration resumes exactly where it stopped.
+
+        Returns:
+            `tuple[np.random.Generator, tuple[int, int], tuple[int, int]]`: the rng to use; the numbers of examples
+            that have already been read from the underlying iterable and yielded by this iterable when reading starts
+            again; and the numbers of read and yielded examples to reach for the buffer refill to be over (a condition
+            is met right away if its target is the number of examples that has already been reached).
+        """
+        rng = deepcopy(self.generator)
+        start_state_dict, num_examples_read, num_examples_yielded, is_exact_replay = self._get_resumption_point()
         if self._state_dict:
-            if state_dict != self._original_state_dict:
-                logger.warning(
-                    "Loading a state dict of a shuffle buffer of a dataset without the buffer content."
-                    "The shuffle buffer will be refilled before starting to yield new examples."
-                )
-        return super().load_state_dict(state_dict)
+            # the rng state is restored, so that resuming twice from the same checkpoint yields the same examples.
+            # When all the examples of the epoch are read again, the rng state at the beginning of the epoch is used:
+            # reading again the same examples gives exactly the same rng state as before the interruption.
+            rng.bit_generator.state = (
+                self._original_state_dict["bit_generator_state"]
+                if is_exact_replay
+                else self._state_dict["bit_generator_state"]
+            )
+        num_examples_read_at_checkpoint = self._state_dict["num_examples_read"] if self._state_dict else 0
+        num_examples_yielded_at_checkpoint = self._state_dict["num_examples_yielded"] if self._state_dict else 0
+        if start_state_dict is None:
+            # no example is read again: the iteration resumes right after the checkpointed position, and the buffer is
+            # simply refilled with the next examples
+            num_examples_read, num_examples_yielded = (
+                num_examples_read_at_checkpoint,
+                num_examples_yielded_at_checkpoint,
+            )
+        else:
+            self.ex_iterable.load_state_dict(start_state_dict)
+            # `load_state_dict` creates a new state dict in the underlying iterable: we have to point at the new one
+            self._state_dict["examples_iterable"] = self.ex_iterable._state_dict
+        if is_exact_replay:
+            # all the examples of the epoch are read again, so that the reading position is reached as a consequence of
+            # having yielded as many examples as before the interruption
+            warmup_num_examples_read = num_examples_read - 1
+            warmup_num_examples_yielded = num_examples_yielded_at_checkpoint
+        else:
+            warmup_num_examples_read = num_examples_read_at_checkpoint
+            warmup_num_examples_yielded = num_examples_yielded
+        return (
+            rng,
+            (num_examples_read, num_examples_yielded),
+            (warmup_num_examples_read, warmup_num_examples_yielded),
+        )
 
     @staticmethod
     def _iter_random_indices(rng: np.random.Generator, buffer_size: int, random_batch_size=1000) -> Iterator[int]:
@@ -2071,11 +2266,34 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         buffer_size = self.buffer_size
-        rng = deepcopy(self.generator)
+        rng, (num_examples_read, num_examples_yielded), (warmup_num_examples_read, warmup_num_examples_yielded) = (
+            self._start_iteration()
+        )
+
+        def flush(examples_to_yield: list, refill_buffer_only: bool) -> Iterator[dict]:
+            """Yield the examples that the shuffle buffer has shuffled, dropping the ones read to refill it."""
+            nonlocal num_examples_yielded
+            for example_to_yield in examples_to_yield:
+                num_examples_yielded += 1
+                if refill_buffer_only or num_examples_yielded <= warmup_num_examples_yielded:
+                    # the shuffle buffer is being refilled: see `_start_iteration`
+                    continue
+                if self._state_dict:
+                    self._state_dict["num_examples_yielded"] = num_examples_yielded
+                    self._save_previous_state()
+                yield example_to_yield
+
         # this is the shuffle buffer that we keep in memory
         mem_buffer = []
         current_len = 0
+        refill_buffer_only = False
         for x in self.ex_iterable:
+            num_examples_read += 1
+            # the examples that are read again to refill the shuffle buffer are not yielded (see `_start_iteration`)
+            refill_buffer_only = num_examples_read <= warmup_num_examples_read
+            if self._state_dict and not refill_buffer_only:
+                self._state_dict["num_examples_read"] = num_examples_read
+
             mem_buffer.append(x)
             current_len += 1
 
@@ -2086,30 +2304,56 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
                 indices = rng.permutation(current_len)
                 keep_rows = buffer_size // 2
                 rows_to_yield = current_len - keep_rows
-                for i in indices[:rows_to_yield]:
-                    yield mem_buffer[i]
-
+                examples_to_yield = [mem_buffer[i] for i in indices[:rows_to_yield]]
+                # the buffer is emptied before the examples are yielded, so that the saved state does not depend on
+                # the position at which it is saved among those examples
                 mem_buffer = [mem_buffer[i] for i in indices[rows_to_yield:]]
                 current_len = keep_rows
+                if self._state_dict:
+                    self._state_dict["bit_generator_state"] = rng.bit_generator.state
+                yield from flush(examples_to_yield, refill_buffer_only)
 
         if current_len > 0:
+            # the underlying iterable is exhausted: the buffer is shuffled and drained one last time. If it got
+            # exhausted while refilling the buffer, the examples left in the buffer are dropped: they were all read
+            # before the checkpointed position, so yielding them would yield examples a second time.
             indices = rng.permutation(current_len)
-            for i in indices:
-                yield mem_buffer[i]
+            yield from flush([mem_buffer[i] for i in indices], refill_buffer_only=refill_buffer_only)
 
     def _iter_arrow(self):
-        from copy import deepcopy
-
         import pyarrow as pa
         import pyarrow.compute as pc
 
-        rng = deepcopy(self.generator)
+        rng, (num_examples_read, num_examples_yielded), (warmup_num_examples_read, warmup_num_examples_yielded) = (
+            self._start_iteration()
+        )
         tables = []
         current_len = 0
         last_key = None
+        refill_buffer_only = False
+
+        def count_dropped_rows(num_rows: int, refill_buffer_only: bool) -> int:
+            """Count the rows the shuffle buffer drops among the ones it just shuffled (see `_start_iteration`)."""
+            nonlocal num_examples_yielded
+            num_dropped_rows = (
+                num_rows
+                if refill_buffer_only
+                else min(max(warmup_num_examples_yielded - num_examples_yielded, 0), num_rows)
+            )
+            num_examples_yielded += num_dropped_rows
+            return num_dropped_rows
 
         for key, pa_table in self.ex_iterable.iter_arrow():
+            if len(pa_table) == 0:
+                # an empty table has no schema sometimes, and it would break `pa.concat_tables` in the shuffle buffer
+                continue
             last_key = key
+            num_examples_read += len(pa_table)
+            # the rows that are read again to refill the shuffle buffer are not yielded (see `_start_iteration`)
+            refill_buffer_only = num_examples_read <= warmup_num_examples_read
+            if self._state_dict and not refill_buffer_only:
+                self._state_dict["num_examples_read"] = num_examples_read
+
             tables.append(pa_table)
             current_len += len(pa_table)
 
@@ -2120,24 +2364,45 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
                 buffer_table = pa.concat_tables(tables)
                 indices = rng.permutation(current_len)
                 shuffled_table = pc.take(buffer_table, indices)
-
-                # Keep half of the buffer to mix with incoming data on the next iteration
+                # the buffer is emptied before the rows are yielded, so that the saved state does not depend on the
+                # position at which it is saved among those rows
                 keep_rows = self.buffer_size // 2
                 rows_to_yield = current_len - keep_rows
-                yield key, shuffled_table.slice(0, rows_to_yield)
-
                 tables = [shuffled_table.slice(rows_to_yield)]
                 current_len = keep_rows
+                if self._state_dict:
+                    self._state_dict["bit_generator_state"] = rng.bit_generator.state
+                num_dropped_rows = count_dropped_rows(rows_to_yield, refill_buffer_only)
+                if rows_to_yield > num_dropped_rows:
+                    num_examples_yielded += rows_to_yield - num_dropped_rows
+                    if self._state_dict:
+                        self._state_dict["num_examples_yielded"] = num_examples_yielded
+                        self._save_previous_state()
+                    # the counters are updated before the rows are yielded, so that a state dict saved while those
+                    # rows are being processed considers them as already yielded
+                    yield key, shuffled_table.slice(num_dropped_rows, rows_to_yield - num_dropped_rows)
 
         if current_len > 0:
+            # the underlying iterable is exhausted: the buffer is shuffled and drained one last time. If it got
+            # exhausted while refilling the buffer, the rows left in the buffer are dropped: they were all read
+            # before the checkpointed position, so yielding them would yield rows a second time.
             buffer_table = pa.concat_tables(tables)
             indices = rng.permutation(current_len)
-            yield last_key, pc.take(buffer_table, indices)
+            shuffled_table = pc.take(buffer_table, indices)
+            num_dropped_rows = count_dropped_rows(current_len, refill_buffer_only=refill_buffer_only)
+            if current_len > num_dropped_rows:
+                num_examples_yielded += current_len - num_dropped_rows
+                if self._state_dict:
+                    self._state_dict["num_examples_yielded"] = num_examples_yielded
+                yield last_key, shuffled_table.slice(num_dropped_rows)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "BufferShuffledExamplesIterable":
         """Shuffle the wrapped examples iterable as well as the shuffling buffer."""
         return BufferShuffledExamplesIterable(
-            self.ex_iterable.shuffle_data_sources(generator), buffer_size=self.buffer_size, generator=self.generator
+            self.ex_iterable.shuffle_data_sources(generator),
+            buffer_size=self.buffer_size,
+            generator=self.generator,
+            num_std=self.num_std,
         )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "BufferShuffledExamplesIterable":
@@ -2146,6 +2411,7 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
             buffer_size=self.buffer_size,
             generator=self.generator,
+            num_std=self.num_std,
         )
 
     def reshard_data_sources(self) -> "BufferShuffledExamplesIterable":
@@ -2153,6 +2419,7 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
             self.ex_iterable.reshard_data_sources(),
             buffer_size=self.buffer_size,
             generator=self.generator,
+            num_std=self.num_std,
         )
 
     @property
@@ -2769,7 +3036,8 @@ class IterableDataset(DatasetInfoMixin):
 
         Resuming returns exactly where the checkpoint was saved except in two cases:
 
-        1. examples from shuffle buffers are lost when resuming and the buffers are refilled with new data
+        1. the examples that were in the shuffle buffers when the checkpoint was saved are lost: the buffers are
+           refilled by reading the previous examples again, and the lost examples are replaced by new ones
         2. combinations of `.with_format(arrow)` and batched `.map()` may skip one batch.
 
         Returns:
@@ -2822,7 +3090,8 @@ class IterableDataset(DatasetInfoMixin):
 
         Resuming returns exactly where the checkpoint was saved except in two cases:
 
-        1. examples from shuffle buffers are lost when resuming and the buffers are refilled with new data
+        1. the examples that were in the shuffle buffers when the checkpoint was saved are lost: the buffers are
+           refilled by reading the previous examples again, and the lost examples are replaced by new ones
         2. combinations of `.with_format(arrow)` and batched `.map()` may skip one batch.
 
         Example:

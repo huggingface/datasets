@@ -260,6 +260,11 @@ STREAMING_READ_RATE_LIMIT_RETRY_INTERVAL = 60
 STREAMING_OPEN_MAX_RETRIES = 20
 STREAMING_OPEN_RETRY_INTERVAL = 5
 
+# Number of standard deviations of the shuffle buffer that are read again to refill it when resuming from a
+# checkpoint. One standard deviation is roughly equal to the buffer size: an example stays in the shuffle buffer for
+# `buffer_size` examples on average before being yielded. Use 0 to resume without reading any example again.
+SHUFFLE_BUFFER_WARMUP_NUM_STD = int(os.environ.get("HF_SHUFFLE_BUFFER_WARMUP_NUM_STD", 5))
+
 # Datasets repositories exploration
 ARCHIVES_MAX_NUMBER_FOR_MODULE_INFERENCE = 10
 

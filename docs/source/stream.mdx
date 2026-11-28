@@ -574,7 +574,7 @@ This can be used with the `StatefulDataLoader` from `torchdata`:
 ```
 
 > [!TIP]
-> Resuming returns exactly where the checkpoint was saved except if `.shuffle()` is used: examples from shuffle buffers are lost when resuming and the buffers are refilled with new data.
+> Resuming returns exactly where the checkpoint was saved except if `.shuffle()` is used: the examples that were in the shuffle buffers when the checkpoint was saved are lost, and they are replaced by examples that are read later on. The buffers are refilled by reading `datasets.config.SHUFFLE_BUFFER_WARMUP_NUM_STD` times their size in examples again; set it to 0 to resume without reading any example again.
 
 
 ## Save
