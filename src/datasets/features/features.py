@@ -1733,6 +1733,15 @@ def list_of_pa_arrays_to_pyarrow_listarray(l_arr: list[Optional[pa.Array]]) -> p
 def list_of_np_array_to_pyarrow_listarray(l_arr: list[np.ndarray], type: pa.DataType = None) -> pa.ListArray:
     """Build a PyArrow ListArray from a possibly nested list of NumPy arrays"""
     if len(l_arr) > 0:
+        dtypes = {arr.dtype for arr in l_arr if isinstance(arr, np.ndarray)}
+        if type is None and len(dtypes) > 1 and all(dtype.kind in "iuf" for dtype in dtypes):
+            # arrays of different types can't be concatenated, so promote numeric arrays to a common dtype
+            # empty arrays are float64 by default, so they only decide the dtype if all arrays are empty
+            non_empty_dtypes = {arr.dtype for arr in l_arr if isinstance(arr, np.ndarray) and arr.size > 0} or dtypes
+            common_dtype = np.result_type(*non_empty_dtypes)
+            # uint64 and int64 only fit in float64, which rounds large values, so integers are never promoted to float
+            if common_dtype.kind != "f" or any(dtype.kind == "f" for dtype in non_empty_dtypes):
+                l_arr = [arr.astype(common_dtype, copy=False) if isinstance(arr, np.ndarray) else arr for arr in l_arr]
         return list_of_pa_arrays_to_pyarrow_listarray(
             [numpy_to_pyarrow_listarray(arr, type=type) if arr is not None else None for arr in l_arr]
         )

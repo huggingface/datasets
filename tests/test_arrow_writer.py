@@ -63,6 +63,20 @@ class TypedSequenceTest(TestCase):
         arr = pa.array(TypedSequence(["foo", "bar"], try_type=Array2D((1, 3), "int64")))
         self.assertEqual(arr.type, pa.string())
 
+    def test_numpy_arrays_with_different_dtypes(self):
+        # an empty array is float64 by default, it should not decide the type of the column
+        data = [np.array([]), np.array([1, 2])]
+        arr = pa.array(TypedSequence(data))
+        self.assertEqual(arr.type, pa.list_(pa.int64()))
+        self.assertEqual(arr.to_pylist(), [[], [1, 2]])
+        arr = pa.array(TypedSequence(data, type=List(Value("float64"))))
+        self.assertEqual(arr.type, pa.list_(pa.float64()))
+        arr = pa.array(TypedSequence([np.array([1.5]), np.array([1, 2])]))
+        self.assertEqual(arr.type, pa.list_(pa.float64()))
+        # uint64 and int64 only fit in float64, which would round large values
+        with self.assertRaises(pa.ArrowInvalid):
+            pa.array(TypedSequence([np.array([2**63 + 1], dtype=np.uint64), np.array([1])]))
+
     @require_pil
     def test_exhaustive_cast(self):
         import PIL.Image
