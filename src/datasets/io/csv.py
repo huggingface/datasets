@@ -8,6 +8,7 @@ from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
 from ..packaged_modules.csv.csv import Csv
 from ..utils import tqdm as hf_tqdm
+from ..utils.py_utils import imap_with_dead_worker_check
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
@@ -133,7 +134,8 @@ class CsvDatasetWriter:
             num_rows, batch_size = len(self.dataset), self.batch_size
             with multiprocessing.Pool(self.num_proc) as pool:
                 for csv_str in hf_tqdm(
-                    pool.imap(
+                    imap_with_dead_worker_check(
+                        pool,
                         self._batch_csv,
                         [(offset, header, index, to_csv_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),
