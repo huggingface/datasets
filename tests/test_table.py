@@ -1352,10 +1352,11 @@ def test_cast_array_to_feature_with_nullable_large_list_and_new_inner_type():
     assert cast_array.to_pylist() == [[1, 2], None, [3]]
 
 
-def test_cast_array_xd_to_features_sequence():
+@pytest.mark.parametrize("list_array_cls", [pa.ListArray, pa.LargeListArray])
+def test_cast_array_xd_to_features_sequence(list_array_cls):
     arr = np.random.randint(0, 10, size=(8, 2, 3)).tolist()
     arr = Array2DExtensionType(shape=(2, 3), dtype="int64").wrap_array(pa.array(arr, pa.list_(pa.list_(pa.int64()))))
-    arr = pa.ListArray.from_arrays([0, None, 4, 8], arr)
+    arr = list_array_cls.from_arrays([0, None, 4, 8], arr)
     # Variable size list
     casted_array = cast_array_to_feature(arr, List(Array2D(shape=(2, 3), dtype="int32")))
     assert casted_array.type == get_nested_type(List(Array2D(shape=(2, 3), dtype="int32")))
