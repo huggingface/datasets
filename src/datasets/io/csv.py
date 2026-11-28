@@ -105,7 +105,12 @@ class CsvDatasetWriter:
             key=slice(offset, offset + self.batch_size),
             indices=self.dataset._indices,
         )
-        csv_str = batch.to_pandas(integer_object_nulls=True).to_csv(
+        df = batch.to_pandas(integer_object_nulls=True)
+        if index:
+            # to_pandas() starts a fresh RangeIndex at 0 for every batch.
+            # Number rows from the dataset offset so index=True is continuous.
+            df.index = range(offset, offset + len(df))
+        csv_str = df.to_csv(
             path_or_buf=None, header=header if (offset == 0) else False, index=index, **to_csv_kwargs
         )
         return csv_str.encode(self.encoding)

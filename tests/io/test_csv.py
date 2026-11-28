@@ -204,3 +204,17 @@ def test_dataset_to_csv_preserves_nullable_int(dtype, big, tmp_path):
     with open(output_csv, newline="") as f:
         rows = list(csv.DictReader(f))
     assert [row["a"] for row in rows] == [str(big), "", "5"]
+
+
+@pytest.mark.parametrize("num_proc", [None, 2])
+def test_dataset_to_csv_index_is_continuous_across_batches(num_proc, tmp_path):
+    # index=True should write the dataset row number, not a per-batch RangeIndex.
+    dataset = Dataset.from_dict({"a": list(range(7))})
+    output_csv = os.path.join(tmp_path, "out.csv")
+    CsvDatasetWriter(
+        dataset, output_csv, batch_size=3, num_proc=num_proc, index=True, index_label="row"
+    ).write()
+    with open(output_csv, newline="") as f:
+        rows = list(csv.DictReader(f))
+    assert [row["row"] for row in rows] == [str(i) for i in range(7)]
+    assert [row["a"] for row in rows] == [str(i) for i in range(7)]
