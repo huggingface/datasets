@@ -470,6 +470,54 @@ def test_rebatched_arrow_examples_iterable_restore_existing_partial_checkpoint(d
             assert state["cropped_chunk_length"] == 2
 
 
+@pytest.mark.parametrize(
+    "table_chunks",
+    [
+        [[25]],  # Several sub-tables of ARROW_READER_BATCH_SIZE_IN_DATASET_ITER rows.
+        [[3, 0, 12], [7, 0], [], [0, 0, 4], [11]],  # Empty tables and record batches.
+    ],
+)
+def test_formatted_rebatched_examples_iterable_resumes_at_each_example(table_chunks):
+    # FormattedExamplesIterable formats several rows at a time when iterating examples,
+    # and its state_dict must be the same as when iterating 1-row tables with `_iter_arrow()`.
+    features = Features({"id": Value("int32")})
+
+    def gen():
+        offset = 0
+        for key, chunk_sizes in enumerate(table_chunks):
+            chunks = []
+            for size in chunk_sizes:
+                chunks.append(pa.array(range(offset, offset + size), type=pa.int64()))
+                offset += size
+            yield key, pa.table({"id": pa.chunked_array(chunks, type=pa.int64())})
+
+    def make_iterable(state=None):
+        ex_iterable = FormattedExamplesIterable(
+            RebatchedArrowExamplesIterable(ArrowExamplesIterable(gen, {}), batch_size=1),
+            formatting=None,
+            features=features,
+            token_per_repo_id={},
+        )
+        ex_iterable._init_state_dict()
+        if state is not None:
+            ex_iterable.load_state_dict(state)
+        return ex_iterable
+
+    num_rows = sum(sum(chunk_sizes) for chunk_sizes in table_chunks)
+    expected = [{"id": i} for i in range(num_rows)]
+    assert [example for _, example in make_iterable()] == expected
+
+    ex_iterable = make_iterable()
+    states = [json.loads(json.dumps(ex_iterable.state_dict())) for _ in ex_iterable]
+    ex_iterable = make_iterable()
+    arrow_states = [json.loads(json.dumps(ex_iterable.state_dict())) for _ in ex_iterable._iter_arrow()]
+    assert len(states) == len(arrow_states) == num_rows
+    for i, (state, arrow_state) in enumerate(zip(states, arrow_states), 1):
+        assert [example for _, example in make_iterable(state)] == expected[i:]
+        assert [example for _, example in make_iterable(arrow_state)] == expected[i:]
+        assert [table.to_pylist() for _, table in make_iterable(state)._iter_arrow()] == [[ex] for ex in expected[i:]]
+
+
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
 def test_buffer_shuffled_examples_iterable(seed):
     n, buffer_size = 100, 30
