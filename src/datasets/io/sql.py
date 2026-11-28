@@ -111,7 +111,7 @@ class SqlDatasetWriter:
                 for num_rows in hf_tqdm(
                     pool.imap(
                         self._batch_sql,
-                        [(offset, index, to_sql_kwargs) for offset in range(0, num_rows, batch_size)],
+                        ((offset, index, to_sql_kwargs) for offset in range(0, num_rows, batch_size)),
                     ),
                     total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
                     unit="ba",
