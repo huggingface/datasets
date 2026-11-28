@@ -1130,6 +1130,10 @@ class DatasetBuilder:
         # By default, return all splits
         if split is None:
             splits_generator = splits_generators
+        elif isinstance(split, list):
+            if not all(str(split_name) in splits_generators for split_name in split):
+                raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
+            splits_generator = [splits_generators[str(split_name)] for split_name in split]
         elif str(split) in splits_generators:
             splits_generator = splits_generators[str(split)]
         elif hasattr(split, "get_read_instruction"):
