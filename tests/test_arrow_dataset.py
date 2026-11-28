@@ -5098,6 +5098,18 @@ def test_filter_async():
     assert len(out) == 1
 
 
+def test_nested_column_with_null_parent():
+    dataset = Dataset.from_dict({"metadata": [{"source": "a"}, None, {"source": "b"}]})
+    column = dataset["metadata"]["source"]
+    expected = ["a", None, "b"]
+
+    assert column[1] is None
+    assert column[0] == "a"
+    assert column[:] == expected
+    assert list(column) == expected
+    assert list(dataset.to_iterable_dataset()["metadata"]["source"]) == expected
+
+
 def test_dataset_getitem_int_np_equivalence():
     ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
 

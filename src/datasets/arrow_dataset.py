@@ -697,7 +697,7 @@ class Column(Sequence_):
         else:
             source = self.source
         for example in source:
-            yield example[self.column_name]
+            yield example[self.column_name] if example is not None else None
 
     def __getitem__(self, key: Union[int, str, list[int]]) -> Any:
         if isinstance(key, str):
@@ -710,9 +710,10 @@ class Column(Sequence_):
                 source = self.source._fast_select_column(self.column_name)
             return source[key][self.column_name]
         elif isinstance(key, int):
-            return self.source[key][self.column_name]
+            item = self.source[key]
+            return item[self.column_name] if item is not None else None
         else:
-            return [item[self.column_name] for item in self.source[key]]
+            return [item[self.column_name] if item is not None else None for item in self.source[key]]
 
     def __len__(self) -> int:
         return len(self.source)
