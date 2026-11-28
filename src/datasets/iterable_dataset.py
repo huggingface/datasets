@@ -36,7 +36,14 @@ from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFil
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from . import __version__, config
-from .arrow_dataset import Dataset, DatasetInfoMixin, _push_to_bucket, _push_to_repo
+from .arrow_dataset import (
+    Dataset,
+    DatasetInfoMixin,
+    _push_to_bucket,
+    _push_to_repo,
+    _rename_column_metadata,
+    _select_column_metadata,
+)
 from .features import Features
 from .features.features import (
     FeatureType,
@@ -3874,6 +3881,10 @@ class IterableDataset(DatasetInfoMixin):
         )
         info = self.info.copy()
         info.features = features
+        if remove_columns and info.column_metadata:
+            info.column_metadata = {
+                column: metadata for column, metadata in info.column_metadata.items() if column not in remove_columns
+            } or None
         return IterableDataset(
             ex_iterable=ex_iterable,
             info=info,
@@ -4377,6 +4388,8 @@ class IterableDataset(DatasetInfoMixin):
                     for col, feature in original_features.items()
                 }
             )
+        # `map(remove_columns=...)` dropped the metadata of the renamed columns, move it under the new names
+        ds_iterable._info.column_metadata = _rename_column_metadata(self._info.column_metadata, column_mapping)
         return ds_iterable
 
     def remove_columns(self, column_names: Union[str, list[str]]) -> "IterableDataset":
@@ -4453,6 +4466,8 @@ class IterableDataset(DatasetInfoMixin):
                         f"{list(self._info.features.keys())}."
                     )
                 info.features = Features({c: info.features[c] for c in column_names})
+            if info.column_metadata:
+                info.column_metadata = _select_column_metadata(info.column_metadata, column_names)
 
         ex_iterable = SelectColumnsIterable(self._ex_iterable, column_names)
         return IterableDataset(

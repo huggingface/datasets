@@ -2,7 +2,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
-from datasets import Dataset, DatasetDict, concatenate_datasets, load_dataset, load_from_disk
+from datasets import Dataset, DatasetDict, IterableDataset, concatenate_datasets, load_dataset, load_from_disk
 
 from .utils import push_parquet_shards_offline
 
@@ -87,6 +87,28 @@ def test_column_metadata_to_parquet_and_back(tmp_path):
     }
     streamed = load_dataset("parquet", data_files=path, split="train", streaming=True)
     assert streamed.info.column_metadata == {"a": {"unit": "cm"}, "b": {"source": "manual"}}
+
+
+def test_iterable_dataset_column_metadata_follows_column_operations(tmp_path):
+    path = str(tmp_path / "data.parquet")
+    _dataset().with_column_metadata({"a": {"unit": "cm"}, "b": {"source": "manual"}}).to_parquet(path)
+    ds = IterableDataset.from_parquet(path)
+    assert ds.info.column_metadata == {"a": {"unit": "cm"}, "b": {"source": "manual"}}
+    assert ds.rename_column("a", "d").info.column_metadata == {"d": {"unit": "cm"}, "b": {"source": "manual"}}
+    assert ds.rename_columns({"a": "b", "b": "a"}).info.column_metadata == {
+        "b": {"unit": "cm"},
+        "a": {"source": "manual"},
+    }
+    assert ds.with_format("arrow").rename_column("a", "d").info.column_metadata == {
+        "d": {"unit": "cm"},
+        "b": {"source": "manual"},
+    }
+    assert ds.remove_columns("a").info.column_metadata == {"b": {"source": "manual"}}
+    assert ds.map(lambda x: {"d": x["a"]}, remove_columns=["a"]).info.column_metadata == {"b": {"source": "manual"}}
+    assert ds.select_columns(["a", "c"]).info.column_metadata == {"a": {"unit": "cm"}}
+    assert ds.select_columns("c").info.column_metadata is None
+    # the original dataset is left untouched
+    assert ds.info.column_metadata == {"a": {"unit": "cm"}, "b": {"source": "manual"}}
 
 
 def test_dataset_dict_with_column_metadata():
