@@ -4,9 +4,11 @@ from functools import partial
 from typing import BinaryIO, Optional, Union
 
 import fsspec
+import pandas as pd
 import pyarrow as pa
 
 from .. import Dataset, Features, NamedSplit, config
+from ..features.features import _ArrayXD
 from ..formatting import query_table
 from ..packaged_modules.json.json import Json
 from ..utils import tqdm as hf_tqdm
@@ -143,7 +145,13 @@ class JsonDatasetWriter:
                 # concatenation can hit capacity/memory limits. Leave the batch chunked
                 # so to_pandas can still convert it without this optional concatenation.
                 pass
+        pa_batch = batch
         batch = batch.to_pandas(integer_object_nulls=True)
+        # pandas.DataFrame.to_json misreads the multi-dimensional pandas arrays used for
+        # ArrayXD columns, so write those columns as nested lists instead
+        for col, feature in self.dataset.features.items():
+            if isinstance(feature, _ArrayXD):
+                batch[col] = pd.Series(pa_batch.column(col).to_pylist(), index=batch.index, dtype=object)
         for json_field_path in get_json_field_paths_from_feature(self.dataset.features):
             col, *json_field_subpath = json_field_path
             batch[col] = batch[col].apply(partial(json_decode_field, json_field_path=json_field_subpath))
