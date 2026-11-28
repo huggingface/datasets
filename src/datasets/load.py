@@ -45,6 +45,7 @@ from huggingface_hub.utils import (
 
 from . import __version__, config
 from .arrow_dataset import Dataset
+from .arrow_reader import ReadInstruction
 from .builder import BuilderConfig, DatasetBuilder
 from .data_files import (
     DataFilesDict,
@@ -1702,7 +1703,10 @@ def load_dataset(
 
 
 def load_from_disk(
-    dataset_path: PathLike, keep_in_memory: Optional[bool] = None, storage_options: Optional[dict] = None
+    dataset_path: PathLike,
+    keep_in_memory: Optional[bool] = None,
+    storage_options: Optional[dict] = None,
+    split: Optional[Union[str, ReadInstruction, Split]] = None,
 ) -> Union[Dataset, DatasetDict]:
     """
     Loads a dataset that was previously saved using [`~Dataset.save_to_disk`] from a dataset directory, or
@@ -1722,11 +1726,14 @@ def load_from_disk(
             Key/value pairs to be passed on to the file-system backend, if any.
 
             <Added version="2.9.0"/>
+        split (`Split` or `str` or `ReadInstruction`, *optional*):
+            Which split or slice of the data to load (e.g. `"train[:50%]"`).
+            If `None`, loads all splits as a [`DatasetDict`] or the full [`Dataset`].
 
     Returns:
         [`Dataset`] or [`DatasetDict`]:
-        - If `dataset_path` is a path of a dataset directory: the dataset requested.
-        - If `dataset_path` is a path of a dataset dict directory, a [`DatasetDict`] with each split.
+        - If `dataset_path` is a path of a dataset directory (or `split` is specified): the dataset requested.
+        - If `dataset_path` is a path of a dataset dict directory and `split` is `None`: a [`DatasetDict`] with each split.
 
     Example:
 
@@ -1742,9 +1749,13 @@ def load_from_disk(
     if fs.isfile(posixpath.join(dataset_path, config.DATASET_INFO_FILENAME)) and fs.isfile(
         posixpath.join(dataset_path, config.DATASET_STATE_JSON_FILENAME)
     ):
-        return Dataset.load_from_disk(dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options)
+        return Dataset.load_from_disk(
+            dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options, split=split
+        )
     elif fs.isfile(posixpath.join(dataset_path, config.DATASETDICT_JSON_FILENAME)):
-        return DatasetDict.load_from_disk(dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options)
+        return DatasetDict.load_from_disk(
+            dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options, split=split
+        )
     else:
         raise FileNotFoundError(
             f"Directory {dataset_path} is neither a `Dataset` directory nor a `DatasetDict` directory."

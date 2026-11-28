@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 from fsspec.implementations.memory import MemoryFileSystem
 
-from datasets import load_from_disk
+from datasets import ReadInstruction, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.features import ClassLabel, Features, List, Value
@@ -633,6 +633,36 @@ class DatasetDictTest(TestCase):
             self.assertEqual(len(dsets["test"]), 30)
             self.assertListEqual(dsets["test"].column_names, ["filename"])
             del dsets
+
+    def test_load_from_disk_with_split(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dsets = self._create_dummy_dataset_dict()
+            train_expected = list(dsets["train"]["filename"])
+            test_expected = list(dsets["test"]["filename"])
+            dsets.save_to_disk(tmp_dir)
+            del dsets
+
+            with patch.object(Dataset, "load_from_disk", wraps=Dataset.load_from_disk) as mock_load:
+                train_half = load_from_disk(tmp_dir, split="train[:50%]")
+                self.assertEqual(mock_load.call_count, 1)
+            self.assertIsInstance(train_half, Dataset)
+            self.assertEqual(list(train_half["filename"]), train_expected[:15])
+
+            train_slice = load_from_disk(tmp_dir, split="train[5:10]")
+            self.assertEqual(list(train_slice["filename"]), train_expected[5:10])
+
+            combined = DatasetDict.load_from_disk(tmp_dir, split="train[:3]+test[-2:]")
+            self.assertIsInstance(combined, Dataset)
+            self.assertEqual(list(combined["filename"]), train_expected[:3] + test_expected[-2:])
+
+            ri_slice = load_from_disk(tmp_dir, split=ReadInstruction("train", to=20, unit="%"))
+            self.assertEqual(list(ri_slice["filename"]), train_expected[:6])
+
+            all_ds = load_from_disk(tmp_dir, split="all")
+            self.assertEqual(list(all_ds["filename"]), train_expected + test_expected)
+
+            with self.assertRaises(ValueError):
+                load_from_disk(tmp_dir, split="validation[:5]")
 
     def test_align_labels_with_mapping(self):
         train_features = Features(

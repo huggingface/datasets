@@ -430,6 +430,28 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(dset[0]["filename"], "my_name-train_0")
                 self.assertEqual(dset["filename"][0], "my_name-train_0")
 
+    def test_dummy_dataset_load_from_disk_with_split(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            unnamed_path = os.path.join(tmp_dir, "unnamed_dataset")
+            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
+                dset.save_to_disk(unnamed_path)
+                expected = list(dset["filename"])
+
+            with self.assertRaises(ValueError):
+                load_from_disk(unnamed_path, split="train[:50%]")
+
+            named_path = os.path.join(tmp_dir, "named_dataset")
+            Dataset.from_dict({"filename": expected}, split="train").save_to_disk(named_path)
+
+            with load_from_disk(named_path, split="train[:50%]") as sliced:
+                self.assertEqual(list(sliced["filename"]), expected[:5])
+
+            with Dataset.load_from_disk(named_path, split="train[2:6]") as sliced:
+                self.assertEqual(list(sliced["filename"]), expected[2:6])
+
+            with self.assertRaises(ValueError):
+                load_from_disk(named_path, split="test[:2]")
+
     def test_restore_saved_format(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:

@@ -30,8 +30,11 @@ from . import __version__, config
 from .arrow_dataset import (
     Dataset,
     _append_to_repo,
+    _apply_read_instruction,
     _get_updated_dataset_card,
+    _parse_split_read_instruction,
 )
+from .arrow_reader import ReadInstruction
 from .features import Features
 from .features.features import FeatureType
 from .iterable_dataset import IterableDataset
@@ -1401,7 +1404,8 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         dataset_dict_path: PathLike,
         keep_in_memory: Optional[bool] = None,
         storage_options: Optional[dict] = None,
-    ) -> "DatasetDict":
+        split: Optional[Union[str, ReadInstruction, Split]] = None,
+    ) -> Union["DatasetDict", Dataset]:
         """
         Load a dataset that was previously saved using [`save_to_disk`] from a filesystem using `fsspec.spec.AbstractFileSystem`.
 
@@ -1418,9 +1422,12 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 Key/value pairs to be passed on to the file-system backend, if any.
 
                 <Added version="2.8.0"/>
+            split (`Split` or `str` or `ReadInstruction`, *optional*):
+                Which split or slice of the data to load (e.g. `"train[:50%]"`).
+                If `None`, loads all splits as a [`DatasetDict`].
 
         Returns:
-            [`DatasetDict`]
+            [`DatasetDict`] or [`Dataset`]: A [`DatasetDict`] if `split` is `None`, otherwise a [`Dataset`].
 
         Example:
 
@@ -1445,6 +1452,26 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
 
         with fs.open(dataset_dict_json_path, "r", encoding="utf-8") as f:
             splits = json.load(f)["splits"]
+
+        if split is not None:
+            read_instruction = _parse_split_read_instruction(split, available_splits=splits)
+            needed_splits = list(
+                dict.fromkeys(rel_instr.splitname for rel_instr in read_instruction._relative_instructions)
+            )
+            loaded_splits = {
+                k: Dataset.load_from_disk(
+                    posixpath.join(fs.unstrip_protocol(dataset_dict_path), k),
+                    keep_in_memory=keep_in_memory,
+                    storage_options=storage_options,
+                )
+                for k in needed_splits
+            }
+            return _apply_read_instruction(
+                loaded_splits,
+                read_instruction,
+                keep_in_memory=keep_in_memory,
+                split_label=split,
+            )
 
         dataset_dict = DatasetDict()
         for k in splits:
