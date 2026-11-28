@@ -36,7 +36,14 @@ from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFil
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from . import __version__, config
-from .arrow_dataset import Dataset, DatasetInfoMixin, _push_to_bucket, _push_to_repo
+from .arrow_dataset import (
+    Dataset,
+    DatasetInfoMixin,
+    _push_to_bucket,
+    _push_to_repo,
+    _rename_column_metadata,
+    _select_column_metadata,
+)
 from .features import Features
 from .features.features import (
     FeatureType,
@@ -3874,6 +3881,13 @@ class IterableDataset(DatasetInfoMixin):
         )
         info = self.info.copy()
         info.features = features
+        if info.column_metadata:
+            if features is not None:
+                info.column_metadata = _select_column_metadata(info.column_metadata, features)
+            elif remove_columns:
+                info.column_metadata = _select_column_metadata(
+                    info.column_metadata, set(info.column_metadata) - set(remove_columns)
+                )
         return IterableDataset(
             ex_iterable=ex_iterable,
             info=info,
@@ -4359,6 +4373,7 @@ class IterableDataset(DatasetInfoMixin):
         """
 
         original_features = self._info.features.copy() if self._info.features else None
+        original_column_metadata = deepcopy(self._info.column_metadata)
         if self._formatting and self._formatting.is_table:
             # with a table format (arrow, pandas, polars...) the function gets tables instead of dicts
             ds_iterable = (
@@ -4377,6 +4392,7 @@ class IterableDataset(DatasetInfoMixin):
                     for col, feature in original_features.items()
                 }
             )
+        ds_iterable._info.column_metadata = _rename_column_metadata(original_column_metadata, column_mapping)
         return ds_iterable
 
     def remove_columns(self, column_names: Union[str, list[str]]) -> "IterableDataset":
@@ -4453,6 +4469,8 @@ class IterableDataset(DatasetInfoMixin):
                         f"{list(self._info.features.keys())}."
                     )
                 info.features = Features({c: info.features[c] for c in column_names})
+            if info.column_metadata:
+                info.column_metadata = _select_column_metadata(info.column_metadata, column_names)
 
         ex_iterable = SelectColumnsIterable(self._ex_iterable, column_names)
         return IterableDataset(
@@ -4461,6 +4479,55 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             formatting=self._formatting,
             distributed=self._distributed,
+            token_per_repo_id=self._token_per_repo_id,
+        )
+
+    def with_column_metadata(self, column_metadata: dict[str, dict[str, str]]) -> "IterableDataset":
+        """
+        Return a dataset with the given metadata for some columns.
+
+        The metadata of a column is a dict of strings, like the metadata of Arrow fields. It's kept in
+        [`DatasetInfo.column_metadata`], follows the column when it's renamed, and is written in the Arrow field
+        metadata of the Parquet files of [`~IterableDataset.to_parquet`] and [`~IterableDataset.push_to_hub`].
+
+        Args:
+            column_metadata (`dict[str, dict[str, str]]`):
+                Mapping from column name to its new metadata. It replaces the current metadata of these columns, and
+                an empty dict removes it. The metadata of the other columns doesn't change.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation", streaming=True)
+        >>> ds = ds.with_column_metadata({"text": {"language": "en"}})
+        >>> ds.info.column_metadata
+        {'text': {'language': 'en'}}
+        ```
+        """
+        for column, metadata in column_metadata.items():
+            if self._info.features is not None and column not in self._info.features:
+                raise ValueError(
+                    f"Column {column!r} not in the dataset. Current columns in the dataset: {self.column_names}"
+                )
+            if not isinstance(metadata, dict) or not all(
+                isinstance(key, str) and isinstance(value, str) for key, value in metadata.items()
+            ):
+                raise TypeError(
+                    f"The metadata of column {column!r} must be a dict of strings, like the metadata of Arrow fields, "
+                    f"but got {metadata!r}"
+                )
+        info = self._info.copy()
+        new_column_metadata = {**(info.column_metadata or {}), **deepcopy(column_metadata)}
+        info.column_metadata = {
+            column: metadata for column, metadata in new_column_metadata.items() if metadata
+        } or None
+        return IterableDataset(
+            ex_iterable=self._ex_iterable,
+            info=info,
+            split=self._split,
+            formatting=self._formatting,
+            distributed=deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -5075,7 +5142,7 @@ class IterableDataset(DatasetInfoMixin):
 
         batch_size = get_arrow_writer_batch_size_from_features(self.features) or config.DEFAULT_MAX_BATCH_SIZE
         table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=batch_size)))
-        return Dataset(table, fingerprint="unset").to_parquet(
+        return Dataset(table, info=self._info.copy(), fingerprint="unset").to_parquet(
             path_or_buf, storage_options=storage_options, **parquet_writer_kwargs
         )
 
@@ -5122,7 +5189,9 @@ class IterableDataset(DatasetInfoMixin):
                 yield start + i, tmp_file.name
             return
 
-        schema = self.features.arrow_schema
+        from .io.parquet import _with_column_metadata
+
+        schema = _with_column_metadata(self.features.arrow_schema, self._info.column_metadata)
         batch_size = get_arrow_writer_batch_size_from_features(self.features) or config.DEFAULT_MAX_BATCH_SIZE
         for input_index in range(num_input_shards):
             first_output, end_output = _split_evenly(num_shards, num_source_shards, first_source_shard + input_index)
