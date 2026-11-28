@@ -4,10 +4,18 @@ from pathlib import Path
 from unittest import TestCase
 
 import pyarrow as pa
+import pyarrow.parquet as pq
 import pytest
 
 from datasets.arrow_dataset import Dataset
-from datasets.arrow_reader import ArrowReader, BaseReader, FileInstructions, ReadInstruction, make_file_instructions
+from datasets.arrow_reader import (
+    ArrowReader,
+    BaseReader,
+    FileInstructions,
+    ParquetReader,
+    ReadInstruction,
+    make_file_instructions,
+)
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit, Split, SplitDict, SplitInfo
 
@@ -133,6 +141,18 @@ def test_read_files(in_memory, dataset, arrow_file):
     assert table.shape == dataset.data.shape
     assert set(table.column_names) == set(dataset.data.column_names)
     assert dict(table.to_pydict()) == dict(dataset.data.to_pydict())  # to_pydict returns OrderedDict
+
+
+def test_parquet_reader_reads_full_shards_in_split(tmp_path):
+    reader = ParquetReader(str(tmp_path), None)
+    split_info = SplitInfo(name="train", num_examples=6, shard_lengths=[2, 2, 2])
+    files = reader.get_file_instructions("local", "train", [split_info])
+
+    for shard_id, file_instruction in enumerate(files):
+        pq.write_table(pa.table({"value": [2 * shard_id, 2 * shard_id + 1]}), file_instruction["filename"])
+
+    table = reader.read("local", "train[1:5]", [split_info])["arrow_table"]
+    assert table["value"].to_pylist() == [1, 2, 3, 4]
 
 
 def test_read_instruction_spec():

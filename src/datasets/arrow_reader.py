@@ -354,6 +354,8 @@ class ParquetReader(BaseReader):
         )
         # Parquet read_table always loads data in memory, independently of memory_map
         pa_table = pq.read_table(filename, memory_map=True)
+        if take == -1:
+            take = len(pa_table) - (skip or 0)
         # here we don't want to slice an empty table, or it may segfault
         if skip is not None and take is not None and not (skip == 0 and take == len(pa_table)):
             pa_table = pa_table.slice(skip, take)
