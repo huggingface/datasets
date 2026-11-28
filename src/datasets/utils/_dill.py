@@ -290,6 +290,35 @@ def _save_transformersPreTrainedTokenizerBase(pickler, obj):
     log(pickler, "# Tok")
 
 
+def _get_linetable_without_columns(code: CodeType) -> bytes:
+    """Re-encode `code.co_linetable` (python >= 3.11) with the line numbers only.
+
+    Since python 3.11 the line table also contains the column offsets of every instruction,
+    which depend on where the function is written in its line (e.g. on its indentation).
+    Format: https://github.com/python/cpython/blob/main/InternalDocs/code_objects.md
+    """
+    linetable = bytearray()
+    previous_line = code.co_firstlineno
+    for start, end, line in code.co_lines():
+        num_code_units = (end - start) // 2
+        while num_code_units > 0:
+            length = min(num_code_units, 8)
+            num_code_units -= length
+            if line is None:  # entry with no location
+                linetable.append(0x80 | (15 << 3) | (length - 1))
+                continue
+            # entry with no column info, followed by the line delta as a signed varint
+            linetable.append(0x80 | (13 << 3) | (length - 1))
+            delta = line - previous_line
+            previous_line = line
+            value = (-delta << 1) | 1 if delta < 0 else delta << 1
+            while value >= 64:
+                linetable.append(64 | (value & 63))
+                value >>= 6
+            linetable.append(value)
+    return bytes(linetable)
+
+
 if config.DILL_VERSION < version.parse("0.3.6"):
 
     @pklregister(CodeType)
@@ -426,6 +455,7 @@ elif _is_supported_dill_version():
         # - obj.co_filename => co_filename
         # - obj.co_firstlineno => co_firstlineno
         # - obj.co_lnotab => obj.co_linetable for >= 3.10 since co_lnotab was deprecated
+        # - obj.co_linetable => co_linetable without the column offsets for >= 3.11
         ############################################################################################################
 
         if hasattr(obj, "co_endlinetable"):  # python 3.11a (20 args)
@@ -453,8 +483,9 @@ elif _is_supported_dill_version():
                 obj.co_cellvars,
             )
         elif hasattr(obj, "co_exceptiontable"):  # python 3.11 (18 args)
+            co_linetable = _get_linetable_without_columns(obj)
             args = (
-                obj.co_linetable,  # Modification for huggingface/datasets #######################################
+                co_linetable,  # Modification for huggingface/datasets ###########################################
                 obj.co_argcount,
                 obj.co_posonlyargcount,
                 obj.co_kwonlyargcount,
@@ -469,7 +500,7 @@ elif _is_supported_dill_version():
                 obj.co_name,
                 obj.co_qualname,
                 co_firstlineno,  # Modification for huggingface/datasets #########################################
-                obj.co_linetable,
+                co_linetable,  # Modification for huggingface/datasets ###########################################
                 obj.co_exceptiontable,
                 obj.co_freevars,
                 obj.co_cellvars,
