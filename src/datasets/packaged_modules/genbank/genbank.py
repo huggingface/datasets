@@ -229,7 +229,7 @@ class GenBank(datasets.ArrowBasedBuilder):
             "molecule_type": datasets.Value("string"),
             "secondary_accessions": datasets.List(datasets.Value("string")),
             "contig": datasets.Value("string"),
-            "record": datasets.BioSequence(format="genbank"),
+            "record": datasets.Value("binary"),
         }
     )
 
@@ -402,7 +402,7 @@ class GenBank(datasets.ArrowBasedBuilder):
                 record["features"] = features.features
                 record["contig"] = "".join(record["contig"].split())
                 if raw_lines:
-                    record["record"] = {"bytes": "".join(raw_lines).encode("utf-8"), "path": None}
+                    record["record"] = "".join(raw_lines).encode("utf-8")
                 yield record
                 state = ParserState.HEADER
                 record = self._new_record()
@@ -656,7 +656,7 @@ class GenBank(datasets.ArrowBasedBuilder):
             elif col == "length":
                 fields.append(pa.field(col, pa.int64()))
             elif col == "record":
-                fields.append(pa.field(col, datasets.BioSequence().pa_type))
+                fields.append(pa.field(col, pa.binary()))
             else:
                 fields.append(pa.field(col, pa.string()))
         return pa.schema(fields)
@@ -684,7 +684,7 @@ class GenBank(datasets.ArrowBasedBuilder):
             batch_bytes = 0
 
             # Wrap the binary stream ourselves so compressed inputs also preserve
-            # the original line endings in the BioSequence bytes.
+            # the original line endings in the record bytes.
             with open(file, "rb") as binary_fp, TextIOWrapper(binary_fp, encoding="utf-8", newline="") as fp:
                 for record in self._parse_genbank(fp):
                     # Update length from actual sequence if not set
@@ -701,7 +701,7 @@ class GenBank(datasets.ArrowBasedBuilder):
                         sum(len(str(record.get(col, ""))) for col in columns if col not in ("length", "record")) + 8
                     )  # 8 bytes for int64 length
                     if "record" in columns and record["record"] is not None:
-                        record_bytes += len(record["record"]["bytes"])
+                        record_bytes += len(record["record"])
 
                     # Check if adding this record would exceed byte limit
                     # Flush current batch first if needed (but only if batch is non-empty)

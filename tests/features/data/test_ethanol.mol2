@@ -1,0 +1,13 @@
+@<TRIPOS>MOLECULE
+ethanol
+ 3 2 0 0 0
+SMALL
+GASTEIGER
+
+@<TRIPOS>ATOM
+      1 C1          0.0000    0.0000    0.0000 C.3     1  LIG1        0.0000
+      2 C2          1.5200    0.0000    0.0000 C.3     1  LIG1        0.0000
+      3 O1          2.0000    1.3000    0.0000 O.3     1  LIG1        0.0000
+@<TRIPOS>BOND
+     1     1     2    1
+     2     2     3    1
