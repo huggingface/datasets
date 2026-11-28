@@ -6,7 +6,7 @@ import pytest
 from packaging import version
 
 import datasets.config
-from datasets import ClassLabel, Features, Image
+from datasets import ClassLabel, Features, Image, Value
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.csv.csv import Csv, CsvConfig
@@ -153,6 +153,128 @@ def test_csv_convert_int_list(csv_file_with_int_list):
     assert pa.types.is_list(pa_table.schema.field("int_list").type)
     generated_content = pa_table.to_pydict()["int_list"]
     assert generated_content == [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+
+
+@pytest.mark.parametrize(
+    "dtype, values",
+    [
+        ("int8", [-128, 127]),
+        ("int16", [-32768, 32767]),
+        ("int32", [-2147483648, 2147483647]),
+        ("int64", [-9223372036854775808, 9007199254740993, 9223372036854775807]),
+        ("uint8", [0, 255]),
+        ("uint16", [0, 65535]),
+        ("uint32", [0, 4294967295]),
+        ("uint64", [0, 9007199254740993, 18446744073709551615]),
+        ("bool", [True, False]),
+        ("string", ["001", "003"]),
+    ],
+)
+@pytest.mark.parametrize("with_null", [False, True])
+@pytest.mark.parametrize("chunksize", [1, 10])
+def test_csv_generate_tables_nullable_scalars(tmp_path, dtype, values, with_null, chunksize):
+    values = [values[0], None, *values[1:]] if with_null else values
+    # Keep another column populated so a missing scalar is not an empty CSV row.
+    path = tmp_path / "nullable.csv"
+    path.write_text("value,text\n" + "".join(f"{'' if value is None else value},row\n" for value in values))
+    # Feature order can differ from the order in the CSV header.
+    features = Features({"text": Value("string"), "value": Value(dtype)})
+    csv = Csv(features=features, chunksize=chunksize)
+    tables = [table for _, table in csv._generate_tables(base_files=[str(path)], files_iterables=[[str(path)]])]
+    table = pa.concat_tables(tables)
+    assert table.schema == features.arrow_schema
+    assert table.to_pydict() == {"text": ["row"] * len(values), "value": values}
+    assert table["value"].null_count == int(with_null)
+    if chunksize == 1:
+        assert all(batch.num_rows == 1 for batch in tables)
+
+
+@pytest.mark.parametrize("chunksize", [1, 10])
+def test_csv_generate_tables_nullable_scalars_parser_options(tmp_path, chunksize):
+    path = tmp_path / "nullable.csv"
+    path.write_text('integer,boolean,text\n"1,234",yes,NA\nMISSING,MISSING,001\n5,no,003\n')
+    features = Features({"integer": Value("int64"), "boolean": Value("bool"), "text": Value("string")})
+    csv = Csv(
+        features=features,
+        chunksize=chunksize,
+        thousands=",",
+        true_values=["yes"],
+        false_values=["no"],
+        keep_default_na=False,
+        na_values=["MISSING"],
+    )
+    table = pa.concat_tables(
+        [table for _, table in csv._generate_tables(base_files=[str(path)], files_iterables=[[str(path)]])]
+    )
+    assert table.schema == features.arrow_schema
+    assert table.to_pydict() == {
+        "integer": [1234, None, 5],
+        "boolean": [True, None, False],
+        "text": ["NA", "001", "003"],
+    }
+
+
+def test_csv_generate_tables_scalars_na_filter_disabled(tmp_path):
+    path = tmp_path / "no_null.csv"
+    path.write_text("integer,boolean,text\n9007199254740993,True,NA\n5,False,\n")
+    features = Features({"integer": Value("int64"), "boolean": Value("bool"), "text": Value("string")})
+    csv = Csv(features=features, na_filter=False)
+    table = pa.concat_tables(
+        [table for _, table in csv._generate_tables(base_files=[str(path)], files_iterables=[[str(path)]])]
+    )
+    assert table.schema == features.arrow_schema
+    assert table.to_pydict() == {
+        "integer": [9007199254740993, 5],
+        "boolean": [True, False],
+        "text": ["NA", ""],
+    }
+
+
+@pytest.mark.parametrize("dtype", ["string", "large_string"])
+@pytest.mark.parametrize("engine", ["c", "python"])
+@pytest.mark.parametrize("chunksize", [1, 10])
+@pytest.mark.parametrize(
+    "content, values, options",
+    [
+        ('"001",row\n"003",row\n', ["001", "003"], {}),
+        ("01.20,row\n003.00,row\n", ["01.20", "003.00"], {}),
+        ("1e3,row\n2e-2,row\n", ["1e3", "2e-2"], {}),
+        ("001,row\n,row\nNA,row\n003,row\n", ["001", None, None, "003"], {}),
+        (
+            '001,row\n"",row\nNA,row\n003,row\n',
+            ["001", "", "NA", "003"],
+            {"keep_default_na": False},
+        ),
+        ("001,row\n,row\nNULL,row\n003,row\n", ["001", "", "NULL", "003"], {"na_filter": False}),
+        (
+            "001,row\nMISSING,row\n003,row\n",
+            ["001", None, "003"],
+            {"keep_default_na": False, "na_values": ["MISSING"]},
+        ),
+        ('"001",row\n"00,3",row\n"say ""hi""",row\n', ["001", "00,3", 'say "hi"'], {}),
+    ],
+    ids=[
+        "leading-zeros",
+        "decimals",
+        "scientific",
+        "default-na",
+        "keep-default-na",
+        "na-filter",
+        "custom-na",
+        "quotes",
+    ],
+)
+def test_csv_generate_tables_declared_strings(tmp_path, dtype, engine, chunksize, content, values, options):
+    path = tmp_path / "strings.csv"
+    path.write_text("value,tag\n" + content)
+    features = Features({"tag": Value("string"), "value": Value(dtype)})
+    csv = Csv(features=features, engine=engine, chunksize=chunksize, **options)
+    table = pa.concat_tables(
+        [table for _, table in csv._generate_tables(base_files=[str(path)], files_iterables=[[str(path)]])]
+    )
+    assert table.schema == features.arrow_schema
+    assert table.to_pydict() == {"tag": ["row"] * len(values), "value": values}
+    assert table["value"].is_null().to_pylist() == [value is None for value in values]
 
 
 @pytest.mark.parametrize("pandas_version", ["2.0.3", "2.1.4", "2.2.3"])

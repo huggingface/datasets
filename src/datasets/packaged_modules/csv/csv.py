@@ -183,14 +183,23 @@ class Csv(datasets.ArrowBasedBuilder):
     def _generate_tables(self, base_files, files_iterables):
         schema = self.config.features.arrow_schema if self.config.features else None
         # dtype allows reading an int column as str
-        dtype = (
-            {
-                name: dtype.to_pandas_dtype() if not require_storage_cast(feature) else object
-                for name, dtype, feature in zip(schema.names, schema.types, self.config.features.values())
-            }
-            if schema is not None
-            else None
-        )
+        dtype = None
+        if schema is not None:
+            dtype = {}
+            for name, arrow_type, feature in zip(schema.names, schema.types, self.config.features.values()):
+                if require_storage_cast(feature):
+                    dtype[name] = object
+                elif pa.types.is_string(arrow_type) or pa.types.is_large_string(arrow_type):
+                    # NumPy's object_ scalar type allows inference in the Python CSV parser.
+                    dtype[name] = object
+                elif pa.types.is_integer(arrow_type):
+                    # Nullable integer dtypes preserve missing values without a float conversion.
+                    prefix = "UInt" if pa.types.is_unsigned_integer(arrow_type) else "Int"
+                    dtype[name] = pd.api.types.pandas_dtype(f"{prefix}{arrow_type.bit_width}")
+                elif pa.types.is_boolean(arrow_type):
+                    dtype[name] = pd.BooleanDtype()
+                else:
+                    dtype[name] = arrow_type.to_pandas_dtype()
         for shard_idx, files_iterable in enumerate(files_iterables):
             for file in files_iterable:
                 csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.pd_read_csv_kwargs)
