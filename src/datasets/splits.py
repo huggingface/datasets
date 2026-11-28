@@ -296,6 +296,9 @@ class _SplitMerged(SplitBase):
         read_instruction2 = self._split2.get_read_instruction(split_dict)
         return read_instruction1 + read_instruction2
 
+    def __str__(self):
+        return f"{self._split1}+{self._split2}"
+
     def __repr__(self):
         return f"({repr(self._split1)} + {repr(self._split2)})"
 
@@ -309,6 +312,23 @@ class _SubSplit(SplitBase):
 
     def get_read_instruction(self, split_dict):
         return self._split.get_read_instruction(split_dict)[self._slice_value]
+
+    def __str__(self):
+        if self._slice_value.step is not None:
+            raise ValueError("Split slices do not support a step")
+
+        start = "" if self._slice_value.start is None else f"{self._slice_value.start}%"
+        stop = "" if self._slice_value.stop is None else f"{self._slice_value.stop}%"
+        slice_spec = f"[{start}:{stop}]" if start or stop else ""
+
+        def add_slice(split):
+            if isinstance(split, _SplitMerged):
+                return f"{add_slice(split._split1)}+{add_slice(split._split2)}"
+            if isinstance(split, _SubSplit):
+                raise ValueError("Trying to slice a split which has already been sliced")
+            return f"{split}{slice_spec}"
+
+        return add_slice(self._split)
 
     def __repr__(self):
         slice_str = "{start}:{stop}"
