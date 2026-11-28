@@ -1,3 +1,4 @@
+import io
 import json
 import unittest.mock
 
@@ -207,6 +208,62 @@ def test_parquet_write(dataset, tmp_path):
     assert dataset.data.table == output_table
 
 
+@pytest.mark.parametrize("failure", [None, "query", "write", "metadata"])
+@pytest.mark.parametrize("destination_kind", ["path", "buffer"])
+def test_parquet_writer_finalizes_on_error(dataset, tmp_path, monkeypatch, failure, destination_kind):
+    error = OSError("injected parquet export failure")
+    writers = []
+    closed_during_cleanup = []
+    original_query_table = datasets.io.parquet.query_table
+
+    class ObservedParquetWriter(pq.ParquetWriter):
+        def __init__(self, file_obj, **kwargs):
+            super().__init__(file_obj, **kwargs)
+            self.file_obj = file_obj
+            self.batch_count = 0
+            writers.append(self)
+
+        def write_table(self, table, **kwargs):
+            if failure == "write" and self.batch_count == 1:
+                raise error
+            super().write_table(table, **kwargs)
+            self.batch_count += 1
+
+        def add_key_value_metadata(self, metadata):
+            if failure == "metadata":
+                raise error
+            super().add_key_value_metadata(metadata)
+
+        def close(self):
+            closed_during_cleanup.append(self.file_obj.closed)
+            super().close()
+
+    def query_table(*args, **kwargs):
+        if failure == "query" and kwargs["key"].start == 1:
+            raise error
+        return original_query_table(*args, **kwargs)
+
+    monkeypatch.setattr("datasets.io.parquet.pq.ParquetWriter", ObservedParquetWriter)
+    monkeypatch.setattr("datasets.io.parquet.query_table", query_table)
+    destination = io.BytesIO() if destination_kind == "buffer" else tmp_path / "output.parquet"
+    if failure is None:
+        assert dataset.to_parquet(destination, batch_size=1) == dataset.data.table.nbytes
+    else:
+        with pytest.raises(OSError, match="injected parquet export failure") as exc:
+            dataset.to_parquet(destination, batch_size=1)
+        assert exc.value is error
+
+    # Retain the writer so destructor cleanup cannot hide a missing explicit close.
+    assert len(writers) == 1
+    assert not writers[0].is_open
+    assert closed_during_cleanup == [False]
+    if destination_kind == "buffer":
+        assert not destination.closed
+        destination.seek(0)
+    expected_rows = 1 if failure in ("query", "write") else len(dataset)
+    assert pq.read_table(destination).equals(dataset.data.table.slice(0, expected_rows))
+
+
 def test_parquet_write_uses_content_defined_chunking(dataset, tmp_path):
     assert config.DEFAULT_CDC_OPTIONS == {
         "min_chunk_size": 256 * 1024,  # 256 KiB
@@ -215,6 +272,7 @@ def test_parquet_write_uses_content_defined_chunking(dataset, tmp_path):
     }
 
     with unittest.mock.patch("pyarrow.parquet.ParquetWriter") as MockWriter:
+        MockWriter.return_value.__enter__.return_value = MockWriter.return_value
         writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet")
         writer.write()
         assert MockWriter.call_count == 1
