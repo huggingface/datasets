@@ -220,26 +220,17 @@ def infer_module_for_data_files_list(
         ("." + suffix.lower(), xbasename(filepath) in _ALL_METADATA_FILENAMES)
         for filepath in data_files_list
         for suffix in xbasename(filepath).split(".")[1:]
+        # Only a final .tar suffix identifies WebDataset, not an archive container in a compound extension.
+        if suffix.lower() != "tar" or xbasename(filepath).lower().endswith(".tar")
     )
     if extensions_counter:
 
-        def sort_key(ext_count: tuple[tuple[str, bool], int]) -> tuple[int, bool]:
-            """Sort by count and set ".parquet" as the favorite in case of a draw, and ignore metadata files"""
+        def sort_key(ext_count: tuple[tuple[str, bool], int]) -> tuple[bool, int, bool, str]:
+            """Sort by metadata status, count, parquet preference, then alphabetically."""
             (ext, is_metadata), count = ext_count
-            return (
-                not is_metadata,
-                count,
-                ext == ".parquet",
-                ext == ".lance",
-                ext == ".vortex",
-                ext == ".arrow",
-                ext == ".jsonl",
-                ext == ".json",
-                ext == ".csv",
-                ext,
-            )
+            return is_metadata, -count, ext != ".parquet", ext
 
-        for (ext, _), _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
+        for (ext, _), _ in sorted(extensions_counter.items(), key=sort_key):
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
             elif ext == ".zip":
