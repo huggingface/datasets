@@ -8,7 +8,7 @@ from huggingface_hub import CommitOperationAdd, CommitOperationDelete
 
 import datasets
 from datasets.config import METADATA_CONFIGS_FIELD
-from datasets.hub import delete_from_hub
+from datasets.hub import _delete_files, delete_from_hub
 from datasets.utils.hub import hf_dataset_url
 
 
@@ -90,3 +90,95 @@ def test_delete_from_hub(temporary_repo, hf_api, hf_token, csv_path, ci_hub_conf
     assert isinstance(add_operation, CommitOperationAdd)
     assert add_operation.path_in_repo == "README.md"
     assert add_operation.path_or_fileobj == expected_readme
+
+
+def test_delete_from_hub_respects_revision_token_and_endpoint(tmp_path, monkeypatch) -> None:
+    custom_endpoint = "https://custom-hub.example.org"
+    monkeypatch.setattr(datasets.config, "HF_ENDPOINT", custom_endpoint)
+
+    readme_path = tmp_path / "README.md"
+    readme_path.write_text(
+        dedent(
+            f"""\
+            ---
+            {METADATA_CONFIGS_FIELD}:
+            - config_name: cats
+              data_files:
+              - split: train
+                path: cats/train/*
+            - config_name: dogs
+              data_files:
+              - split: train
+                path: dogs/train/*
+            ---
+            Revision-specific body.
+            """
+        ),
+        encoding="utf-8",
+    )
+
+    fake_builder = SimpleNamespace(
+        config=SimpleNamespace(data_files={"train": ["hf://datasets/org/ds@dev/dogs/train/0000.csv"]})
+    )
+    fake_resolved = SimpleNamespace(repo_id="org/ds", path_in_repo="dogs/train/0000.csv")
+    commit_info = SimpleNamespace(pr_url="https://custom-hub.example.org/datasets/org/ds/discussions/1")
+
+    download_calls = []
+
+    def fake_hf_hub_download(self, repo_id, filename, **kwargs):
+        download_calls.append(
+            {
+                "endpoint": self.endpoint,
+                "token": self.token,
+                "repo_id": repo_id,
+                "filename": filename,
+                "kwargs": kwargs,
+            }
+        )
+        return str(readme_path)
+
+    with (
+        patch("datasets.hub.HfFileSystem") as mock_fs_cls,
+        patch("datasets.hub.load_dataset_builder", return_value=fake_builder),
+        patch.object(datasets.hub.HfApi, "hf_hub_download", fake_hf_hub_download),
+        patch.object(datasets.hub.HfApi, "create_commit", return_value=commit_info) as mock_commit,
+    ):
+        mock_fs_cls.return_value.resolve_path.return_value = fake_resolved
+        result = delete_from_hub("org/ds", "dogs", revision="dev", token="hf_secret_token")
+
+    assert result is commit_info
+    assert len(download_calls) == 1
+    assert download_calls[0] == {
+        "endpoint": custom_endpoint,
+        "token": "hf_secret_token",
+        "repo_id": "org/ds",
+        "filename": "README.md",
+        "kwargs": {"repo_type": "dataset", "revision": "dev"},
+    }
+    assert mock_commit.call_args.kwargs["revision"] == "dev"
+    assert mock_commit.call_args.kwargs["token"] == "hf_secret_token"
+    operations = mock_commit.call_args.kwargs["operations"]
+    assert len(operations) == 2
+    delete_operation, add_operation = operations
+    assert isinstance(delete_operation, CommitOperationDelete)
+    assert delete_operation.path_in_repo == "dogs/train/0000.csv"
+    assert isinstance(add_operation, CommitOperationAdd)
+    assert add_operation.path_in_repo == "README.md"
+    assert b"Revision-specific body." in add_operation.path_or_fileobj
+    assert b"config_name: cats" in add_operation.path_or_fileobj
+    assert b"config_name: dogs" not in add_operation.path_or_fileobj
+
+
+def test_delete_files_passes_revision_to_list_repo_files() -> None:
+    with (
+        patch.object(
+            datasets.hub.HfApi, "list_repo_files", return_value=["README.md", "dataset_infos.json", "train/0.parquet"]
+        ) as mock_list,
+        patch.object(datasets.hub.HfApi, "delete_file") as mock_delete,
+    ):
+        _delete_files("org/ds", revision="dev", token="hf_secret_token")
+
+    mock_list.assert_called_once_with("org/ds", repo_type="dataset", revision="dev")
+    assert mock_delete.call_count == 2
+    for call in mock_delete.call_args_list:
+        assert call.kwargs["revision"] == "dev"

@@ -45,7 +45,19 @@ def delete_from_hub(
         if data_file_resolved_path.repo_id == repo_id:
             operations.append(CommitOperationDelete(path_in_repo=data_file_resolved_path.path_in_repo))
     # README.md
-    dataset_card = DatasetCard.load(repo_id)
+    api = HfApi(
+        endpoint=datasets.config.HF_ENDPOINT,
+        token=token,
+        library_name="datasets",
+        library_version=__version__,
+    )
+    dataset_card_path = api.hf_hub_download(
+        repo_id,
+        datasets.config.REPOCARD_FILENAME,
+        repo_type="dataset",
+        revision=revision,
+    )
+    dataset_card = DatasetCard.load(dataset_card_path)
     # config_names
     if dataset_card.data.get("config_names", None) and config_name in dataset_card.data["config_names"]:
         dataset_card.data["config_names"].remove(config_name)
@@ -75,12 +87,6 @@ def delete_from_hub(
     operations.append(
         CommitOperationAdd(path_in_repo=datasets.config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
     )
-    api = HfApi(
-        endpoint=datasets.config.HF_ENDPOINT,
-        token=token,
-        library_name="datasets",
-        library_version=__version__,
-    )
     commit_info = api.create_commit(
         repo_id,
         operations=operations,
@@ -105,6 +111,7 @@ def _delete_files(dataset_id, revision=None, token=None):
     repo_files = hf_api.list_repo_files(
         dataset_id,
         repo_type="dataset",
+        revision=revision,
     )
     if repo_files:
         legacy_json_file = []
