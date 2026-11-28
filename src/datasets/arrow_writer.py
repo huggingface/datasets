@@ -574,6 +574,8 @@ class ArrowWriter:
         self.current_examples: list[tuple[dict[str, Any], str]] = []
         self.current_rows: list[pa.Table] = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
+        self._finalized = False
+        self._finalize_attempted = False
         self.hkey_record = []
 
     def __len__(self):
@@ -584,17 +586,38 @@ class ArrowWriter:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
+        if exc_type is None:
+            self.close()
+        else:
+            # The with body already failed: don't let a flush failure replace the
+            # original exception. The flush failure is logged for diagnosis instead.
+            try:
+                self.close()
+            except Exception:
+                logger.exception("Failed to finalize ArrowWriter while handling an exception")
 
     def close(self):
-        # Try closing if opened; if closed: pyarrow.lib.ArrowInvalid: Invalid operation on closed file
-        if self.pa_writer:  # it might be None
-            try:
-                self.pa_writer.close()
-            except Exception:  # pyarrow.lib.ArrowInvalid, OSError
-                pass
-        if self._closable_stream and not self.stream.closed:
-            self.stream.close()  # This also closes self.pa_writer if it is opened
+        try:
+            if not self._finalized and not self._finalize_attempted:
+                # Flush any staged examples/rows first, so closing the writer (including
+                # exiting a `with` block) never silently discards data that was written
+                # but not yet flushed by `finalize()`.
+                self._finalize_attempted = True
+                try:
+                    self.finalize(close_stream=self._closable_stream)
+                except SchemaInferenceError:
+                    # Nothing was ever written and no schema is known, so there is no
+                    # valid file to produce; fall through and just close the stream.
+                    pass
+        finally:
+            # Try closing if opened; if closed: pyarrow.lib.ArrowInvalid: Invalid operation on closed file
+            if self.pa_writer:  # it might be None
+                try:
+                    self.pa_writer.close()
+                except Exception:  # pyarrow.lib.ArrowInvalid, OSError
+                    pass
+            if self._closable_stream and not self.stream.closed:
+                self.stream.close()  # This also closes self.pa_writer if it is opened
 
     def _build_schema(self, inferred_schema: pa.Schema):
         schema = self.schema
@@ -845,6 +868,7 @@ class ArrowWriter:
         logger.debug(
             f"Done writing {self._num_examples} {self.unit} in {self._num_bytes} bytes {self._path if self._path else ''}."
         )
+        self._finalized = True
         return self._num_examples, self._num_bytes
 
 
