@@ -1,3 +1,4 @@
+import json
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any
 
@@ -38,9 +39,9 @@ def json_encode_field(example: Any, json_field_path: list[str]) -> Any:
         return None
     else:
         try:
-            ujson_loads(example)
+            json.loads(example)
         except Exception:
-            return ujson_dumps(example)
+            return json.dumps(example)
         else:
             return example
 
@@ -134,10 +135,10 @@ def insert_json_field_path(json_field_paths: list[list[str]], json_field_path: l
 
 
 def json_encode_fields_in_json_lines(original_batch: bytes, json_field_paths: list[list[str]]) -> bytes:
-    examples = [ujson_loads(line) for line in original_batch.splitlines()]
+    examples = [json.loads(line) for line in original_batch.splitlines()]
     for json_field_path in json_field_paths:
         examples = [json_encode_field(example, json_field_path) for example in examples]
-    batch = "\n".join([ujson_dumps(example) for example in examples]).encode()
+    batch = "\n".join([json.dumps(example) for example in examples]).encode()
     return batch
 
 

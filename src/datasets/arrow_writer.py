@@ -53,7 +53,6 @@ from .utils.json import (
     json_encode_field,
     json_encode_fields_in_json_lines,
     set_json_types_in_feature,
-    ujson_dumps,
 )
 from .utils.py_utils import asdict, convert_file_size_to_int, first_non_null_non_empty_value
 
@@ -452,7 +451,7 @@ class TypedSequence:
                         or "Expected " in str(ee)
                     ):
                         # we use "obj" to have valid JSON Lines since data may contain lists
-                        original_batch = "\n".join([ujson_dumps({"obj": example}) for example in data]).encode()
+                        original_batch = "\n".join([json.dumps({"obj": example}) for example in data]).encode()
                         json_field_paths = [["obj"] + json_field_path for json_field_path in json_field_paths]
                         batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
                         pa_table = None
