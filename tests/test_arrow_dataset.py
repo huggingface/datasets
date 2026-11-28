@@ -4024,6 +4024,15 @@ def test_interleave_datasets_probabilities_empty_source(stopping_strategy):
         )
 
 
+def test_interleave_datasets_empty_source_all_exhausted_raises():
+    d_full = Dataset.from_dict({"a": [0, 1, 2]})
+    d_empty = Dataset.from_dict({"a": []})
+    with pytest.raises(ValueError, match="requires every dataset to be non-empty"):
+        interleave_datasets([d_full, d_empty], stopping_strategy="all_exhausted")
+    with pytest.raises(ValueError, match="requires every dataset to be non-empty"):
+        interleave_datasets([d_empty, d_full], stopping_strategy="all_exhausted")
+
+
 def test_interleave_datasets_probabilities_zero_probability_source():
     # A source with probability 0 is never drawn, so under "first_exhausted" it
     # neither contributes rows nor blocks the stop condition -- even when it is

@@ -7933,6 +7933,13 @@ def _interleave_map_style_datasets(
         # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 5, 9, 0, 6, 10, 1, 3, 11]
         # Note that we have 5 examples per dataset with a rolling window since the longest dataset has 5 samples
 
+        empty = [i for i in range(len(lengths)) if lengths[i] == 0]
+        if empty:
+            raise ValueError(
+                "interleave_datasets with stopping_strategy='all_exhausted' requires every dataset "
+                f"to be non-empty; datasets at indices {empty} are empty."
+            )
+
         # Reasoning behind the following operation: for each dataset indices (i.e column) repeat the indices to have max_length indices per dataset
         # For example, if the max_length is 5 and the i-th dataset has 3 samples, the i-th column will be [0,1,2,0,1]
         indices = np.mod(np.arange(max(lengths)).reshape(-1, 1), np.array(lengths).reshape(1, -1))
