@@ -624,7 +624,10 @@ def update_metadata_with_features(table: Table, features: Features):
         else:
             metadata["info"]["features"] = asdict(DatasetInfo(features=features))["features"]
         pa_metadata = {"huggingface": json.dumps(metadata)}
-    table = table.replace_schema_metadata(pa_metadata)
+    if table.num_columns:
+        table = table.replace_schema_metadata(pa_metadata)
+    else:
+        table = InMemoryTable.from_batches(table.to_batches(), schema=table.schema.with_metadata(pa_metadata))
     return table
 
 
@@ -782,7 +785,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # In case there are types like pa.dictionary that we need to convert to the underlying type
 
-        if self.data.schema != self.info.features.arrow_schema:
+        # Casting a zero-column table loses its row count in Arrow.
+        if self.data.schema != self.info.features.arrow_schema and (self.data.num_columns or self.info.features):
             self._data = self.data.cast(self.info.features.arrow_schema)
 
         # Infer fingerprint if None
@@ -1303,6 +1307,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         {"room": "living room", "state": "on"}
         ```
         """
+        if mapping and not mapping[0]:
+            if info is not None and features is not None and info.features != features:
+                raise ValueError(
+                    f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
+                )
+            features = features if features is not None else info.features if info is not None else None
+            if features is not None:
+                features = _fix_for_backward_compatible_features(features)
+            if info is None:
+                info = DatasetInfo()
+            info.features = features
+            table = InMemoryTable.from_arrays([pa.nulls(len(mapping))], names=["__empty__"]).drop(["__empty__"])
+            return cls(table, info=info, split=split)
+
         # for simplicity and consistency wrt OptimizedTypedSequence we do not use InMemoryTable.from_pylist here
         mapping = {k: [r.get(k) for r in mapping] for k in mapping[0]} if mapping else {}
         return cls.from_dict(mapping, features, info, split, on_mixed_types=on_mixed_types)
@@ -2550,10 +2568,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features: ['text'],
             num_rows: 1066
         })
-        >>> ds = ds.remove_columns(column_names=ds.column_names) # Removing all the columns returns an empty dataset with the `num_rows` property set to 0
+        >>> ds = ds.remove_columns(column_names=ds.column_names) # Removing all columns preserves the `num_rows` property
         Dataset({
             features: [],
-            num_rows: 0
+            num_rows: 1066
         })
         ```
         """
