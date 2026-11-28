@@ -5,8 +5,9 @@ import os
 import fsspec
 import pyarrow as pa
 import pytest
+from PIL import Image as PILImage
 
-from datasets import Dataset, DatasetDict, Features, Json, List, NamedSplit, Value
+from datasets import Dataset, DatasetDict, Features, Image, Json, List, NamedSplit, Value
 from datasets.formatting import query_table
 from datasets.io.json import JsonDatasetReader, JsonDatasetWriter
 
@@ -204,6 +205,12 @@ def load_json_lines(buffer):
     return [json.loads(line) for line in buffer]
 
 
+def _create_image_bytes():
+    buffer = io.BytesIO()
+    PILImage.new("RGB", (2, 2), (255, 0, 0)).save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
 class TestJsonDatasetWriter:
     @pytest.mark.parametrize("num_proc", [None, 2])
     @pytest.mark.parametrize("orient", ["records", "split", "index", "columns", "values", "table"])
@@ -320,6 +327,42 @@ class TestJsonDatasetWriter:
         with pytest.raises(ValueError):
             with io.BytesIO() as buffer:
                 JsonDatasetWriter(dataset, buffer, num_proc=0)
+
+    @pytest.mark.parametrize("num_proc", [None, 2])
+    def test_dataset_to_json_binary_column_with_non_utf8_bytes(self, num_proc):
+        dataset = Dataset.from_dict(
+            {"binary_column": [b"\x00\xff"]}, features=Features({"binary_column": Value("binary")})
+        )
+        with io.BytesIO() as buffer, pytest.raises(ValueError, match="binary_column"):
+            dataset.to_json(buffer, num_proc=num_proc)
+
+    @pytest.mark.parametrize("num_proc", [None, 2])
+    def test_dataset_to_json_nested_binary_column_with_non_utf8_bytes(self, num_proc):
+        dataset = Dataset.from_dict(
+            {"nested_column": [{"binary_value": b"\x00\xff"}]},
+            features=Features({"nested_column": {"binary_value": Value("binary")}}),
+        )
+        with io.BytesIO() as buffer, pytest.raises(ValueError, match="nested_column"):
+            dataset.to_json(buffer, num_proc=num_proc)
+
+    @pytest.mark.parametrize("num_proc", [None, 2])
+    def test_dataset_to_json_image_column_with_bytes(self, num_proc):
+        dataset = Dataset.from_dict(
+            {"img": [{"bytes": _create_image_bytes(), "path": None}]}, features=Features({"img": Image()})
+        )
+        with io.BytesIO() as buffer, pytest.raises(ValueError, match="img"):
+            dataset.to_json(buffer, num_proc=num_proc)
+
+    def test_dataset_to_json_image_column_with_path_only(self, tmp_path):
+        image_path = tmp_path / "image.png"
+        PILImage.new("RGB", (2, 2), (255, 0, 0)).save(image_path, format="PNG")
+        dataset = Dataset.from_dict(
+            {"img": [{"bytes": None, "path": str(image_path)}]}, features=Features({"img": Image()})
+        )
+        with io.BytesIO() as buffer:
+            dataset.to_json(buffer)
+            buffer.seek(0)
+            assert load_json_lines(buffer) == [{"img": {"bytes": None, "path": str(image_path)}}]
 
     @pytest.mark.parametrize("compression, extension", [("gzip", "gz"), ("bz2", "bz2"), ("xz", "xz")])
     def test_dataset_to_json_compression(self, shared_datadir, tmp_path_factory, extension, compression, dataset):
