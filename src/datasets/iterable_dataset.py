@@ -5075,9 +5075,9 @@ class IterableDataset(DatasetInfoMixin):
 
         batch_size = get_arrow_writer_batch_size_from_features(self.features) or config.DEFAULT_MAX_BATCH_SIZE
         table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=batch_size)))
-        return Dataset(table, fingerprint="unset").to_parquet(
-            path_or_buf, storage_options=storage_options, **parquet_writer_kwargs
-        )
+        return Dataset(
+            table, info=DatasetInfo(column_metadata=self._info.column_metadata), fingerprint="unset"
+        ).to_parquet(path_or_buf, storage_options=storage_options, **parquet_writer_kwargs)
 
     def _write_parquet_shards(
         self,
@@ -5099,6 +5099,7 @@ class IterableDataset(DatasetInfoMixin):
         The caller is responsible for deleting the yielded files.
         """
         from .arrow_writer import get_arrow_writer_batch_size_from_features
+        from .io.parquet import _with_column_metadata
 
         num_output_shards = end - start
         num_input_shards = self.num_shards
@@ -5122,7 +5123,7 @@ class IterableDataset(DatasetInfoMixin):
                 yield start + i, tmp_file.name
             return
 
-        schema = self.features.arrow_schema
+        schema = _with_column_metadata(self.features.arrow_schema, self._info.column_metadata)
         batch_size = get_arrow_writer_batch_size_from_features(self.features) or config.DEFAULT_MAX_BATCH_SIZE
         for input_index in range(num_input_shards):
             first_output, end_output = _split_evenly(num_shards, num_source_shards, first_source_shard + input_index)
