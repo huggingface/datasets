@@ -156,6 +156,36 @@ def _batch_to_examples(batch: dict[str, list]) -> Iterator[dict[str, Any]]:
         yield {col: array[i] for col, array in batch.items()}
 
 
+def _promote_null_arrow_schemas(
+    arrow_objects: list[Union[pa.Table, pa.RecordBatch]],
+) -> list[Union[pa.Table, pa.RecordBatch]]:
+    """Cast Arrow tables or batches to a common schema when null fields gain a concrete type."""
+    if len(arrow_objects) < 2:
+        return arrow_objects
+    schemas = [obj.schema for obj in arrow_objects]
+    if any(schema.names != schemas[0].names for schema in schemas[1:]):
+        return arrow_objects
+
+    has_null_promotion = False
+    for column_idx in range(len(schemas[0])):
+        concrete_type = None
+        has_null_type = False
+        for schema in schemas:
+            column_type = schema.field(column_idx).type
+            if pa.types.is_null(column_type):
+                has_null_type = True
+            elif concrete_type is None:
+                concrete_type = column_type
+            elif column_type != concrete_type:
+                return arrow_objects
+        has_null_promotion = has_null_promotion or (concrete_type is not None and has_null_type)
+
+    if not has_null_promotion:
+        return arrow_objects
+    schema = pa.unify_schemas(schemas)
+    return [obj if obj.schema == schema else obj.cast(schema) for obj in arrow_objects]
+
+
 def _convert_to_arrow(
     iterable: Iterable[tuple[Key, dict]],
     batch_size: int,
@@ -591,6 +621,11 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                     chunk_length_to_crop = 0
                 if len(chunk) == 0:
                     continue
+
+                if chunks_buffer and chunk.schema != chunks_buffer[0].schema:
+                    normalized_chunks = _promote_null_arrow_schemas([*chunks_buffer, chunk])
+                    chunks_buffer = normalized_chunks[:-1]
+                    chunk = normalized_chunks[-1]
 
                 if chunks_buffer_size + len(chunk) < self.batch_size:
                     keys_buffer.append(key)
@@ -1727,6 +1762,14 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 and self.drop_last_batch
             ):
                 return
+            if (
+                self.is_batch_accumulate_arrow_table_function
+                and tables_accumulator
+                and tables_accumulator[0].schema != pa_table.schema
+            ):
+                normalized_tables = _promote_null_arrow_schemas([*tables_accumulator, pa_table])
+                tables_accumulator[:] = normalized_tables[:-1]
+                pa_table = normalized_tables[-1]
             # first build the batch
             function_args = (
                 [formatter.format_batch(pa_table)]

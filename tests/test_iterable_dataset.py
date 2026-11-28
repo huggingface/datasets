@@ -3981,6 +3981,16 @@ def test_iterable_dataset_batch_by_column_survives_resharding():
     assert all(len(set(batch["category"])) == 1 for batch in shuffled)
 
 
+@pytest.mark.parametrize("batch_size", [None, 1, 2])
+def test_iterable_dataset_batch_by_column_promotes_null_inferred_schema(batch_size):
+    rows = [{"id": 0, "key": None}, {"id": 1, "key": "A"}, {"id": 2, "key": None}]
+    dataset = IterableDataset.from_generator(lambda: iter(rows))
+
+    batches = list(dataset.batch(by_column="key", batch_size=batch_size))
+
+    assert [batch["id"] for batch in batches] == [[0], [1], [2]]
+
+
 @pytest.mark.parametrize("num_shards", [1, 2, 3, 7, 10])
 def test_iterable_dataset_batch_by_column(num_shards: int):
     # Create a Dataset with a column to group by
