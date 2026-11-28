@@ -79,9 +79,16 @@ class DownloadConfig:
             if "hf" not in self.storage_options:
                 self.storage_options["hf"] = {"endpoint": config.HF_ENDPOINT, "token": value}
             else:
-                self.storage_options["hf"]["token"] = value
+                self.storage_options["hf"] = {**self.storage_options["hf"], "token": value}
         super().__setattr__(name, value)
 
     def __post_init__(self):
+        # Copy storage_options (and its "hf" mapping) so caller-supplied dicts are not mutated in place.
+        if self.storage_options is not None:
+            self.storage_options = dict(self.storage_options)
+            if isinstance(self.storage_options.get("hf"), dict):
+                self.storage_options["hf"] = dict(self.storage_options["hf"])
+                if self.token is None and "token" in self.storage_options["hf"]:
+                    super().__setattr__("token", self.storage_options["hf"]["token"])
         # update storage_options
         self.token = self.token
