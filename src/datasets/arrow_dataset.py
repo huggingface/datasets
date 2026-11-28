@@ -5308,11 +5308,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     raise ValueError(
                         f"Stratifying by column is only supported for {ClassLabel.__name__} column, and column {stratify_by_column} is {type(self._info.features[stratify_by_column]).__name__}."
                     )
+                # Read the labels as one Arrow column: `np.asarray` on a `Column` reads the dataset row by row
+                labels = self._data.column(stratify_by_column)
+                if self._indices is not None:
+                    labels = labels.take(self._indices.column(0))
+                labels = labels.to_numpy()
                 try:
                     train_indices, test_indices = next(
-                        stratified_shuffle_split_generate_indices(
-                            np.asarray(self.with_format("numpy")[stratify_by_column]), n_train, n_test, rng=generator
-                        )
+                        stratified_shuffle_split_generate_indices(labels, n_train, n_test, rng=generator)
                     )
                 except Exception as error:
                     if str(error) == "Minimum class count error":

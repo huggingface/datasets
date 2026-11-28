@@ -4828,6 +4828,35 @@ class StratifiedTest(TestCase):
             assert len(d1["train"]["text"]) == train_size
             assert len(d1["test"]["text"]) == test_size
 
+    def test_train_test_split_stratify_reads_labels_column_at_once(self):
+        labels = [0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 0, 1, 2]
+        features = Features({"idx": Value("int64"), "label": ClassLabel(num_classes=3)})
+        dset = Dataset.from_dict({"idx": list(range(len(labels))), "label": labels}, features=features)
+        dset = dset.shuffle(seed=0)
+        stratify = datasets.arrow_dataset.stratified_shuffle_split_generate_indices
+        with (
+            patch.object(Dataset, "_getitem", autospec=True, side_effect=Dataset._getitem) as mock_getitem,
+            patch.object(
+                datasets.arrow_dataset, "stratified_shuffle_split_generate_indices", wraps=stratify
+            ) as mock_stratify,
+        ):
+            dset_dict = dset.train_test_split(test_size=0.25, seed=42, stratify_by_column="label")
+        # the labels must be read as a column, never one row at a time
+        self.assertEqual(mock_getitem.call_count, 0)
+        y = mock_stratify.call_args.args[0]
+        self.assertIsInstance(y, np.ndarray)
+        self.assertEqual(y.dtype, np.int64)
+        npt.assert_array_equal(y, np.array(labels)[dset["idx"][:]])
+        # both splits together hold every row exactly once
+        train_idx, test_idx = dset_dict["train"]["idx"][:], dset_dict["test"]["idx"][:]
+        self.assertEqual(len(test_idx), 4)
+        self.assertListEqual(sorted(train_idx + test_idx), list(range(len(labels))))
+        # class proportions are preserved: classes hold 6, 5 and 5 of 16 rows, so a test split of 4 holds 1 or 2 of each
+        test_counts = np.bincount(np.array(labels)[test_idx], minlength=3)
+        self.assertTrue(np.all((test_counts >= 1) & (test_counts <= 2)))
+        train_counts = np.bincount(np.array(labels)[train_idx], minlength=3)
+        npt.assert_array_equal(train_counts + test_counts, np.bincount(labels))
+
 
 @pytest.mark.parametrize("feature_cls", [BioSequence, BioStructure, Image, Mesh, Nifti, Pdf, Video])
 def test_dataset_estimate_nbytes_counts_external_files(feature_cls, tmp_path):
