@@ -1511,12 +1511,25 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
     return schema()
 
 
+def _contains_class_label(schema: FeatureType) -> bool:
+    if isinstance(schema, ClassLabel):
+        return True
+    elif isinstance(schema, dict):
+        return any(_contains_class_label(sub_schema) for sub_schema in schema.values())
+    elif isinstance(schema, (LargeList, List)):
+        return _contains_class_label(schema.feature)
+    elif isinstance(schema, (list, tuple)):
+        return any(_contains_class_label(sub_schema) for sub_schema in schema)
+    return False
+
+
 def encode_nested_example(schema, obj, level=0):
     """Encode a nested example.
     This is used since some features (in particular ClassLabel) have some logic during encoding.
 
     To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be encoded.
-    If the first element needs to be encoded, then all the elements of the list will be encoded, otherwise they'll stay the same.
+    For lists containing ClassLabel, it keeps checking until it finds a value that needs encoding because ids and names can be mixed.
+    If an element needs to be encoded, all elements of the list will be encoded; otherwise, they stay the same.
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
@@ -1533,15 +1546,18 @@ def encode_nested_example(schema, obj, level=0):
         else:
             if len(obj) > 0:
                 sub_schema = schema.feature
+                contains_class_label = _contains_class_label(sub_schema)
                 for first_elmt in obj:
-                    if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
+                    if not _check_non_null_non_empty_recursive(first_elmt, sub_schema):
+                        continue
+                    try:
+                        changed = bool(encode_nested_example(sub_schema, first_elmt, level=level + 1) != first_elmt)
+                    except ValueError:  # can happen when comparing arrays
+                        changed = False
+                    if changed:
+                        return [encode_nested_example(sub_schema, o, level=level + 1) for o in obj]
+                    if not contains_class_label:
                         break
-                try:
-                    changed = bool(encode_nested_example(sub_schema, first_elmt, level=level + 1) != first_elmt)
-                except ValueError:  # can happen when comparing arrays
-                    changed = False
-                if changed:
-                    return [encode_nested_example(sub_schema, o, level=level + 1) for o in obj]
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks

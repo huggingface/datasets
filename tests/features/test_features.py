@@ -498,6 +498,13 @@ def test_encode_example(features_dict, example, expected_encoded_example):
     assert encoded_example == expected_encoded_example
 
 
+def test_dataset_list_of_class_label_values_accepts_ids_and_names():
+    features = Features({"labels": List(ClassLabel(names=["a", "b"]))})
+    dataset = Dataset.from_dict({"labels": [[0, "b"], ["a", 1]]}, features=features)
+
+    assert dataset["labels"][:] == [[0, 1], [0, 1]]
+
+
 def test_encode_batch_with_example_with_empty_first_elem():
     features = Features(
         {
