@@ -193,7 +193,23 @@ class Csv(datasets.ArrowBasedBuilder):
         )
         for shard_idx, files_iterable in enumerate(files_iterables):
             for file in files_iterable:
-                csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.pd_read_csv_kwargs)
+                read_csv_kwargs = self.config.pd_read_csv_kwargs
+                if self.config.engine == "pyarrow" or self.config.skipfooter:
+                    # These pandas parser modes require reading the file before batching.
+                    chunksize = read_csv_kwargs.pop("chunksize")
+                    if chunksize is not None and chunksize <= 0:
+                        raise ValueError("chunksize must be greater than zero")
+                    dataframe = pd.read_csv(file, dtype=dtype, **read_csv_kwargs)
+                    csv_file_reader = (
+                        [dataframe]
+                        if chunksize is None
+                        else (
+                            dataframe.iloc[start : start + chunksize]
+                            for start in range(0, len(dataframe) or 1, chunksize)
+                        )
+                    )
+                else:
+                    csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **read_csv_kwargs)
                 try:
                     for batch_idx, df in enumerate(csv_file_reader):
                         pa_table = pa.Table.from_pandas(df)
