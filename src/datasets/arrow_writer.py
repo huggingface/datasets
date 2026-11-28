@@ -700,6 +700,7 @@ class ArrowWriter:
         Args:
             example: the Example to add.
         """
+        self.write_rows_on_file()
         # Store example as a tuple so as to keep the structure of `self.current_examples` uniform
         self.current_examples.append((example, ""))
 
@@ -716,6 +717,7 @@ class ArrowWriter:
         """
         if len(row) != 1:
             raise ValueError(f"Only single-row pyarrow tables are allowed but got table with {len(row)} rows.")
+        self.write_examples_on_file()
         self.current_rows.append(row)
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
@@ -737,6 +739,7 @@ class ArrowWriter:
             try_original_type: use `try_type` when instantiating OptimizedTypedSequence if `True`, otherwise `try_type = None`.
         """
         self.write_examples_on_file()  # in case there are buffered examples to write first
+        self.write_rows_on_file()
         self._write_batch(batch_examples, writer_batch_size=writer_batch_size, try_original_type=try_original_type)
 
     def _check_null_column(self, col: str, values):
@@ -799,7 +802,7 @@ class ArrowWriter:
                 inferred_features[col] = typed_sequence.get_inferred_type()
         schema = inferred_features.arrow_schema if self.pa_writer is None else self.schema
         pa_table = pa.Table.from_arrays(arrays, schema=schema)
-        self.write_table(pa_table, writer_batch_size)
+        self._write_table(pa_table, writer_batch_size)
 
     def write_table(self, pa_table: pa.Table, writer_batch_size: Optional[int] = None):
         """Write a Table to file.
@@ -807,6 +810,7 @@ class ArrowWriter:
         Args:
             example: the Table to add.
         """
+        self.write_examples_on_file()
         self.write_rows_on_file()  # in case there are buffered rows to write first
         self._write_table(pa_table, writer_batch_size=writer_batch_size)
 
