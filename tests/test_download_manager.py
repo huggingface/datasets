@@ -70,7 +70,7 @@ def test_download_manager_download(urls_type, tmp_path, tmpfs):
         assert metadata_content == {"url": URL, "etag": None}
 
 
-@pytest.mark.parametrize("paths_type", [str, list, dict])
+@pytest.mark.parametrize("paths_type", [str, list, tuple, dict])
 @pytest.mark.parametrize("extract_on_the_fly", [False, True])
 def test_download_manager_extract(paths_type, xz_file, text_file, extract_on_the_fly):
     filename = str(xz_file)
@@ -78,6 +78,8 @@ def test_download_manager_extract(paths_type, xz_file, text_file, extract_on_the
         paths = filename
     elif issubclass(paths_type, list):
         paths = [filename]
+    elif issubclass(paths_type, tuple):
+        paths = (filename,)
     elif issubclass(paths_type, dict):
         paths = {"train": filename}
     dataset_name = "dummy"
@@ -90,6 +92,7 @@ def test_download_manager_extract(paths_type, xz_file, text_file, extract_on_the
     )
     dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
     extracted_paths = dl_manager.extract(paths)
+    assert isinstance(extracted_paths, paths_type)
     input_paths = paths
     for extracted_paths in [extracted_paths]:
         if isinstance(paths, str):

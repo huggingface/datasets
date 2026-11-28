@@ -299,6 +299,7 @@ class DownloadManager:
         extracted_paths = map_nested(
             extract_func,
             path_or_paths,
+            map_tuple=True,
             num_proc=download_config.num_proc,
             desc="Extracting data files",
         )
