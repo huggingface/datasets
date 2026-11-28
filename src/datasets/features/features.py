@@ -2505,6 +2505,51 @@ def _is_null_feature(feature) -> bool:
     return False
 
 
+def _same_list_feature(left, right) -> bool:
+    """True when both features are the same list kind and, for ``List``, the same fixed length."""
+    if not isinstance(left, (List, LargeList)) or type(left) is not type(right):
+        return False
+    if isinstance(left, List) and left.length != right.length:
+        return False
+    return True
+
+
+def _with_list_inner(feature, inner):
+    if isinstance(feature, LargeList):
+        return LargeList(inner, id=feature.id)
+    return List(inner, length=feature.length, id=feature.id)
+
+
+def _merge_feature(existing, new):
+    """Return one feature that accepts values typed as ``existing`` or ``new``.
+
+    Null types take the concrete type. Structs and list elements are merged field by field.
+    Incompatible types keep ``existing``; ``_check_if_features_can_be_aligned`` reports those.
+    """
+    if isinstance(existing, dict) and isinstance(new, dict):
+        return _align_features([existing, new])[0]
+    if _same_list_feature(existing, new):
+        if _is_null_feature(existing):
+            return new
+        if _is_null_feature(new):
+            return existing
+        return _with_list_inner(existing, _merge_feature(existing.feature, new.feature))
+    if _is_null_feature(existing):
+        return new
+    return existing
+
+
+def _feature_fits(feature, merged) -> bool:
+    """True when ``feature`` can be cast to ``merged`` by filling nulls."""
+    if _is_null_feature(feature) or feature == merged:
+        return True
+    if isinstance(feature, dict) and isinstance(merged, dict):
+        return all(_feature_fits(value, merged[key]) for key, value in feature.items() if key in merged)
+    if _same_list_feature(feature, merged):
+        return _feature_fits(feature.feature, merged.feature)
+    return False
+
+
 def _align_features(features_list: list[Features]) -> list[Features]:
     """Align dictionaries of features so that the keys that are found in multiple dictionaries share the same feature."""
     name2feature = {}
@@ -2513,6 +2558,9 @@ def _align_features(features_list: list[Features]) -> list[Features]:
             if k in name2feature and isinstance(v, dict):
                 # Recursively align features.
                 name2feature[k] = _align_features([name2feature[k], v])[0]
+            elif k in name2feature and _same_list_feature(name2feature[k], v):
+                # A null field inside a list of structs is still a null, not a different list type.
+                name2feature[k] = _merge_feature(name2feature[k], v)
             elif k not in name2feature or _is_null_feature(name2feature[k]):
                 name2feature[k] = v
 
@@ -2524,18 +2572,27 @@ def _check_if_features_can_be_aligned(features_list: list[Features]):
 
     Two dictionaries of features can be aligned if the keys they share have the same type or some of them is of
     type ``Value("null")`` (or a container wrapping ``Value("null")``, such as ``List(Value("null"))``).
+    A struct field that is null in only some rows of a list is treated the same way.
     """
     name2feature = {}
     for features in features_list:
         for k, v in features.items():
             if k not in name2feature or _is_null_feature(name2feature[k]):
                 name2feature[k] = v
+            elif _same_list_feature(name2feature[k], v):
+                # Fold list-of-struct nulls into one canonical type before comparing every shard to it.
+                name2feature[k] = _merge_feature(name2feature[k], v)
 
     for features in features_list:
         for k, v in features.items():
             if isinstance(v, dict) and isinstance(name2feature[k], dict):
                 # Deep checks for structure.
                 _check_if_features_can_be_aligned([name2feature[k], v])
+            elif _same_list_feature(name2feature[k], v):
+                if not _feature_fits(v, name2feature[k]):
+                    raise ValueError(
+                        f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
+                    )
             elif not _is_null_feature(v) and name2feature[k] != v:
                 raise ValueError(
                     f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'

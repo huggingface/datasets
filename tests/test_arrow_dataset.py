@@ -3828,6 +3828,19 @@ def test_concatenate_datasets_cache_uses_axis(tmp_path, axis):
     assert actual == expected
 
 
+def test_concatenate_datasets_aligns_null_struct_field_inside_list():
+    # A shard whose struct field is all None infers Value("null"). That must still
+    # concatenate with a shard that saw real values, as it does for a bare struct.
+    typed = Dataset.from_dict({"a": [[{"x": 1, "y": "s"}]]})
+    empty = Dataset.from_dict({"a": [[{"x": 2, "y": None}]]})
+    concatenated = concatenate_datasets([typed, empty])
+    assert concatenated.features["a"] == List({"x": Value("int64"), "y": Value("string")})
+    assert concatenated["a"] == [[{"x": 1, "y": "s"}], [{"x": 2, "y": None}]]
+
+    reversed_concat = concatenate_datasets([empty, typed])
+    assert reversed_concat.features["a"] == List({"x": Value("int64"), "y": Value("string")})
+
+
 def test_concatenate_datasets_new_columns():
     dataset1 = Dataset.from_dict({"col_1": ["a", "b", "c"]})
     dataset2 = Dataset.from_dict({"col_1": ["d", "e", "f"], "col_2": [True, False, True]})
