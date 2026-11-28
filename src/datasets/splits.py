@@ -19,6 +19,7 @@ import abc
 import collections
 import copy
 import dataclasses
+import math
 import re
 from dataclasses import dataclass
 from typing import Optional, Union
@@ -236,6 +237,8 @@ class SplitBase(metaclass=abc.ABCMeta):
         elif weighted:
             # Normalize the weighted sum
             total = sum(weighted)
+            if total <= 0 or any(weight < 0 for weight in weighted) or not all(math.isfinite(w) for w in weighted):
+                raise ValueError("Subsplit weights must be non-negative and finite, and include a positive weight")
             weighted = [100 * x // total for x in weighted]
             # Create the slice for each of the elements
             start = 0
