@@ -17,7 +17,14 @@ from .naming import _split_re
 from .splits import Split
 from .utils import logging
 from .utils import tqdm as hf_tqdm
-from .utils.file_utils import _prepare_path_and_storage_options, is_local_path, is_relative_path, xbasename, xjoin
+from .utils.file_utils import (
+    SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL,
+    _prepare_path_and_storage_options,
+    is_local_path,
+    is_relative_path,
+    xbasename,
+    xjoin,
+)
 from .utils.py_utils import string_to_dict
 
 
@@ -386,11 +393,15 @@ def resolve_pattern(
         matched_paths.append(filepath)
     # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
-        out = [
-            filepath
-            for filepath in matched_paths
-            if any("." + suffix in allowed_extensions for suffix in xbasename(filepath).split(".")[1:])
-        ]
+        out = []
+        for filepath in matched_paths:
+            stem, dot, extension = xbasename(filepath).rpartition(".")
+            if dot and dot + extension in allowed_extensions:
+                out.append(filepath)
+            elif extension.lower() in SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL:
+                _, data_dot, data_extension = stem.rpartition(".")
+                if data_dot and data_dot + data_extension in allowed_extensions:
+                    out.append(filepath)
         if len(out) < len(matched_paths):
             invalid_matched_files = list(set(matched_paths) - set(out))
             logger.info(
