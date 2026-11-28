@@ -4908,11 +4908,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
                 )
 
-        sort_table = query_table(
-            table=self._data,
-            key=slice(0, len(self)),
-            indices=self._indices,
-        )
+        # Only the sort columns are needed to compute the sorted indices
+        sort_columns = self._data.select(list(dict.fromkeys(column_names)))
+        if self._indices is None:
+            sort_table = sort_columns.table
+        else:
+            try:
+                # Gathering row by row creates one chunk per row, which is slow for large datasets
+                sort_table = sort_columns.table.take(self._indices.column(0))
+            except (pa.ArrowInvalid, pa.ArrowCapacityError):
+                # Take can't handle a string/binary output that doesn't fit in one array (ARROW-9773)
+                sort_table = query_table(table=sort_columns, key=slice(0, len(self)), indices=self._indices)
 
         sort_keys = [
             (col, "ascending" if not col_reverse else "descending") for col, col_reverse in zip(column_names, reverse)

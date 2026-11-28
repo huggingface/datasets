@@ -19,6 +19,7 @@ import numpy as np
 import numpy.testing as npt
 import pandas as pd
 import pyarrow as pa
+import pyarrow.compute as pc
 import pyarrow.parquet as pq
 import pytest
 from absl.testing import parameterized
@@ -49,6 +50,7 @@ from datasets.features import (
     Value,
     Video,
 )
+from datasets.formatting import query_table
 from datasets.info import DatasetInfo
 from datasets.iterable_dataset import IterableDataset
 from datasets.splits import NamedSplit
@@ -3774,6 +3776,78 @@ def test_sort_with_none(null_placement):
         assert dataset["col_1"] == [None, None, "item_1", "item_2", "item_3", "item_4"]
     else:
         assert dataset["col_1"] == ["item_1", "item_2", "item_3", "item_4", None, None]
+
+
+def _sorted_rows_by_gathering_all_columns(dataset, column_names, reverse, null_placement):
+    # Reference: sort after gathering every column row by row, as `Dataset.sort` used to do
+    table = query_table(dataset._data, slice(0, len(dataset)), indices=dataset._indices)
+    sort_keys = [(col, "descending" if rev else "ascending") for col, rev in zip(column_names, reverse)]
+    indices = pc.sort_indices(table, sort_keys=sort_keys, null_placement=null_placement)
+    return dataset.select(indices).to_dict()
+
+
+@pytest.mark.parametrize("in_memory", [False, True])
+@pytest.mark.parametrize(
+    "column_names, reverse",
+    [
+        (["col_str"], [False]),
+        (["col_int", "col_float"], [True, False]),
+        (["col_int", "col_str"], [False, True]),
+        (["col_int", "col_int"], [False, True]),
+    ],
+)
+@pytest.mark.parametrize("null_placement", ["at_start", "at_end"])
+def test_sort_with_indices_mapping(in_memory, column_names, reverse, null_placement, tmp_path):
+    data = {
+        "col_int": [i % 3 for i in range(30)],
+        "col_float": [None if i % 7 == 0 else float(i % 5) for i in range(30)],
+        "col_str": [None if i % 4 == 0 else f"s{i % 6}" for i in range(30)],
+        "id": list(range(30)),
+    }
+    # Split the data in several chunks to exercise gathering across record batches
+    table = pa.concat_tables([pa.table(data).slice(i, 10) for i in range(0, 30, 10)])
+    dataset = Dataset(InMemoryTable(table))
+    if not in_memory:
+        dataset.save_to_disk(str(tmp_path / "dataset"))
+        dataset = load_from_disk(str(tmp_path / "dataset"))
+    for indexed in [dataset.shuffle(seed=42), dataset.select([5, 3, 29, 3, 0, 17, 11, 11, 22, 8])]:
+        assert indexed._indices is not None
+        expected = _sorted_rows_by_gathering_all_columns(indexed, column_names, reverse, null_placement)
+        sorted_dataset = indexed.sort(
+            column_names, reverse=reverse, null_placement=null_placement, load_from_cache_file=False
+        )
+        assert sorted_dataset.to_dict() == expected
+        flattened = indexed.flatten_indices()
+        assert flattened.sort(column_names, reverse=reverse, null_placement=null_placement).to_dict() == expected
+
+
+@pytest.mark.parametrize("take_error", [pa.ArrowInvalid, pa.ArrowCapacityError])
+def test_sort_with_indices_mapping_falls_back_when_take_fails(take_error, monkeypatch):
+    dataset = Dataset.from_dict({"col_1": ["b", None, "c", "a", "b"], "id": [0, 1, 2, 3, 4]}).select(
+        [4, 0, 2, 1, 3, 2]
+    )
+    expected = _sorted_rows_by_gathering_all_columns(dataset, ["col_1"], [True], "at_end")
+
+    class TableWithFailingTake:
+        # pa.Table is immutable, so make `take` fail through a proxy of the wrapped table
+        def __init__(self, table):
+            self._table = table
+
+        def __getattr__(self, name):
+            return getattr(self._table, name)
+
+        def take(self, *args, **kwargs):
+            raise take_error("offset overflow while concatenating arrays")
+
+    select = InMemoryTable.select
+
+    def select_with_failing_take(self, *args, **kwargs):
+        out = select(self, *args, **kwargs)
+        out.table = TableWithFailingTake(out.table)
+        return out
+
+    monkeypatch.setattr(InMemoryTable, "select", select_with_failing_take)
+    assert dataset.sort("col_1", reverse=True).to_dict() == expected
 
 
 def test_update_metadata_with_features(dataset_dict):
