@@ -12,6 +12,7 @@ from unittest.mock import patch
 import dill
 import pyarrow as pa
 import pytest
+from huggingface_hub.errors import EntryNotFoundError
 
 import datasets
 from datasets import load_dataset
@@ -833,6 +834,92 @@ def test_load_dataset_builder_config_kwargs_override_builder_kwargs():
         builder = datasets.load_dataset_builder("dummy/path", base_path="from_user")
 
     assert builder.kwargs["base_path"] == "from_user"
+
+
+@pytest.fixture
+def mixed_format_hub_repo(tmp_path):
+    repo_id = "test-org/mixed-formats"
+    hub_path = f"hf://datasets/{repo_id}@{tmp_path.name}/"
+    (tmp_path / "train.csv").write_text("word\nexample\n", encoding="utf-8")
+    (tmp_path / "text-data").mkdir()
+    (tmp_path / "text-data" / "train.txt").write_text("hello\nworld\n", encoding="utf-8")
+    readme = tmp_path / "README.md"
+    readme.write_text(
+        """---
+configs:
+  - config_name: table
+    data_files: train.csv
+  - config_name: lines
+    data_dir: text-data
+    data_files: train.txt
+dataset_info:
+  config_name: lines
+---
+""",
+        encoding="utf-8",
+    )
+
+    def hub_download(filename, **kwargs):
+        if filename == "README.md":
+            return str(readme)
+        raise EntryNotFoundError(filename)
+
+    def resolve(pattern, base_path, **kwargs):
+        relative_dir = base_path.removeprefix(hub_path.rstrip("/")).lstrip("/")
+        matching_files = (tmp_path / relative_dir).glob(pattern)
+        return [f"{hub_path}{file.relative_to(tmp_path).as_posix()}" for file in matching_files]
+
+    def download_data(url_or_filename, download_config):
+        filename = tmp_path / url_or_filename.removeprefix(hub_path)
+        assert filename.is_file()
+        return str(filename)
+
+    with (
+        patch("datasets.load.HfApi.hf_hub_download", side_effect=hub_download),
+        patch("datasets.load.cached_path", side_effect=FileNotFoundError),
+        patch("datasets.config.USE_PARQUET_EXPORT", False),
+        patch("datasets.data_files.resolve_pattern", side_effect=resolve),
+        patch("datasets.data_files._get_origin_metadata", return_value=[(repo_id, tmp_path.name)]),
+        patch("datasets.download.download_manager.DownloadManager._download_single", side_effect=download_data),
+    ):
+        yield repo_id, str(tmp_path / "cache"), readme
+
+
+@pytest.mark.parametrize(("name", "expected_builder"), [(None, "text"), ("table", "csv"), ("lines", "text")])
+def test_load_hub_dataset_builder_with_mixed_config_formats(mixed_format_hub_repo, name, expected_builder):
+    repo_id, cache_dir, _ = mixed_format_hub_repo
+    builder = load_dataset_builder(repo_id, name, cache_dir=cache_dir)
+    assert builder.name == expected_builder
+    assert builder.config.name == (name or "lines")
+    expected_file = "/train.csv" if name == "table" else "/text-data/train.txt"
+    assert builder.config.data_files["train"][0].endswith(expected_file)
+
+
+def test_load_hub_dataset_with_single_config_and_cache_from_another_builder(mixed_format_hub_repo):
+    repo_id, cache_dir, readme = mixed_format_hub_repo
+    readme.write_text(
+        """---
+configs:
+  - config_name: lines
+    data_dir: text-data
+    data_files: train.*
+---
+""",
+        encoding="utf-8",
+    )
+    # The previous inference used the root directory, where train.* matches train.csv.
+    with patch("datasets.load.infer_module_for_data_files", return_value=("csv", {})):
+        old_text_dataset = load_dataset(repo_id, "lines", split="train", cache_dir=cache_dir)
+    assert old_text_dataset[:] == {"hello": ["world"]}
+
+    text_dataset = load_dataset(repo_id, "lines", split="train", cache_dir=cache_dir)
+    assert text_dataset[:] == {"text": ["hello", "world"]}
+    assert text_dataset.cache_files != old_text_dataset.cache_files
+    assert all(Path(cache_file["filename"]).is_file() for cache_file in old_text_dataset.cache_files)
+
+    with patch("datasets.download.download_manager.DownloadManager.download", side_effect=AssertionError):
+        cached_text_dataset = load_dataset(repo_id, "lines", split="train", cache_dir=cache_dir)
+    assert cached_text_dataset.cache_files == text_dataset.cache_files
 
 
 @pytest.mark.integration

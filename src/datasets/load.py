@@ -24,6 +24,7 @@ import posixpath
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
+from functools import partial
 from pathlib import Path
 from typing import Any, Literal, Optional, Union, overload
 
@@ -564,6 +565,7 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
         use_exported_dataset_infos: bool = False,
+        config_name: Optional[str] = None,
     ):
         self.name = name
         self.commit_hash = commit_hash
@@ -572,6 +574,7 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.use_exported_dataset_infos = use_exported_dataset_infos
+        self.config_name = config_name
         increase_load_count(name)
 
     def get_module(self) -> DatasetModule:
@@ -630,53 +633,6 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
         if exported_dataset_infos:
             exported_dataset_infos.update(dataset_infos)
             dataset_infos = exported_dataset_infos
-        # we need a set of data files to find which dataset builder to use
-        # because we need to infer module name by files extensions
-        if self.data_files is not None:
-            patterns = sanitize_patterns(self.data_files)
-        elif metadata_configs and not self.data_dir and "data_files" in next(iter(metadata_configs.values())):
-            patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
-        else:
-            patterns = get_data_patterns(base_path, download_config=self.download_config)
-        data_files = DataFilesDict.from_patterns(
-            patterns,
-            base_path=base_path,
-            allowed_extensions=_ALL_ALLOWED_EXTENSIONS,
-            download_config=self.download_config,
-        )
-        module_name, default_builder_kwargs = infer_module_for_data_files(
-            data_files=data_files,
-            path=self.name,
-            download_config=self.download_config,
-        )
-        data_files = data_files.filter(
-            extensions=_MODULE_TO_EXTENSIONS[module_name] + _MODULE_TO_METADATA_EXTENSIONS[module_name],
-            file_names=_MODULE_TO_METADATA_FILE_NAMES[module_name],
-        )
-        module_path, _ = _PACKAGED_DATASETS_MODULES[module_name]
-        if metadata_configs:
-            builder_configs, default_config_name = create_builder_configs_from_metadata_configs(
-                module_path,
-                metadata_configs,
-                base_path=base_path,
-                default_builder_kwargs=default_builder_kwargs,
-                download_config=self.download_config,
-            )
-        else:
-            builder_configs: list[BuilderConfig] = [
-                import_main_class(module_path).BUILDER_CONFIG_CLASS(
-                    data_files=data_files,
-                    **default_builder_kwargs,
-                )
-            ]
-            default_config_name = None
-        builder_kwargs = {
-            "base_path": base_path,
-            "repo_id": self.name,
-            "dataset_name": camelcase_to_snakecase(Path(self.name).name),
-        }
-        if self.data_dir:
-            builder_kwargs["data_files"] = data_files
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading metadata"
@@ -701,8 +657,64 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
             dataset_infos = legacy_dataset_infos
         except FileNotFoundError:
             pass
+
+        default_config_name = metadata_configs.get_default_config_name()
         if default_config_name is None and len(dataset_infos) == 1:
             default_config_name = next(iter(dataset_infos))
+
+        # we need a set of data files to find which dataset builder to use
+        # because we need to infer module name by files extensions
+        inference_base_path = base_path
+        inference_data_files = self.data_files
+        if inference_data_files is None and metadata_configs and not self.data_dir:
+            config_name = self.config_name or default_config_name
+            metadata_config = metadata_configs.get(config_name, next(iter(metadata_configs.values())))
+            inference_data_files = metadata_config.get("data_files")
+            if config_data_dir := metadata_config.get("data_dir"):
+                inference_base_path = xjoin(base_path, config_data_dir)
+        patterns = (
+            sanitize_patterns(inference_data_files)
+            if inference_data_files is not None
+            else get_data_patterns(inference_base_path, download_config=self.download_config)
+        )
+        data_files = DataFilesDict.from_patterns(
+            patterns,
+            base_path=inference_base_path,
+            allowed_extensions=_ALL_ALLOWED_EXTENSIONS,
+            download_config=self.download_config,
+        )
+        module_name, default_builder_kwargs = infer_module_for_data_files(
+            data_files=data_files,
+            path=self.name,
+            download_config=self.download_config,
+        )
+        data_files = data_files.filter(
+            extensions=_MODULE_TO_EXTENSIONS[module_name] + _MODULE_TO_METADATA_EXTENSIONS[module_name],
+            file_names=_MODULE_TO_METADATA_FILE_NAMES[module_name],
+        )
+        module_path, _ = _PACKAGED_DATASETS_MODULES[module_name]
+        if metadata_configs:
+            builder_configs, _ = create_builder_configs_from_metadata_configs(
+                module_path,
+                metadata_configs,
+                base_path=base_path,
+                default_builder_kwargs=default_builder_kwargs,
+                download_config=self.download_config,
+            )
+        else:
+            builder_configs: list[BuilderConfig] = [
+                import_main_class(module_path).BUILDER_CONFIG_CLASS(
+                    data_files=data_files,
+                    **default_builder_kwargs,
+                )
+            ]
+        builder_kwargs = {
+            "base_path": base_path,
+            "repo_id": self.name,
+            "dataset_name": camelcase_to_snakecase(Path(self.name).name),
+        }
+        if self.data_dir:
+            builder_kwargs["data_files"] = data_files
 
         return DatasetModule(
             module_path,
@@ -962,6 +974,7 @@ def dataset_module_factory(
     data_dir: Optional[str] = None,
     data_files: Optional[Union[dict, list, str, DataFilesDict]] = None,
     cache_dir: Optional[str] = None,
+    config_name: Optional[str] = None,
     **download_kwargs,
 ) -> DatasetModule:
     """
@@ -1005,6 +1018,7 @@ def dataset_module_factory(
 
             <Added version="2.16.0"/>
 
+        config_name (:obj:`str`, optional): Configuration whose files determine the builder for a Hub dataset.
         **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
             the attributes in download_config if supplied.
 
@@ -1154,6 +1168,7 @@ def dataset_module_factory(
                     download_config=download_config,
                     download_mode=download_mode,
                     use_exported_dataset_infos=use_exported_dataset_infos,
+                    config_name=config_name,
                 ).get_module()
             except GatedRepoError as e:
                 message = f"Dataset '{path}' is a gated dataset on the Hub."
@@ -1295,6 +1310,7 @@ def load_dataset_builder(
         data_dir=data_dir,
         data_files=data_files,
         cache_dir=cache_dir,
+        config_name=name,
     )
     # Get dataset builder class
     builder_kwargs = dataset_module.builder_kwargs
@@ -1328,8 +1344,8 @@ def load_dataset_builder(
     builder_kwargs = {key: value for key, value in builder_kwargs.items() if key not in config_kwargs}
 
     builder_cls = get_dataset_builder_class(dataset_module, dataset_name=dataset_name)
-    # Instantiate the dataset builder
-    builder_instance: DatasetBuilder = builder_cls(
+    make_builder = partial(
+        builder_cls,
         cache_dir=cache_dir,
         dataset_name=dataset_name,
         config_name=config_name,
@@ -1343,6 +1359,16 @@ def load_dataset_builder(
         **builder_kwargs,
         **config_kwargs,
     )
+    builder_instance = make_builder()
+    if (
+        "repo_id" in builder_kwargs
+        and dataset_module.builder_configs_parameters.metadata_configs
+        and not data_dir
+        and data_files is None
+        and builder_instance.info.builder_name not in (None, builder_instance.name)
+    ):
+        # Keep a cache produced by a different builder separate from the selected format.
+        builder_instance = make_builder(hash=f"{dataset_module.hash}-{builder_instance.name}")
     builder_instance._use_legacy_cache_dir_if_possible(dataset_module)
 
     return builder_instance
