@@ -119,6 +119,12 @@ To load remote JSON files via HTTP, pass the URLs instead:
 
 While these are the most common JSON formats, you'll see other datasets that are formatted differently. 🤗 Datasets recognizes these other formats and will fallback accordingly on the Python JSON loading methods to handle them.
 
+JSON Lines files are read in `chunksize`-byte batches (default 10MB). If a file mixes record shapes and the shape change falls on a chunk boundary (common when rows are sorted or grouped by type), loading can fail with a column/schema mismatch. Pass a larger `chunksize` so each shape group fits in one chunk — for example `chunksize` equal to the file size:
+
+```py
+>>> dataset = load_dataset("json", data_files="mixed.jsonl", chunksize=50_000_000)
+```
+
 ### Parquet
 
 Parquet files are stored in a columnar format, unlike row-based files like a CSV. Large datasets may be stored in a Parquet file because it is more efficient and faster at returning your query. 
