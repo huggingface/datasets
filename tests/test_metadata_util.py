@@ -8,6 +8,7 @@ import pytest
 import yaml
 from huggingface_hub import DatasetCard, DatasetCardData
 
+from datasets import load_dataset
 from datasets.config import METADATA_CONFIGS_FIELD
 from datasets.features import Features, Value
 from datasets.info import DatasetInfo
@@ -266,6 +267,17 @@ def test_metadata_configs_dataset_card_data(
         assert metadata_configs_dict.get_default_config_name() == expected_default_config_name
 
 
+@pytest.mark.parametrize("config_names", [["custom", "custom"], ["default", "other", "default"]])
+def test_metadata_configs_duplicate_names(config_names):
+    dataset_card_data = DatasetCardData(
+        configs=[
+            {"config_name": name, "data_files": f"data/part-{index}.csv"} for index, name in enumerate(config_names)
+        ]
+    )
+    with pytest.raises(ValueError, match=f"Duplicate config_name.*{config_names[0]}"):
+        MetadataConfigs.from_dataset_card_data(dataset_card_data)
+
+
 def test_metadata_configs_incorrect_yaml():
     with tempfile.TemporaryDirectory() as tmp_dir:
         path = Path(tmp_dir) / "README.md"
@@ -356,3 +368,12 @@ def test_split_order_in_metadata_configs_from_exported_parquet_files_and_dataset
     )
     split_names = [data_file["split"] for data_file in metadata_configs["default"]["data_files"]]
     assert split_names == ["train", "validation", "test"]
+
+
+def test_metadata_configs_duplicate_names_in_local_dataset(tmp_path):
+    for index in range(2):
+        (tmp_path / f"part-{index}.csv").write_text(f"text\npart-{index}\n", encoding="utf-8")
+    metadata = {"configs": [{"config_name": "custom", "data_files": f"part-{index}.csv"} for index in range(2)]}
+    (tmp_path / "README.md").write_text(f"---\n{yaml.safe_dump(metadata)}---\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="Duplicate config_name.*custom"):
+        load_dataset(str(tmp_path), name="custom", split="train")
