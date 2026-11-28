@@ -2,6 +2,7 @@ import inspect
 
 import pytest
 
+from datasets import load_dataset, percent
 from datasets.splits import Split, SplitDict, SplitInfo
 from datasets.utils.py_utils import asdict
 
@@ -41,3 +42,20 @@ def test_split_dict_asdict_has_dataset_name(split_info):
 def test_named_split_inequality():
     # Used while building the docs, when set as a default parameter value in a function signature
     assert Split.TRAIN != inspect.Parameter.empty
+
+
+def test_split_descriptors_load_from_local_csv(tmp_path):
+    train_file = tmp_path / "train.csv"
+    test_file = tmp_path / "test.csv"
+    train_file.write_text("id\n0\n1\n2\n3\n", encoding="utf-8")
+    test_file.write_text("id\n4\n5\n", encoding="utf-8")
+    data_files = {"train": str(train_file), "test": str(test_file)}
+
+    cases = [
+        (Split.TRAIN + Split.TEST, [0, 1, 2, 3, 4, 5]),
+        (Split.TRAIN.subsplit(percent[:50]), [0, 1]),
+        ((Split.TRAIN + Split.TEST).subsplit(percent[:50]), [0, 1, 4]),
+    ]
+    for split, expected_ids in cases:
+        dataset = load_dataset("csv", data_files=data_files, split=split, cache_dir=str(tmp_path / "cache"))
+        assert list(dataset["id"]) == expected_ids
