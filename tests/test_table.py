@@ -762,6 +762,27 @@ def test_concatenation_table_pickle(
     assert_index_attributes_equal(table, unpickled_table)
 
 
+def test_concatenation_table_pickle_empty_slice():
+    schema = pa.schema(
+        [pa.field("a", pa.int64(), nullable=False), pa.field("b", pa.string())],
+        metadata={b"description": b"empty slice"},
+    )
+    parts = [
+        pa.table({"a": [1, 2], "b": ["x", "y"]}, schema=schema),
+        pa.table({"a": [3], "b": ["z"]}, schema=schema),
+    ]
+    expected = pa.concat_tables(parts).slice(0, 0)
+    table = ConcatenationTable.from_tables(parts).slice(0, 0)
+    assert table.table.equals(expected, check_metadata=True)
+
+    unpickled_table = pickle.loads(pickle.dumps(table))
+
+    assert isinstance(unpickled_table, ConcatenationTable)
+    assert unpickled_table.table.equals(expected, check_metadata=True)
+    assert unpickled_table.blocks == table.blocks
+    assert_index_attributes_equal(table, unpickled_table)
+
+
 def test_concat_tables_with_features_metadata(arrow_file, in_memory_pa_table):
     input_features = Features.from_arrow_schema(in_memory_pa_table.schema)
     input_features["id"] = Value("int64", id="my_id")
