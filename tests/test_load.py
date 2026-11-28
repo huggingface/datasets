@@ -1398,3 +1398,29 @@ def test_update_dataset_card_data_with_standalone_yaml():
     assert isinstance(
         builder.info.features["label"], datasets.ClassLabel
     )  # correctly loaded from long labels list in standalone yaml
+
+
+@pytest.mark.parametrize(
+    "data_files, expected_module",
+    [
+        (
+            ["model.gltf", "texture1.png", "texture2.png", "texture3.png", "texture4.png"],
+            "meshfolder",
+        ),
+        (
+            ["image1.png", "image2.png", "image3.png"],
+            "imagefolder",
+        ),
+        (
+            ["model.gltf", "data.parquet"],
+            "parquet",
+        ),
+        (
+            ["model.gltf", "data.csv"],
+            "csv",
+        ),
+    ],
+)
+def test_infer_module_prioritizes_mesh_over_images(data_files, expected_module):
+    module, _ = infer_module_for_data_files_list(data_files)
+    assert module == expected_module
