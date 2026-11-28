@@ -36,7 +36,7 @@ from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFil
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from . import __version__, config
-from .arrow_dataset import Dataset, DatasetInfoMixin, _push_to_bucket, _push_to_repo
+from .arrow_dataset import Dataset, DatasetInfoMixin, _push_to_bucket, _push_to_repo, _select_column_metadata
 from .features import Features
 from .features.features import (
     FeatureType,
@@ -67,6 +67,7 @@ from .table import (
     embed_table_storage,
     read_schema_from_file,
     table_cast,
+    table_flatten,
 )
 from .utils import tqdm as hf_tqdm
 from .utils.logging import get_logger
@@ -715,6 +716,149 @@ class SelectColumnsIterable(_BaseExamplesIterable):
 
     def reshard_data_sources(self) -> "SelectColumnsIterable":
         return SelectColumnsIterable(self.ex_iterable.reshard_data_sources(), self.column_names)
+
+    @property
+    def num_shards(self) -> int:
+        return self.ex_iterable.num_shards
+
+
+def _flatten_features_in_order(features: Features, max_depth: int = 16) -> Features:
+    """Flatten struct-like features in-place, preserving column order to match `pyarrow.Table.flatten()`."""
+    current = features.copy()
+    for _ in range(1, max_depth):
+        changed = False
+        flattened = {}
+        for column_name, subfeature in current.items():
+            if isinstance(subfeature, dict):
+                changed = True
+                for subkey, subval in subfeature.items():
+                    flattened[f"{column_name}.{subkey}"] = subval
+            elif hasattr(subfeature, "flatten") and subfeature.flatten() != subfeature:
+                changed = True
+                for subkey, subval in subfeature.flatten().items():
+                    flattened[f"{column_name}.{subkey}"] = subval
+            else:
+                flattened[column_name] = subfeature
+        current = Features(flattened)
+        if not changed:
+            break
+    return current
+
+
+def _flatten_arrow_table(pa_table: pa.Table, max_depth: int = 16) -> pa.Table:
+    """Zero-copy flatten struct columns of an Arrow table up to `max_depth`."""
+    for _ in range(1, max_depth):
+        if any(isinstance(field.type, pa.StructType) for field in pa_table.schema):
+            flattened = table_flatten(pa_table)
+            if flattened.column_names == pa_table.column_names:
+                break
+            pa_table = flattened
+        else:
+            break
+    return pa_table
+
+
+def _flatten_example(
+    example: dict[str, Any], max_depth: int = 16, features: Optional[Features] = None
+) -> dict[str, Any]:
+    """Flatten nested dicts in a Python example dict up to `max_depth`, respecting `features` when known."""
+    current = example
+    current_features: Optional[dict[str, Any]] = features
+    for _ in range(1, max_depth):
+        changed = False
+        flattened = {}
+        next_features = {} if current_features is not None else None
+        for key, value in current.items():
+            subfeature = current_features.get(key) if current_features is not None else None
+            if isinstance(subfeature, dict):
+                changed = True
+                for subkey, subfeat in subfeature.items():
+                    new_key = f"{key}.{subkey}"
+                    flattened[new_key] = value.get(subkey) if isinstance(value, dict) else None
+                    if next_features is not None:
+                        next_features[new_key] = subfeat
+            elif subfeature is not None and hasattr(subfeature, "flatten") and subfeature.flatten() != subfeature:
+                changed = True
+                for subkey, subfeat in subfeature.flatten().items():
+                    new_key = f"{key}.{subkey}"
+                    flattened[new_key] = value.get(subkey) if isinstance(value, dict) else None
+                    if next_features is not None:
+                        next_features[new_key] = subfeat
+            elif current_features is None and isinstance(value, dict):
+                changed = True
+                for subkey, subval in value.items():
+                    flattened[f"{key}.{subkey}"] = subval
+            else:
+                flattened[key] = value
+                if next_features is not None and key in current_features:
+                    next_features[key] = subfeature
+        current = flattened
+        current_features = next_features
+        if not changed:
+            break
+    return current
+
+
+class FlattenedExamplesIterable(_BaseExamplesIterable):
+    def __init__(
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        max_depth: int = 16,
+        input_features: Optional[Features] = None,
+    ):
+        super().__init__()
+        self.ex_iterable = ex_iterable
+        self.max_depth = max_depth
+        self._input_features = input_features
+
+    @property
+    def iter_arrow(self):
+        if self.ex_iterable.iter_arrow:
+            return self._iter_arrow
+
+    @property
+    def is_typed(self):
+        return self.ex_iterable.is_typed
+
+    @property
+    def features(self):
+        if self.ex_iterable.features is not None:
+            return _flatten_features_in_order(self.ex_iterable.features, max_depth=self.max_depth)
+        return None
+
+    def _init_state_dict(self) -> dict:
+        self._state_dict = self.ex_iterable._init_state_dict()
+        return self._state_dict
+
+    def __iter__(self):
+        features = self.ex_iterable.features if self.ex_iterable.features is not None else self._input_features
+        for idx, row in self.ex_iterable:
+            yield idx, _flatten_example(row, max_depth=self.max_depth, features=features)
+
+    def _iter_arrow(self) -> Iterator[tuple[Key, pa.Table]]:
+        for idx, pa_table in self.ex_iterable.iter_arrow():
+            yield idx, _flatten_arrow_table(pa_table, max_depth=self.max_depth)
+
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "FlattenedExamplesIterable":
+        return FlattenedExamplesIterable(
+            self.ex_iterable.shuffle_data_sources(generator),
+            max_depth=self.max_depth,
+            input_features=self._input_features,
+        )
+
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "FlattenedExamplesIterable":
+        return FlattenedExamplesIterable(
+            self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
+            max_depth=self.max_depth,
+            input_features=self._input_features,
+        )
+
+    def reshard_data_sources(self) -> "FlattenedExamplesIterable":
+        return FlattenedExamplesIterable(
+            self.ex_iterable.reshard_data_sources(),
+            max_depth=self.max_depth,
+            input_features=self._input_features,
+        )
 
     @property
     def num_shards(self) -> int:
@@ -4461,6 +4605,54 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             formatting=self._formatting,
             distributed=self._distributed,
+            token_per_repo_id=self._token_per_repo_id,
+        )
+
+    def flatten(self, max_depth: int = 16) -> "IterableDataset":
+        """Flatten the dataset.
+        Each column with a struct type is flattened into one column per struct field.
+        Other columns are left unchanged.
+        The flattening is done on-the-fly when iterating over the dataset, using zero-copy Arrow
+        flattening when backed by Arrow tables.
+
+        Args:
+            max_depth (`int`, defaults to `16`):
+                Maximum depth to flatten nested struct columns.
+
+        Returns:
+            [`IterableDataset`]: A copy of the dataset with flattened columns.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rajpurkar/squad", split="train", streaming=True)
+        >>> ds.features
+        {'id': Value('string'),
+         'title': Value('string'),
+         'context': Value('string'),
+         'question': Value('string'),
+         'answers': {'text': List(Value('string')),
+         'answer_start': List(Value('int32'))}}
+        >>> ds = ds.flatten()
+        >>> ds.column_names
+        ['id', 'title', 'context', 'question', 'answers.text', 'answers.answer_start']
+        ```
+        """
+        info = self._info.copy()
+        if info.features is not None:
+            info.features = _flatten_features_in_order(info.features, max_depth=max_depth)
+            if info.column_metadata:
+                info.column_metadata = _select_column_metadata(info.column_metadata, info.features)
+        ex_iterable = FlattenedExamplesIterable(
+            self._ex_iterable, max_depth=max_depth, input_features=self._info.features
+        )
+        return IterableDataset(
+            ex_iterable=ex_iterable,
+            info=info,
+            split=self._split,
+            formatting=self._formatting,
+            distributed=deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
