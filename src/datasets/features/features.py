@@ -1707,6 +1707,8 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
 def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.ListArray:
     """Build a PyArrow ListArray from a multidimensional NumPy array"""
     arr = np.asarray(arr)
+    if not arr.dtype.isnative:
+        arr = arr.astype(arr.dtype.newbyteorder("="))
     # flatten() keeps a C-contiguous copy independent of the input's layout and ownership.
     values = pa.array(arr.flatten(), type=type)
     for i in range(arr.ndim - 1):
