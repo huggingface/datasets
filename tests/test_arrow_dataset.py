@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import copy
+import datetime
 import itertools
 import json
 import os
@@ -87,6 +88,26 @@ def test_from_dict_array2d_numpy_roundtrip(tmp_path):
     assert actual.shape == data.shape
     assert actual.dtype == data.dtype
     assert actual.tobytes() == data.tobytes()
+
+
+@pytest.mark.parametrize(
+    "series,features,expected",
+    [
+        (pd.Series(["hello", pd.NA], dtype="string"), Features({"value": Value("string")}), ["hello", None]),
+        (pd.Series(["hello", pd.NA], dtype="string"), None, ["hello", None]),
+        (pd.Series([1, pd.NA], dtype="Int64"), Features({"value": Value("int64")}), [1, None]),
+        (pd.Series([1, pd.NA], dtype="Int64"), None, [1, None]),
+        (pd.Series([1.5, pd.NA], dtype="Float64"), Features({"value": Value("float64")}), [1.5, None]),
+        (pd.Series([1.5, pd.NA], dtype="Float64"), None, [1.5, None]),
+        (pd.Series([True, pd.NA], dtype="boolean"), Features({"value": Value("bool")}), [True, None]),
+        (pd.Series([True, pd.NA], dtype="boolean"), None, [True, None]),
+        (pd.Series([pd.Timestamp("2020-01-01"), pd.NaT]), None, [datetime.datetime(2020, 1, 1), None]),
+        (pd.Series([pd.Timedelta(seconds=1), pd.NaT]), None, [datetime.timedelta(seconds=1), None]),
+    ],
+)
+def test_from_dict_pandas_missing_values(series, features, expected):
+    dataset = Dataset.from_dict({"value": series}, features=features)
+    assert dataset["value"] == expected
 
 
 class PickableMagicMock(MagicMock):

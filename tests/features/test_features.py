@@ -627,6 +627,20 @@ class CastToPythonObjectsTest(TestCase):
         casted_obj = cast_to_python_objects(obj)
         self.assertDictEqual(casted_obj, expected_obj)
 
+    def test_cast_to_python_objects_pandas_missing_values(self):
+        series_values = [
+            (pd.Series(["hello", pd.NA], dtype="string"), ["hello", None]),
+            (pd.Series([1, pd.NA], dtype="Int64"), [1, None]),
+            (pd.Series([1.5, pd.NA], dtype="Float64"), [1.5, None]),
+            (pd.Series([True, pd.NA], dtype="boolean"), [True, None]),
+            (pd.Series([pd.Timestamp("2020-01-01"), pd.NaT]), [datetime.datetime(2020, 1, 1), None]),
+            (pd.Series([pd.Timedelta(seconds=1), pd.NaT]), [datetime.timedelta(seconds=1), None]),
+        ]
+        for series, expected in series_values:
+            with self.subTest(dtype=series.dtype):
+                self.assertEqual(cast_to_python_objects(series), expected)
+                self.assertEqual(cast_to_python_objects(pd.DataFrame({"value": series})), {"value": expected})
+
     def test_cast_to_python_objects_pandas_timestamp(self):
         obj = pd.Timestamp(2020, 1, 1)
         expected_obj = obj.to_pydatetime()

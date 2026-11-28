@@ -409,7 +409,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
     elif isinstance(obj, pd.Series):
         return (
             _cast_to_python_objects(
-                obj.tolist(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                [None if value is pd.NA or value is pd.NaT else value for value in obj.tolist()],
+                only_1d_for_numpy=only_1d_for_numpy,
+                optimize_list_casting=optimize_list_casting,
             )[0],
             True,
         )
