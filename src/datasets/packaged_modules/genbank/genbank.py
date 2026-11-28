@@ -685,7 +685,7 @@ class GenBank(datasets.ArrowBasedBuilder):
 
             # Wrap the binary stream ourselves so compressed inputs also preserve
             # the original line endings in the BioSequence bytes.
-            with open(file, "rb") as binary_fp, TextIOWrapper(binary_fp, encoding="utf-8", newline="") as fp:
+            with open(file, "rb") as binary_fp, TextIOWrapper(binary_fp, encoding="utf-8-sig", newline="") as fp:
                 for record in self._parse_genbank(fp):
                     # Update length from actual sequence if not set
                     if record["length"] == 0 and record["sequence"]:

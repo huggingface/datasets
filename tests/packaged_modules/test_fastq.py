@@ -1,5 +1,6 @@
 """Tests for FASTQ file loader."""
 
+import codecs
 import gzip
 import os
 import textwrap
@@ -543,6 +544,24 @@ def test_fastq_record_cast_decode_false(fastq_file, monkeypatch):
     with open(fastq_file, "rb") as f:
         expected = [b"@" + record for record in f.read().split(b"@")[1:]]
     assert dataset["record"] == [{"bytes": record, "path": None} for record in expected]
+
+
+@pytest.fixture
+def fastq_file_with_bom(fastq_file, tmp_path):
+    filename = tmp_path / "reads_with_bom.fq"
+    with open(fastq_file, "rb") as f:
+        filename.write_bytes(codecs.BOM_UTF8 + f.read())
+    return str(filename)
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+def test_fastq_utf8_bom(fastq_file, fastq_file_with_bom, streaming):
+    expected = load_dataset("fastq", data_files=fastq_file, split="train", streaming=streaming)
+    dataset = load_dataset("fastq", data_files=fastq_file_with_bom, split="train", streaming=streaming)
+    expected = list(expected.cast_column("record", BioSequence(decode=False)))
+    rows = list(dataset.cast_column("record", BioSequence(decode=False)))
+    assert rows == expected
+    assert rows[0]["id"] == "SEQ_ID_1"
 
 
 def test_fastq_record_preserves_empty_quality_line(tmp_path):

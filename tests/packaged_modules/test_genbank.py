@@ -1,6 +1,7 @@
 """Tests for GenBank file loader."""
 
 import bz2
+import codecs
 import gzip
 import json
 import lzma
@@ -436,6 +437,15 @@ def test_genbank_record_capture_accepts_single_pass_iterator(genbank_file_multi_
 
     assert len(records) == 2
     assert b"".join(record["record"]["bytes"] for record in records) == raw
+
+
+def test_genbank_utf8_bom(genbank_file_multi_record, tmp_path):
+    filename = tmp_path / "multi_sequence_with_bom.gb"
+    filename.write_bytes(codecs.BOM_UTF8 + Path(genbank_file_multi_record).read_bytes())
+    expected = pa.concat_tables([table for _, table in GenBank()._generate_tables([[genbank_file_multi_record]])])
+    table = pa.concat_tables([table for _, table in GenBank()._generate_tables([[str(filename)]])])
+    assert table.to_pydict() == expected.to_pydict()
+    assert table["locus_name"][0].as_py() == "SEQ001"
 
 
 def test_genbank_gzipped(genbank_file_gzipped):
