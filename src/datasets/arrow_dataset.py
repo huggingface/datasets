@@ -5033,10 +5033,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
         if generator is None:
-            if seed is None:
-                _, seed, pos, *_ = np.random.get_state()
-                seed = seed[pos] if pos < 624 else seed[0]
-                _ = np.random.random()  # do 1 step of rng
             generator = np.random.default_rng(seed)
             permutation = None
         else:
@@ -5261,10 +5257,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
         if generator is None and shuffle is True:
-            if seed is None:
-                _, seed, pos, *_ = np.random.get_state()
-                seed = seed[pos] if pos < 624 else seed[0]
-                _ = np.random.random()  # do 1 step of rng
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)

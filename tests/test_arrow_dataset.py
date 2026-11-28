@@ -2443,13 +2443,22 @@ class BaseDatasetTest(TestCase):
                     with dset.shuffle(seed=1234, indices_cache_file_name=tmp_file) as dset_shuffled_2:
                         self.assertSequenceEqual(dset_shuffled["filename"], dset_shuffled_2["filename"])
 
-                # Compatible with temp_seed
+    def test_shuffle_without_seed(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 with temp_seed(42), dset.shuffle() as d1:
                     with temp_seed(42), dset.shuffle() as d2, dset.shuffle() as d3:
-                        self.assertSequenceEqual(d1["filename"], d2["filename"])
-                        self.assertEqual(d1._fingerprint, d2._fingerprint)
+                        self.assertNotEqual(d1["filename"], d2["filename"])
+                        self.assertNotEqual(d1._fingerprint, d2._fingerprint)
                         self.assertNotEqual(d3["filename"], d2["filename"])
                         self.assertNotEqual(d3._fingerprint, d2._fingerprint)
+
+    def test_shuffle_does_not_advance_global_rng(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset, temp_seed(42):
+                state = np.random.get_state()
+                with dset.shuffle():
+                    npt.assert_equal(np.random.get_state(), state)
 
     def test_shuffle_generator_advances_on_cache_hit(self, in_memory):
         def successive_shuffles(dset, generator):
@@ -2929,6 +2938,32 @@ class BaseDatasetTest(TestCase):
                 self.assertDictEqual(dset_train.features, Features({"filename": Value("string")}))
                 self.assertDictEqual(dset_test.features, Features({"filename": Value("string")}))
                 del dset_test, dset_train, dset_dict  # DatasetDict
+
+    def test_train_test_split_without_seed(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with temp_seed(42), dset.train_test_split() as d1:
+                    with temp_seed(42), dset.train_test_split() as d2, dset.train_test_split() as d3:
+                        for split in ["train", "test"]:
+                            self.assertNotEqual(d1[split]["filename"], d2[split]["filename"])
+                            self.assertNotEqual(d1[split]._fingerprint, d2[split]._fingerprint)
+                            self.assertNotEqual(d3[split]["filename"], d2[split]["filename"])
+                            self.assertNotEqual(d3[split]._fingerprint, d2[split]._fingerprint)
+
+    def test_train_test_split_does_not_advance_global_rng(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset, temp_seed(42):
+                state = np.random.get_state()
+                with dset.train_test_split():
+                    npt.assert_equal(np.random.get_state(), state)
+
+    def test_train_test_split_with_seed(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.train_test_split(seed=42) as d1, dset.train_test_split(seed=42) as d2:
+                    for split in ["train", "test"]:
+                        self.assertSequenceEqual(d1[split]["filename"], d2[split]["filename"])
+                        self.assertEqual(d1[split]._fingerprint, d2[split]._fingerprint)
 
     def test_shard(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(in_memory, tmp_dir) as dset:
