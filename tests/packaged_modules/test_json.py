@@ -587,6 +587,35 @@ def test_json_generate_tables(file_fixture, config_kwargs, expected, request):
     assert out == expected
 
 
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("chunksize", [1, 10 << 20])
+@pytest.mark.parametrize("padding", [0, 120])
+def test_json_object_array_does_not_depend_on_padding_or_chunksize(tmp_path, streaming, chunksize, padding):
+    records = [{"id": 1, "text": "hello"}, {"id": 2, "text": "world"}]
+    path = tmp_path / "records.json"
+    path.write_text("[" + " " * padding + json.dumps(records)[1:], encoding="utf-8")
+
+    dataset = load_dataset("json", data_files=str(path), split="train", streaming=streaming, chunksize=chunksize)
+
+    assert list(dataset) == records
+    if not streaming:
+        assert dataset.features == Features({"id": Value("int64"), "text": Value("string")})
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("chunksize", [1, 10 << 20])
+def test_json_string_array_with_braces(tmp_path, streaming, chunksize):
+    records = ["{hello}", "world"]
+    path = tmp_path / "strings.json"
+    path.write_text(json.dumps(records), encoding="utf-8")
+
+    dataset = load_dataset("json", data_files=str(path), split="train", streaming=streaming, chunksize=chunksize)
+
+    assert list(dataset) == [{"text": value} for value in records]
+    if not streaming:
+        assert dataset.features == Features({"text": Value("string")})
+
+
 @pytest.fixture
 def bounded_json_parser(monkeypatch):
     read_json = paj.read_json
