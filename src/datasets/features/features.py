@@ -1007,7 +1007,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         raise NotImplementedError()
 
     def __getitem__(self, item: Union[int, slice, np.ndarray]) -> Union[np.ndarray, "PandasArrayExtensionArray"]:
-        if isinstance(item, int):
+        if isinstance(item, (int, np.integer)):
             return self._data[item]
         return PandasArrayExtensionArray(self._data[item], copy=False)
 
