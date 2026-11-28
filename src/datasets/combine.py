@@ -150,6 +150,10 @@ def interleave_datasets(
             )
     if stopping_strategy not in ["first_exhausted", "all_exhausted", "all_exhausted_without_replacement"]:
         raise ValueError(f"{stopping_strategy} is not supported. Please enter a valid stopping_strategy.")
+    if probabilities is not None and len(probabilities) != len(datasets):
+        raise ValueError(
+            f"Expected one probability per dataset, but got {len(probabilities)} probabilities for {len(datasets)} datasets."
+        )
     if dataset_type is Dataset:
         return _interleave_map_style_datasets(
             datasets, probabilities, seed, info=info, split=split, stopping_strategy=stopping_strategy
