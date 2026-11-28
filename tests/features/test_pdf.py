@@ -48,6 +48,27 @@ def test_pdf_feature_decode_example_remote_non_hub_url(shared_datadir, monkeypat
 
 
 @require_pdfplumber
+def test_pdf_decode_example_is_idempotent(shared_datadir):
+    pdf_path = str(shared_datadir / "test_pdf.pdf")
+    decoded_example = Pdf().decode_example({"path": pdf_path, "bytes": None})
+    # decoding an already decoded example returns it as is, so decoding twice is a no-op
+    assert Pdf().decode_example(decoded_example) is decoded_example
+
+
+@require_pdfplumber
+def test_iterable_dataset_with_pdf_feature_decoded_twice(shared_datadir):
+    import pdfplumber
+
+    pdf_path = str(shared_datadir / "test_pdf.pdf")
+    ds = Dataset.from_dict({"pdf": [pdf_path] * 3}, features=Features({"pdf": Pdf()})).to_iterable_dataset()
+    # streaming a dataset from the Hub decodes it in threads, and `.decode()` after another step decodes again
+    ds = ds.decode(num_threads=2).shuffle(seed=0, buffer_size=3).decode(num_threads=2)
+    examples = list(ds)
+    assert len(examples) == 3
+    assert all(isinstance(example["pdf"], pdfplumber.pdf.PDF) for example in examples)
+
+
+@require_pdfplumber
 def test_dataset_with_pdf_feature(shared_datadir):
     import pdfplumber
 
