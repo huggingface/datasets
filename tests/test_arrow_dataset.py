@@ -53,7 +53,7 @@ from datasets.info import DatasetInfo
 from datasets.iterable_dataset import IterableDataset
 from datasets.splits import NamedSplit
 from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable, embed_table_storage
-from datasets.utils.logging import INFO, get_logger
+from datasets.utils.logging import INFO, WARNING, get_logger
 from datasets.utils.py_utils import temp_seed
 
 from .utils import (
@@ -2929,6 +2929,22 @@ class BaseDatasetTest(TestCase):
                 self.assertDictEqual(dset_train.features, Features({"filename": Value("string")}))
                 self.assertDictEqual(dset_test.features, Features({"filename": Value("string")}))
                 del dset_test, dset_train, dset_dict  # DatasetDict
+
+    def test_train_test_split_warns_on_dropped_rows(self, in_memory):
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            self._caplog.at_level(WARNING, logger=datasets.arrow_dataset.logger.name),
+        ):
+            dset = self._to(in_memory, tmp_dir, Dataset.from_dict({"id": list(range(100))}))
+            self._caplog.clear()
+            dset_dict = dset.train_test_split(train_size=0.5, test_size=0.2)
+            self.assertEqual(len(dset_dict["train"]), 50)
+            self.assertEqual(len(dset_dict["test"]), 20)
+            self.assertIn("dropped 30 rows", self._caplog.text)
+
+            self._caplog.clear()
+            dset.train_test_split(train_size=0.5, test_size=0.5)
+            self.assertFalse(self._caplog.records)
 
     def test_shard(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(in_memory, tmp_dir) as dset:

@@ -5249,6 +5249,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "train_size."
             )
 
+        if n_train + n_test < n_samples:
+            logger.warning(
+                f"train_test_split dropped {int(n_samples - n_train - n_test)} rows because the requested splits "
+                "do not cover the full dataset."
+            )
+
         n_train, n_test = int(n_train), int(n_test)
 
         if n_train == 0:
