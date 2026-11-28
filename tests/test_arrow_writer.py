@@ -184,6 +184,31 @@ def test_write_table(fields, writer_batch_size):
     _check_output(output.getvalue(), expected_num_chunks=num_examples if writer_batch_size == 1 else 1)
 
 
+def test_write_mixed_methods_preserves_row_order():
+    output = pa.BufferOutputStream()
+    with ArrowWriter(stream=output, writer_batch_size=100) as writer:
+        writer.write({"value": "first"})
+        writer.write_table(pa.table({"value": ["second"]}))
+        writer.write_row(pa.table({"value": ["third"]}))
+        writer.write({"value": "fourth"})
+        writer.write_row(pa.table({"value": ["fifth"]}))
+        writer.write_batch({"value": ["sixth"]})
+        writer.write_table(pa.table({"value": ["seventh"]}))
+        num_examples, _ = writer.finalize()
+
+    table = pa.ipc.open_stream(output.getvalue()).read_all()
+    assert num_examples == 7
+    assert table.column("value").to_pylist() == [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth",
+        "sixth",
+        "seventh",
+    ]
+
+
 @pytest.mark.parametrize("writer_batch_size", [None, 1, 10])
 @pytest.mark.parametrize(
     "fields", [None, {"col_1": pa.string(), "col_2": pa.int64()}, {"col_1": pa.string(), "col_2": pa.int32()}]
