@@ -1591,9 +1591,24 @@ class ConcatenationTable(Table):
         """
         table = self.table.filter(mask, *args, **kwargs)
         blocks = []
-        for (offset, length), tables in zip(self._slices, self.blocks):
-            submask = mask.slice(offset, length)
-            blocks.append([t.filter(submask, *args, **kwargs) for t in tables])
+        if isinstance(mask, pc.Expression):
+            index_column = "__datasets_filter_row_index__"
+            while index_column in self.table.column_names:
+                index_column += "_"
+            row_indices = pa.array(range(self.num_rows), type=pa.int64())
+            selected_indices = self.table.append_column(index_column, row_indices).filter(mask, *args, **kwargs)[
+                index_column
+            ]
+            for (offset, length), tables in zip(self._slices, self.blocks):
+                row_indices = pa.array(range(offset, offset + length), type=pa.int64())
+                submask = pc.is_in(row_indices, value_set=selected_indices)
+                blocks.append([t.filter(submask, *args, **kwargs) for t in tables])
+        else:
+            if not isinstance(mask, (pa.Array, pa.ChunkedArray)):
+                mask = pa.array(mask)
+            for (offset, length), tables in zip(self._slices, self.blocks):
+                submask = mask.slice(offset, length)
+                blocks.append([t.filter(submask, *args, **kwargs) for t in tables])
         return ConcatenationTable(table, blocks)
 
     def flatten(self, *args, **kwargs):
