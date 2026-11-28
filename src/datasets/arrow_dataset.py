@@ -166,6 +166,60 @@ PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED = (
 )
 
 
+def _get_reusable_columns(
+    shard: "Dataset",
+    input_columns: Optional[list[str]],
+    remove_columns: Optional[list[str]],
+    target_features: Optional[Features] = None,
+    excluded_columns: Optional[Iterable[str]] = None,
+) -> tuple[list[str], list[str]]:
+    """Return unchanged columns that can be reused horizontally alongside ``surviving_source_cols``."""
+    remove_set = set(remove_columns or ())
+    surviving_source_cols = [col for col in shard._data.column_names if col not in remove_set]
+    if input_columns is None or shard._indices is not None:
+        return [], surviving_source_cols
+    excluded_set = set(input_columns) | set(excluded_columns or ())
+    reused_cols = [col for col in surviving_source_cols if col not in excluded_set]
+    if target_features is not None:
+        reused_cols = [
+            col for col in reused_cols if col in target_features and target_features[col] == shard.features[col]
+        ]
+    return reused_cols, surviving_source_cols
+
+
+def _merge_reused_columns(
+    shard: "Dataset",
+    mapped_shard: "Dataset",
+    reused_columns: list[str],
+    surviving_source_columns: list[str],
+    target_features: Optional[Features] = None,
+) -> "Dataset":
+    """Reattach unchanged columns from ``shard`` onto ``mapped_shard`` without copying them on disk."""
+    reused_table = shard._data.select(reused_columns)
+    if len(reused_table) != len(mapped_shard):
+        reused_table = reused_table.slice(0, len(mapped_shard))
+    reused_set = set(reused_columns)
+    ordered_cols = [
+        col for col in surviving_source_columns if col in reused_set or col in mapped_shard._data.column_names
+    ]
+    ordered_cols.extend(col for col in mapped_shard._data.column_names if col not in ordered_cols)
+    combined_table = concat_tables([reused_table, mapped_shard._data], axis=1).select(ordered_cols)
+    merged_features = Features(
+        {
+            col: (
+                target_features[col]
+                if target_features is not None and col in target_features
+                else (mapped_shard.features[col] if col in mapped_shard.features else shard.features[col])
+            )
+            for col in ordered_cols
+        }
+    )
+    combined_table = update_metadata_with_features(combined_table, merged_features)
+    info = shard.info.copy()
+    info.features = merged_features
+    return Dataset(combined_table, info=info, split=shard.split, fingerprint=mapped_shard._fingerprint)
+
+
 class DatasetInfoMixin:
     """This base class exposes some attributes of DatasetInfo
     at the base level of the Dataset for easy access.
@@ -3554,6 +3608,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if shard_kwargs["cache_file_name"] is not None:
                 if os.path.exists(shard_kwargs["cache_file_name"]) and load_from_cache_file:
                     info = shard.info.copy()
+                    if input_columns is not None and shard._indices is None:
+                        info.features = None
+                        cached_ds = Dataset.from_file(shard_kwargs["cache_file_name"], info=info, split=shard.split)
+                        reused_cols, surviving_source_cols = _get_reusable_columns(
+                            shard,
+                            input_columns,
+                            remove_columns,
+                            target_features=features,
+                            excluded_columns=cached_ds._data.column_names,
+                        )
+                        if reused_cols and (set(input_columns) - set(remove_columns or ())) <= set(
+                            cached_ds._data.column_names
+                        ):
+                            return _merge_reused_columns(
+                                shard, cached_ds, reused_cols, surviving_source_cols, target_features=features
+                            )
+                        if features is not None:
+                            cached_ds = cached_ds.cast(features)
+                        return cached_ds
                     info.features = features
                     return Dataset.from_file(shard_kwargs["cache_file_name"], info=info, split=shard.split)
             raise NonExistentDatasetError
@@ -3842,6 +3915,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # If set to False, no new arrow table will be created
 
         update_data = None
+        reuse_initialized = False
+        reused_cols: list[str] = []
+        reused_cols_set: set[str] = set()
+        surviving_source_cols: list[str] = []
 
         format_kwargs = shard._format_kwargs.copy()
         # Lazy formatting is only available for the default format (None/python)
@@ -3913,7 +3990,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return inputs, fn_args, additional_args, fn_kwargs
 
         def prepare_outputs(pa_inputs, inputs, processed_inputs):
-            nonlocal update_data
+            nonlocal update_data, reuse_initialized, reused_cols, reused_cols_set, surviving_source_cols
             if not (update_data := (processed_inputs is not None)):
                 return None
             if isinstance(processed_inputs, LazyDict):
@@ -3955,11 +4032,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
                     ) from None
             if isinstance(inputs, Mapping) and isinstance(processed_inputs, Mapping):
+                if not reuse_initialized:
+                    reuse_initialized = True
+                    reused_cols, surviving_source_cols = _get_reusable_columns(
+                        shard,
+                        input_columns,
+                        remove_columns,
+                        target_features=features,
+                        excluded_columns=processed_inputs.keys(),
+                    )
+                    reused_cols_set = set(reused_cols)
+                if reused_cols:
+                    inputs_to_merge = {k: v for k, v in inputs_to_merge.items() if k not in reused_cols_set}
                 # The .map() transform *updates* the dataset:
                 # the output dictionary contains both the input data and the output data.
                 # The output dictionary may contain Arrow values from `inputs_to_merge` so that we can re-write them efficiently.
                 return {**inputs_to_merge, **processed_inputs}
             else:
+                reuse_initialized = True
                 return processed_inputs
 
         def apply_function(pa_inputs, indices, offset=0):
@@ -3982,6 +4072,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 update_features = True
             else:
                 update_features = False
+            if reused_cols:
+                writer_features = Features({k: v for k, v in writer_features.items() if k not in reused_cols_set})
             if keep_in_memory or cache_file_name is None:
                 buf_writer = pa.BufferOutputStream()
                 tmp_file = None
@@ -4149,9 +4241,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             info = shard.info.copy()
             info.features = writer._features
             if buf_writer is None:
-                yield rank, True, Dataset.from_file(cache_file_name, info=info, split=shard.split)
+                mapped_shard = Dataset.from_file(cache_file_name, info=info, split=shard.split)
             else:
-                yield rank, True, Dataset.from_buffer(buf_writer.getvalue(), info=info, split=shard.split)
+                mapped_shard = Dataset.from_buffer(buf_writer.getvalue(), info=info, split=shard.split)
+            if reused_cols:
+                mapped_shard = _merge_reused_columns(
+                    shard, mapped_shard, reused_cols, surviving_source_cols, target_features=features
+                )
+            yield rank, True, mapped_shard
         else:
             yield rank, True, shard
 

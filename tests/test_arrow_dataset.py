@@ -1919,6 +1919,47 @@ class BaseDatasetTest(TestCase):
                         ),
                     )
 
+    def test_map_input_columns_reuses_unchanged_columns(self, in_memory):
+        if in_memory:
+            return
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            src_dir = os.path.join(tmp_dir, "src")
+            Dataset.from_dict(
+                {"big": ["x" * 5000] * 100, "small": list(range(100)), "drop_me": list(range(100))}
+            ).save_to_disk(src_dir)
+            dset = load_from_disk(src_dir, keep_in_memory=False)
+            src_size = os.path.getsize(dset.cache_files[0]["filename"])
+
+            fn = lambda s: {"small": s + 1, "double": s * 2}  # noqa: E731
+            with dset.map(fn, input_columns="small", remove_columns=["drop_me"]) as mapped:
+                self.assertEqual(mapped.column_names, ["big", "small", "double"])
+                self.assertEqual(list(mapped["small"]), [i + 1 for i in range(100)])
+                self.assertEqual(list(mapped["double"]), [i * 2 for i in range(100)])
+                self.assertEqual(mapped[0]["big"], "x" * 5000)
+                assert_arrow_metadata_are_synced_with_dataset_features(mapped)
+                new_cache_files = [
+                    cf["filename"] for cf in mapped.cache_files if cf["filename"] != dset.cache_files[0]["filename"]
+                ]
+                self.assertEqual(len(new_cache_files), 1)
+                self.assertLess(os.path.getsize(new_cache_files[0]), src_size * 0.2)
+
+                # Cache hit should also return all columns cleanly
+                with dset.map(fn, input_columns="small", remove_columns=["drop_me"]) as cached:
+                    self.assertEqual(cached.column_names, ["big", "small", "double"])
+                    self.assertEqual(list(cached["double"]), [i * 2 for i in range(100)])
+                    self.assertEqual(cached[0]["big"], "x" * 5000)
+
+                # Chained map + batched + num_proc=2
+                with mapped.map(
+                    lambda batch: {"triple": [x * 3 for x in batch]},
+                    input_columns="double",
+                    batched=True,
+                    num_proc=2,
+                ) as chained:
+                    self.assertEqual(chained.column_names, ["big", "small", "double", "triple"])
+                    self.assertEqual(list(chained["triple"]), [i * 6 for i in range(100)])
+                    self.assertEqual(chained[99]["big"], "x" * 5000)
+
     def test_map_remove_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
