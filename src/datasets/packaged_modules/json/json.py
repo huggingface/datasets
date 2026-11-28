@@ -31,6 +31,9 @@ from datasets.utils.json import (
 
 logger = datasets.utils.logging.get_logger(__name__)
 
+# pyarrow's JSON reader takes its block size as a 32-bit integer, so it can't read more bytes than this at once
+MAX_JSON_BLOCK_SIZE = 2**31 - 1
+
 
 def pandas_read_json(path_or_buf, **kwargs):
     if datasets.config.PANDAS_VERSION.major >= 2:
@@ -257,6 +260,11 @@ class Json(datasets.ArrowBasedBuilder):
                                         batch = "\n".join(
                                             ujson_dumps({"text": x}) for x in ujson_loads(full_data)
                                         ).encode()
+                                    if len(batch) > MAX_JSON_BLOCK_SIZE:
+                                        # too big to read at once: read the JSON Lines in chunks like a JSON Lines file.
+                                        # Smaller arrays are still read at once, so their schema is inferred from all the items
+                                        f = io.BytesIO(batch)
+                                        batch = f.read(self.config.chunksize)
                             # Finish current line
                             try:
                                 batch += f.readline()
