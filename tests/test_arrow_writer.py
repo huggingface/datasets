@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import numpy as np
 import pyarrow as pa
+import pyarrow.compute as pc
 import pyarrow.parquet as pq
 import pytest
 
@@ -231,6 +232,44 @@ def test_write_table_null_column_then_values():
             writer.write_table(pa.Table.from_pydict({"col_1": ["foobar"], "col_2": [1]}))
     assert "the first 2 values written for it were all None" in str(excinfo.value)
     assert "set the type of 'col_2' with features=" in str(excinfo.value).lower()
+
+
+def test_write_table_with_column_over_32_bit_offsets():
+    # Combining the chunks of a column with more than 2**31 - 1 values overflows 32-bit offsets.
+    # Null values have no buffers, so a list<null> column gets there without allocating memory.
+    def list_of_nulls(num_lists, list_size=2**28):
+        offsets = pa.array(range(0, (num_lists + 1) * list_size, list_size), type=pa.int32())
+        return pa.ListArray.from_arrays(offsets, pa.nulls(num_lists * list_size))
+
+    table = pa.table(
+        {
+            "col_1": pa.chunked_array([list_of_nulls(4), list_of_nulls(4)]),
+            "col_2": pa.chunked_array([[0, 1, 2, 3], [4, 5, 6, 7]]),
+        }
+    )
+    output = pa.BufferOutputStream()
+    with ArrowWriter(stream=output) as writer:
+        writer.write_table(table)
+        num_examples, _ = writer.finalize()
+    assert num_examples == 8
+    written = pa.ipc.open_stream(pa.BufferReader(output.getvalue())).read_all()
+    assert pc.list_value_length(written["col_1"]).to_pylist() == [2**28] * 8
+    assert written["col_2"].to_pylist() == list(range(8))
+
+
+def test_write_batch_with_chunked_numpy_list_values():
+    from .features.test_array_xd import split_object_arrays
+
+    data = np.array([["a"], ["b"], ["c"]], dtype=object)
+    output = pa.BufferOutputStream()
+    with patch("pyarrow.array", side_effect=split_object_arrays(pa.array)):
+        with ArrowWriter(stream=output) as writer:
+            writer.write_batch({"col_1": data})
+            num_examples, _ = writer.finalize()
+    assert num_examples == 3
+    written = pa.ipc.open_stream(pa.BufferReader(output.getvalue())).read_all()
+    assert written["col_1"].type == pa.list_(pa.string())
+    assert written.to_pydict() == {"col_1": [["a"], ["b"], ["c"]]}
 
 
 def test_write_file():
