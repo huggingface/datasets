@@ -1087,7 +1087,8 @@ class xPath(type(Path())):
     """Extension of `pathlib.Path` to support both local paths and remote URLs."""
 
     def __init__(self, *args, download_config: Optional[DownloadConfig] = None):
-        super().__init__(*args)
+        if sys.version_info >= (3, 12):
+            super().__init__(*args)
         self.download_config = download_config
 
     def __str__(self):
@@ -1160,7 +1161,7 @@ class xPath(type(Path())):
             globbed_paths = fs.glob(xjoin(main_hop, pattern))
             for globbed_path in globbed_paths:
                 yield type(self)(
-                    "::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops, download_config=self.download_config)
+                    "::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops), download_config=self.download_config
                 )
 
     def rglob(self, pattern, **kwargs):
