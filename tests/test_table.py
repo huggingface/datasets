@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 
 import numpy as np
 import pyarrow as pa
+import pyarrow.compute as pc
 import pytest
 
 from datasets.features import Array2D, ClassLabel, Features, Image, Json, LargeList, List, Value
@@ -826,6 +827,17 @@ def test_concatenation_table_filter(
     table = ConcatenationTable.from_blocks(blocks).filter(mask)
     assert table.table == in_memory_pa_table.filter(mask)
     assert isinstance(table, ConcatenationTable)
+
+
+def test_concatenation_table_filter_list_and_expression_masks(arrow_file, in_memory_pa_table):
+    source = MemoryMappedTable.from_file(arrow_file)
+    table = ConcatenationTable.from_blocks([[source.slice(0, 5)], [source.slice(5)]])
+    masks = [
+        [i % 2 == 0 for i in range(len(in_memory_pa_table))],
+        pc.field("id") >= 5,
+    ]
+    for mask in masks:
+        assert table.filter(mask).table.equals(table.table.filter(mask))
 
 
 @pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
