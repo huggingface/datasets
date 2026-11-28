@@ -134,7 +134,7 @@ def insert_json_field_path(json_field_paths: list[list[str]], json_field_path: l
 
 
 def json_encode_fields_in_json_lines(original_batch: bytes, json_field_paths: list[list[str]]) -> bytes:
-    examples = [ujson_loads(line) for line in original_batch.splitlines()]
+    examples = [ujson_loads(line) for line in original_batch.splitlines() if line.strip(b" \t\r\n")]
     for json_field_path in json_field_paths:
         examples = [json_encode_field(example, json_field_path) for example in examples]
     batch = "\n".join([ujson_dumps(example) for example in examples]).encode()
