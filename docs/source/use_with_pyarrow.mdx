@@ -5,6 +5,19 @@ datasets using Arrow compute functions, and how to convert a dataset to PyArrow 
 
 This is particularly useful as it allows fast zero-copy operations, since `datasets` uses PyArrow under the hood.
 
+## SQL query results from Redis
+
+The external [Redis ADBC driver](https://github.com/redis/redis-adbc-driver)
+can fetch Redis SQL query results as a PyArrow table. Pass that table to
+`Dataset(table)` to use Dataset transformations or local persistence.
+
+The [Redis-to-Dataset guide](https://github.com/redis/redis-adbc-driver/blob/a48432273a0f9978e893bca27057b9f128e7603e/docs/integrations/huggingface-datasets.md)
+includes driver installation, an Arrow query, conversion, local save/reload and
+filtering with type and row checks. Redis must run separately with Search
+enabled. The example uses `num_shards=1` when saving so empty results can also
+be reopened in the tested Datasets version. It describes a custom local Python
+workflow; it does not add a built-in Redis loader or require Hub access.
+
 ## Dataset format
 
 By default, datasets return regular Python objects: integers, floats, strings, lists, etc.
